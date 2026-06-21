@@ -286,3 +286,5 @@ global-groovy.log
 *.pfx
 secrets.toml
 jwt.txt
+
+dist
