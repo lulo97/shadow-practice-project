@@ -1,0 +1,288 @@
+# ==========================================
+# 1. OS & IDE GLOBAL FILES
+# ==========================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.Trashes
+
+# JetBrains (IntelliJ, Android Studio, Rider, WebStorm)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.history/
+*.code-workspace
+
+# Visual Studio (for .NET)
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Xcode / Linux
+专/
+DerivedData/
+.Caches/
+*~
+*.swp
+*.bak
+
+# ==========================================
+# 2. NODE.JS & WEB FRONTEND
+# (React, Angular, Vue, Next.js, Nuxt, Vite)
+# ==========================================
+node_modules/
+/dist
+/build
+/out
+.next/
+.nuxt/
+.vuepress/dist
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.lock-wscript
+syslinks/
+
+# ==========================================
+# 3. .NET ECOSYSTEM
+# (.NET Core, Framework, MAUI, Xamarin, MVC)
+# ==========================================
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bbin/
+obj/
+bin/
+
+# MAUI / Xamarin specific
+Generated\ Files/
+Packet\ Save/
+
+# Testing
+TestResults/
+*.trx
+
+# Roslyn analyzers
+*.cs.analyzerdata
+
+# Project-specific / Tooling
+*.suo
+*.userprefs
+*.vshost.exe
+*.vshost.exe.manifest
+*.cscfg
+*.csdef
+_ReSharper*/
+* crashdump *
+
+# ==========================================
+# 4. JAVA ECOSYSTEM
+# (Spring Boot, Maven, Gradle)
+# ==========================================
+# Compiled class files
+*.class
+*.log
+*.ctxt
+
+# Packaging
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+capture/
+
+# ==========================================
+# 5. PYTHON ECOSYSTEM
+# (Django, Flask, FastAPI)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.spec
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing / Reports
+.pytest_cache/
+.htmlcov/
+htmlcov/
+.coverage
+.coverage.*
+.tox/
+.noscript
+
+# ==========================================
+# 6. PHP ECOSYSTEM
+# (Laravel, CodeIgniter, Frappe/ERPNext)
+# ==========================================
+/vendor/
+bootstrap/cache/
+storage/*.key
+storage/framework/cache/data/
+storage/framework/views/
+storage/framework/sessions/
+storage/logs/
+.phpunit.result.cache
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# ==========================================
+# 7. MOBILE DEVELOPMENT
+# (Android Native, iOS, Flutter, React Native)
+# ==========================================
+# Android Native
+local.properties
+.gradle
+captures/
+*.apk
+*.aab
+output.json
+
+# iOS Native
+Pods/
+Podfile.lock
+Frameworks/
+*.xcworkspace
+!default.xcworkspace
+
+# Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+/build/
+Generated.xcconfig
+flutter_export_environment.sh
+
+# ==========================================
+# 8. C / C++ / CMAKE / EMBEDDED SYSTEMS
+# (AI SoC, Embedded Linux)
+# ==========================================
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.obj
+*.elf
+
+# Linker Files / Executables
+*.ilk
+*.map
+*.exp
+*.out
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# ==========================================
+# 9. DATABASES & BIG DATA
+# (SQL Server, MySQL, Postgres, Redis, Hadoop)
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sql.gz
+*.dump
+
+# Redis / InfluxDB / Logs
+*.rdb
+*.aof
+*.data
+
+# Hadoop / Hive / Spark
+derby.log
+metastore_db/
+spark-warehouse/
+
+# ==========================================
+# 10. DEVOPS, CLOUD & CI/CD
+# (Docker, AWS, Kubernetes)
+# ==========================================
+.elasticbeanstalk/
+.terraform/
+*.tfstate
+*.tfstate.backup
+.aws/
+.gcloud/
+
+# SoapUI / Testing logs
+soapui.log
+global-groovy.log
+
+# ==========================================
+# 11. SECURITY & ENVIRONMENT VARIABLES
+# ==========================================
+# Credentials, Tokens, and Secret configurations
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.pub
+*.pfx
+secrets.toml
+jwt.txt
