@@ -288,3 +288,4 @@ secrets.toml
 jwt.txt
 
 dist
+vendor
