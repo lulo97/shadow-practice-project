@@ -32,3 +32,26 @@ TECHNOLOGIES:
 - Application will be served through website on browser with frontend code and backend code will be 2 different instance. They will exchange data through HTTP protocal follow RESTful API style.
 - Database can be SQL or NoSQL
 - Videos can be stored as files or base64 strings
+
+USERS FLOW:
+1. Add a video/a audio through youtube links or an .mp4 file
+2. Click on that video to go to practice screen
+3. Click on a segment to listen
+4. Click on listen button to record
+5. View verdiction and repeat listen and repeat of needed
+6. Continue on next segment and finish that video.
+
+API DOCUMENT:
+
+GET /v1/health
+    + Input = none
+    + Output = { message: "Server is working!" }
+    + Status = 200 if success
+    + Status = 500 if not success and specific error string will be return to user
+
+POST /v1/videos
+    + Input = file (blob), link (string)
+    + Output = { error: string } for client, server will save videos as files
+    + Status = 201 if successfully created
+    + Status = 500 if not success and specific error string will be return to user
+    
