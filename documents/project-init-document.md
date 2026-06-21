@@ -45,7 +45,7 @@ API DOCUMENT:
 
 GET /v1/health
     + Input = none
-    + Output = { message: "Server is working!" }
+    + Output = { message: "ok" }
     + Status = 200 if success
     + Status = 500 if not success and specific error string will be return to user
 

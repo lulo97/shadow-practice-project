@@ -5,7 +5,7 @@ app.MapGet("/", () => "Hello World!");
 
 app.MapGet("/v1/health", () => new
 {
-    message = "Server is working!"
+    message = "ok"
 });
 
 app.Run();
