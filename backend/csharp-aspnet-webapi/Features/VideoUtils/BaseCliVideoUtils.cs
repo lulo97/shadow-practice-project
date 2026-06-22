@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
+//This is an abstract class because it can't exist without real implement of ytb-dl or other tools
+//But it still have own logic inside methods unlike interface
 public abstract class BaseCliVideoUtils : IVideoUtils
 {
     //This can be any CLI tools, like you-get or ytb-dl
