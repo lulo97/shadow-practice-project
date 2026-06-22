@@ -3,3 +3,5 @@ To create new project:
     dotnet new web
 To run:
     dotnet run
+To view packages:
+    dotnet list package
