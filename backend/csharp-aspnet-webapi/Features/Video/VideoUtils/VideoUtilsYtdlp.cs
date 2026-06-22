@@ -10,7 +10,9 @@ public class VideoUtilsYtdlp : IVideoUtils
         int h = 720;
         string ext = "mp4";
 
-        string arguments = $"--no-warnings --print \"%(id)s|||%(title)s\" -f \"bestvideo[height={h}][ext={ext}]+bestaudio[ext=m4a]/best[height={h}][ext={ext}]\" -o - \"{link}\"";
+        string seperator = "|||";
+
+        string arguments = $"--no-warnings --print \"%(id)s{seperator}%(title)s\" -f \"bestvideo[height={h}][ext={ext}]+bestaudio[ext=m4a]/best[height={h}][ext={ext}]\" -o - \"{link}\"";
 
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
@@ -46,7 +48,7 @@ public class VideoUtilsYtdlp : IVideoUtils
             
                 Console.WriteLine($"[yt-dlp stderr]: {line}");
 
-                if (metadataLine == null && line.Contains("|||"))
+                if (metadataLine == null && line.Contains(seperator))
                 {
                     metadataLine = line;
                     metadataReady.Set();
@@ -64,7 +66,7 @@ public class VideoUtilsYtdlp : IVideoUtils
         }
 
         //Run after metadataReady.Set();
-        string[] parts = metadataLine.Split(new[] { "|||" }, StringSplitOptions.None);
+        string[] parts = metadataLine.Split(new[] { seperator }, StringSplitOptions.None);
         string id = parts[0].Trim();
         string title = parts[1].Trim();
 
