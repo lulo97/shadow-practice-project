@@ -4,14 +4,14 @@ SHADOW PRACTICE PROJECT
 
 FUNCTIONS:
 - Target users are Vietnamese people who like to practice English.
-- A user select an video or an audio to listen and repeat.
+- A user select an video to listen and repeat.
 - Videos can be fetch from youtube or other similar platform, or can be imported as files or links.
     + Users can select existed video database from application or import their own.
-- A video or audio can be extracted to get a transcript which is segments of text with start time and end time. This process involves Automatic Speech Recognition (ASR) in timestamps level.
+- A video can be extracted to get a transcript which is segments of text with start time and end time. This process involves Automatic Speech Recognition (ASR) in timestamps level.
     + If a youtube already have transcription then just fetch it directly
     + If a youtube don't have transcription or a imported file then user ASR model to get transcription
 - A user can pick a segment to play from start time to end time, this allow users can practice on a short amount of audio.
-- A user can practice speaking and application with save audio file to extract text from there. This process involves speech-to-text (STT) technology. This allow users can verdict their own speaking skill.
+- A user can practice speaking with saved video file. This process involves speech-to-text (STT) technology. This allow users can verdict their own speaking skill.
 - A user can select multiple different speech to text models to get an objective verdiction.
     + If current STT model quality is bad then user can select a better STT model
 - A user can see video and see english transcript and vietnamese transcript to understand about the content of current segment audio. 
@@ -34,7 +34,7 @@ TECHNOLOGIES:
 - Videos can be stored as files or base64 strings
 
 USERS FLOW:
-1. Add a video/a audio through youtube links or an .mp4 file
+1. Add a video through youtube links or an .mp4 file
 2. Click on that video to go to practice screen
 3. Click on a segment to listen
 4. Click on listen button to record
