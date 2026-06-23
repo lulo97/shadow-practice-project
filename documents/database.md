@@ -65,3 +65,22 @@ Records (
     stt_provider_key string, //model id when do speech to text, if user record 2 time on same line of different stt models then this design support it
     created_at datetime, //time when user record this
 )
+
+Jobs (
+  id int, -- auto increment
+  user_id int,
+  video_id int,
+  status text, -- QUEUED, RUNNING, DONE, FAILED
+  type text, -- VIDEO_INGEST or TRANSLATION
+  created_at datetime
+)
+
+JobSteps (
+  id int,
+  job_id int,
+  step text, -- DOWNLOAD, EXTRACT_AUDIO, ASR, STORE_LINES
+  status text, -- PENDING, RUNNING, DONE, FAILED, SKIPPED
+  error_msg text,
+  started_at datetime,
+  ended_at datetime
+)
