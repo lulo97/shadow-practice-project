@@ -84,3 +84,21 @@ JobSteps (
   started_at datetime,
   ended_at datetime
 )
+
+/*
+User login
+Server verify username, password
+Server create token and insert new row in sessions table
+Server send response with header Set-Cookie so browser save the same token on cookie
+Every new auth requests make server read sessions table to:
+- If not expires and valid then continue process
+- If expires or no rows then return unauthen 401
+/logout also does remove sessions row (Set-Cookie: session=; Max-Age=0   ← tell browser to drop it)
+*/
+Sessions (
+    id          int
+    user_id     int
+    token       text
+    created_at  datetime
+    expires_at  datetime
+)
