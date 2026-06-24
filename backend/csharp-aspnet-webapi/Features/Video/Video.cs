@@ -26,4 +26,5 @@ public class Video
     public string Title { get; set; } = string.Empty;
 
     public string? Description { get; set; }
+    public ICollection<TranscriptLine> TranscriptLines { get; set; } = [];
 }

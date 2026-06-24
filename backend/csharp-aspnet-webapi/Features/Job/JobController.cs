@@ -15,9 +15,13 @@ public class JobController : ControllerBase
     [HttpPost("video")]
     public async Task<IActionResult> Video([FromBody] JobRequest request)
     {
-        if (!YoutubeUtils.IsValid(request.YoutubeLink))
+        Console.WriteLine($"[API Controller] Handling request on Thread ID: {Environment.CurrentManagedThreadId}");
+
+        var (valid, valid_message) = YoutubeUtils.IsValid(request.YoutubeLink);
+
+        if (!valid)
         {
-            return BadRequest(new { message = "Link invalid" });
+            return BadRequest(new { message = valid_message });
         }
 
         var youtube_id = YoutubeUtils.GetVideoId(request.YoutubeLink) ?? throw new Exception("");
@@ -48,19 +52,6 @@ public class JobController : ControllerBase
         };
 
         _context.Jobs.Add(new_job);
-
-        await _context.SaveChangesAsync();
-
-        var steps = Enum.GetValues<JobStepProcess>();
-
-        var jobSteps = steps.Select(stepName => new JobStep
-        {
-            JobId = new_job.Id,
-            Step = stepName,
-            Status = JobStepStatus.PENDING
-        });
-
-        await _context.JobSteps.AddRangeAsync(jobSteps);
 
         await _context.SaveChangesAsync();
 

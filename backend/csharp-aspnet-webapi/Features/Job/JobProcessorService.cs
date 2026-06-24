@@ -13,11 +13,14 @@ public class JobProcessorService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        Console.WriteLine($"[Background Service] Starting on Thread ID: {Environment.CurrentManagedThreadId}");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var videoJobUtils = scope.ServiceProvider.GetRequiredService<VideoJobUtils>();
 
                 // Find the oldest queued job
                 var job = await dbContext.Jobs
@@ -27,7 +30,8 @@ public class JobProcessorService : BackgroundService
 
                 if (job != null)
                 {
-                    await ProcessJobAsync(job, dbContext);
+                    Console.WriteLine($"[Background Service] Processing job {job.Id} on Thread ID: {Environment.CurrentManagedThreadId}");
+                    await ProcessJobAsync(job, dbContext, videoJobUtils);
                 }
             }
 
@@ -36,24 +40,26 @@ public class JobProcessorService : BackgroundService
         }
     }
 
-    private async Task ProcessJobAsync(Job job, AppDbContext db)
+    private async Task ProcessJobAsync(Job job, AppDbContext db, VideoJobUtils videoJobUtils)
     {
         job.Status = JobStatus.Running;
         await db.SaveChangesAsync();
 
-        var steps = await db.JobSteps
-            .Where(s => s.JobId == job.Id)
-            .OrderBy(s => s.Id)
-            .ToListAsync();
+        var video = await db.Videos.FindAsync(job.VideoId);
 
-        foreach (var step in steps)
+        try
         {
-            // Execute logic based on step.Step
-            // Update step.Status = "DONE" or "FAILED"
-            await db.SaveChangesAsync();
+            if (job.Type == JobType.VideoIngest)
+                await videoJobUtils.Run(job.Id, video.YoutubeId, job.VideoId);
+
+            job.Status = JobStatus.Done;
+        }
+        catch (Exception ex)
+        {
+            job.Status = JobStatus.Failed;
+            Console.WriteLine($"[Job {job.Id}] Failed: {ex.Message}");
         }
 
-        job.Status = JobStatus.Done;
         await db.SaveChangesAsync();
     }
 }

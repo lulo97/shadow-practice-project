@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { callApi } from "../utils/apiUtils";
 import { ModalComponent } from "../components/modal/modal.component";
+import { messageUtils } from "../utils/messageUtils";
 
 @Component({
   selector: "app-root",
@@ -12,16 +13,30 @@ import { ModalComponent } from "../components/modal/modal.component";
 export class AppComponent {
   title = "my-angular-app";
 
-  ngOnInit() {
-    callApi({
-      endpoint: "/health",
-      method: "GET",
-    });
+  async ngOnInit() {
+    try {
+      await callApi({
+        endpoint: "/health",
+        method: "GET",
+      });
+    } catch (error) {
+      messageUtils("Backend not connected");
+      throw error;
+    }
 
-    callApi({
-      endpoint: "api/auth/me",
-      method: "GET",
-      credentials: "include", //allow to send cookie from browser to server
-    });
+    const currentPath = window.location.pathname;
+
+    if (currentPath !== "/login") {
+      const result_me = await callApi({
+        endpoint: "api/auth/me",
+        method: "GET",
+        credentials: "include", //allow to send cookie from browser to server
+      });
+
+      if (!result_me.success) {
+        messageUtils(result_me.message);
+        window.location.href = "/login";
+      }
+    }
   }
 }

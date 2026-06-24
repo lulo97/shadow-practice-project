@@ -23,7 +23,28 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Register the background service
+builder.Services.AddHostedService<JobProcessorService>();
+
+//Testing
+builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
+builder.Services.AddTransient<IAsrService, FakeAsrService>();
+builder.Services.AddScoped<VideoJobUtils>();
+
 var app = builder.Build();
+
+// Explicitly seed the database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Check if empty before adding to avoid duplicate key errors on restart
+    if (!context.Users.Any())
+    {
+        context.Users.Add(new User { Id = 1, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
+        context.SaveChanges();
+    }
+}
 
 app.UseCors("AllowLocalhost3001");
 

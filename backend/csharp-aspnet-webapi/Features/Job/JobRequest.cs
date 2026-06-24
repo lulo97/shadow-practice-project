@@ -1,5 +1,4 @@
 ﻿public class JobRequest
 {
-    public required string YoutubeLink;
+    public required string YoutubeLink { get; set; }
 }
-
