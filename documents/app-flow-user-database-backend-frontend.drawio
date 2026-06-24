@@ -28,7 +28,7 @@
         <mxCell id="uh5HuVGe4MMPm--HriF--12" edge="1" parent="1" source="uh5HuVGe4MMPm--HriF--9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uh5HuVGe4MMPm--HriF--11" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="uh5HuVGe4MMPm--HriF--9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Fetch /me api" vertex="1">
+        <mxCell id="uh5HuVGe4MMPm--HriF--9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Fetch /auth/me api" vertex="1">
           <mxGeometry height="30" width="120" x="240" y="140" as="geometry" />
         </mxCell>
         <mxCell id="uh5HuVGe4MMPm--HriF--14" edge="1" parent="1" source="uh5HuVGe4MMPm--HriF--11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uh5HuVGe4MMPm--HriF--13" value="">
@@ -92,7 +92,7 @@
         <mxCell id="uh5HuVGe4MMPm--HriF--31" edge="1" parent="1" source="uh5HuVGe4MMPm--HriF--28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uh5HuVGe4MMPm--HriF--30" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="uh5HuVGe4MMPm--HriF--28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Post /signup api" vertex="1">
+        <mxCell id="uh5HuVGe4MMPm--HriF--28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Post /auth/signup api" vertex="1">
           <mxGeometry height="30" width="120" x="240" y="350" as="geometry" />
         </mxCell>
         <mxCell id="uh5HuVGe4MMPm--HriF--35" edge="1" parent="1" source="uh5HuVGe4MMPm--HriF--30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uh5HuVGe4MMPm--HriF--34" value="">
@@ -130,8 +130,14 @@
         <mxCell id="uh5HuVGe4MMPm--HriF--39" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Enter username, password" vertex="1">
           <mxGeometry height="30" width="120" x="40" y="430" as="geometry" />
         </mxCell>
+        <mxCell id="uh5HuVGe4MMPm--HriF--44" edge="1" parent="1" source="uh5HuVGe4MMPm--HriF--41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uh5HuVGe4MMPm--HriF--43" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="uh5HuVGe4MMPm--HriF--41" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Redirect to /" vertex="1">
           <mxGeometry height="30" width="120" x="240" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="uh5HuVGe4MMPm--HriF--43" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Add new row to sessions table, expires day = 7" vertex="1">
+          <mxGeometry height="45" width="120" x="440" y="495" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
