@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net">
+<mxfile host="app.diagrams.net" pages="2">
   <diagram name="Trang-1" id="Jm-gvMtTRtKfljgLak8y">
     <mxGraphModel dx="1155" dy="676" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -138,6 +138,86 @@
         </mxCell>
         <mxCell id="uh5HuVGe4MMPm--HriF--43" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Add new row to sessions table, expires day = 7" vertex="1">
           <mxGeometry height="45" width="120" x="440" y="495" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="dYC_zdJ1h6quLA6sU8dB" name="Trang-2">
+    <mxGraphModel dx="818" dy="479" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="QDE1jDah8MHSyel7rGVl-2" edge="1" parent="1" source="bzv6ltv-Xwjnp6NJTZ3q-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bzv6ltv-Xwjnp6NJTZ3q-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="User" vertex="1">
+          <mxGeometry height="40" width="120" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bzv6ltv-Xwjnp6NJTZ3q-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Frontend" vertex="1">
+          <mxGeometry height="40" width="120" x="240" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bzv6ltv-Xwjnp6NJTZ3q-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Backend" vertex="1">
+          <mxGeometry height="40" width="120" x="440" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bzv6ltv-Xwjnp6NJTZ3q-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Database" vertex="1">
+          <mxGeometry height="40" width="120" x="640" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-4" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Enter youtube link, click add" vertex="1">
+          <mxGeometry height="30" width="120" x="40" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-6" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="POST /api/job/video with body = { link }" vertex="1">
+          <mxGeometry height="30" width="120" x="240" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-8" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-10" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-14" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-15" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Add a new job in jobs table.&lt;div&gt;Add multiple rows to jobsteps table&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="440" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Insert a job and jobsteps" vertex="1">
+          <mxGeometry height="30" width="120" x="640" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-12" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-19" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-18" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Worker wake and pick jobstep one by one." vertex="1">
+          <mxGeometry height="40" width="120" x="440" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Update jobsteps status" vertex="1">
+          <mxGeometry height="35" width="120" x="640" y="242.5" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-21" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-20" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Send data to frontend with SSE or WebSocket" vertex="1">
+          <mxGeometry height="50" width="120" x="440" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-23" edge="1" parent="1" source="QDE1jDah8MHSyel7rGVl-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QDE1jDah8MHSyel7rGVl-22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Update UI for video status" vertex="1">
+          <mxGeometry height="50" width="120" x="240" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="QDE1jDah8MHSyel7rGVl-22" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="View video status" vertex="1">
+          <mxGeometry height="50" width="120" x="40" y="360" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

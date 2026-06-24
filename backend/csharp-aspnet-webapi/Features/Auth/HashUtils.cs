@@ -2,11 +2,13 @@
 {
     public static string HashPassword(string password)
     {
-        return "123";
+        //Properly hash later
+        return password;
     }
 
     public static bool Verify(string password, string hashed_password)
     {
-        return true;
+        //Properly verify later
+        return password == hashed_password;
     }
 }

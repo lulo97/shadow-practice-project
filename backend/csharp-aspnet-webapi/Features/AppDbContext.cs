@@ -7,4 +7,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Session> Sessions { get; set; }
+    public DbSet<Job> Jobs { get; set; }
+    public DbSet<JobStep> JobSteps { get; set; }
+    public DbSet<Video> Videos { get; set; }
 }

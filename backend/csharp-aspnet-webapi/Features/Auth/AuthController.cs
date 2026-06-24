@@ -17,34 +17,18 @@ public class AuthController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
-        if (!Request.Cookies.TryGetValue(CookieName, out var token))
-        {
-            return Unauthorized(new { message = "Not authenticated" });
-        }
+        var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
 
-        var session = await _context.Sessions
-            .FirstOrDefaultAsync(s => s.token == token);
-
-        if (session == null || session.expires_at < DateTime.UtcNow)
+        if (error.HasValue)
         {
-            //Clean up if found expires row
-            if (session != null)
+            return error switch
             {
-                _context.Sessions.Remove(session);
-                await _context.SaveChangesAsync();
-            }
-            return Unauthorized(new { message = "Session expired or invalid" });
+                AuthError.UserNotFound => NotFound(new { message = "User not found" }),
+                _ => Unauthorized(new { message = error.ToString() })
+            };
         }
 
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.id == session.user_id);
-
-        if (user == null)
-        {
-            return NotFound(new { message = "User not found" });
-        }
-
-        return Ok(new { user.id, user.username, user.created_at });
+        return Ok(new { user!.Id, user.Username, user.CreatedAt });
     }
 
     [HttpPost("signup")]
@@ -55,7 +39,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Username and password are required." });
         }
 
-        var userExists = await _context.Users.AnyAsync(u => u.username == request.Username);
+        var userExists = await _context.Users.AnyAsync(u => u.Username == request.Username);
         if (userExists)
         {
             return BadRequest(new { message = "Username is already taken." });
@@ -63,9 +47,9 @@ public class AuthController : ControllerBase
 
         var newUser = new User
         {
-            username = request.Username,
-            password_hashed = HashUtils.HashPassword(request.Password),
-            created_at = DateTime.UtcNow
+            Username = request.Username,
+            PasswordHashed = HashUtils.HashPassword(request.Password),
+            CreatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(newUser);
@@ -77,20 +61,20 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> LogIn([FromBody] AuthRequest request)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.username == request.Username);
-        if (user == null || !HashUtils.Verify(request.Password, user.password_hashed))
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        if (user == null || !HashUtils.Verify(request.Password, user.PasswordHashed))
         {
-            return Unauthorized(new { message = "Invalid username or password." });
+            return Unauthorized(new { message = "Invalid Username or password." });
         }
 
-        var token = Utils.GetStrongToken();
+        var Token = Utils.GetStrongToken();
 
         var session = new Session
         {
-            user_id = user.id,
-            token = token,
-            created_at = DateTime.UtcNow,
-            expires_at = DateTime.UtcNow.AddDays(ExpiresDay)
+            UserId = user.Id,
+            Token = Token,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(ExpiresDay)
         };
 
         _context.Sessions.Add(session);
@@ -100,21 +84,21 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
-            Expires = session.expires_at
+            SameSite = SameSiteMode.None,
+            Expires = session.ExpiresAt
         };
 
-        Response.Cookies.Append(CookieName, token, cookieOptions);
+        Response.Cookies.Append(CookieName, Token, cookieOptions);
 
-        return Ok(new { message = "Login successful", user = new { user.id, user.username } });
+        return Ok(new { message = "Login successful", user = new { user.Id, user.Username } });
     }
 
     [HttpPost("logout")]
     public async Task<IActionResult> LogOut()
     {
-        if (Request.Cookies.TryGetValue(CookieName, out var token))
+        if (Request.Cookies.TryGetValue(CookieName, out var Token))
         {
-            var session = await _context.Sessions.FirstOrDefaultAsync(s => s.token == token);
+            var session = await _context.Sessions.FirstOrDefaultAsync(s => s.Token == Token);
             if (session != null)
             {
                 _context.Sessions.Remove(session);
