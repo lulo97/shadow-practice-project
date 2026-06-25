@@ -1,0 +1,11 @@
+llama-server.exe ^
+    -m C:\models\gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf ^
+    --model-draft C:\models\gemma-4-E4B-it-Q4_0-MTP.gguf ^
+    --spec-type draft-mtp ^
+    --spec-draft-n-max 4 ^
+    -ngl 999 ^
+    -fa off ^
+    -c 32768 ^
+    --temp 1.0 ^
+    --top-p 0.95 ^
+    --top-k 64

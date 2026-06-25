@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,8 +32,9 @@ builder.Services.AddHostedService<JobProcessorService>();
 builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
 builder.Services.AddTransient<IAsrService, FakeAsrService>();
 builder.Services.AddScoped<ISTT, WhisperCpp>();
-builder.Services.AddHostedService<WhisperService>();
+builder.Services.AddHostedService<ExternalServerStarter>(); 
 builder.Services.AddScoped<VideoJobUtils>();
+builder.Services.AddScoped<ILLM, FakeLlm>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

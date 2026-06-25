@@ -107,7 +107,7 @@ export class TranslationComponent {
   transcriptLines: TranscriptLine[] = [];
 
   ngOnInit() {
-    this.reset()
+    this.reset();
   }
 
   videoId: number = this.modal.config().data?.videoId;
@@ -123,8 +123,22 @@ export class TranslationComponent {
     navigator.clipboard.writeText(prompt);
   }
 
-  autoTranslate() {
-    /* call LLM API */
+  async autoTranslate() {
+    const result = await callApi({
+      endpoint: `api/transcripts/llm/${this.videoId}`,
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    messageUtils(result.message);
+
+    await this.reset();
+
+    await this.modal.config().data.fetchTranscriptLines();
   }
 
   async reset() {

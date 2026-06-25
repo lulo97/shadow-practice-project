@@ -1,0 +1,1 @@
+whisper-server.exe --model D:/sentence-shadower/ggml-large-v3-turbo-q8_0.bin --port 8080 --host 0.0.0.0

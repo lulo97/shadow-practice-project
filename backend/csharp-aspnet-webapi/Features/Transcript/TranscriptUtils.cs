@@ -42,4 +42,14 @@
             })
             .ToList();
     }
+
+    public static string BuildTranscriptForLlm(List<TranscriptLine> transcriptLines)
+    {
+        var output = "";
+        for (int i = 0; i < transcriptLines.Count; i++)
+        {
+            output += $"{i + 1}{expectedPrefixSymbol} {transcriptLines[i]}\n";
+        }
+        return output;
+    }
 }

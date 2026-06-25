@@ -6,10 +6,12 @@ using Microsoft.EntityFrameworkCore;
 public class TranscriptsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILLM _llm;
 
-    public TranscriptsController(AppDbContext context)
+    public TranscriptsController(AppDbContext context, ILLM llm)
     {
         _context = context;
+        _llm = llm;
     }
 
     [HttpGet("{video_id}")]
@@ -65,56 +67,57 @@ public class TranscriptsController : ControllerBase
     public async Task<IActionResult> Skip(int transcript_line_id)
     {
         var transcriptLine = await _context.TranscriptLines.FindAsync(transcript_line_id);
-
-        if (transcriptLine == null)
-        {
-            return NotFound();
-        }
+        if (transcriptLine == null) return NotFound();
 
         transcriptLine.Skip = transcriptLine.Skip == 0 ? 1 : 0;
-
         await _context.SaveChangesAsync();
-
         return Ok(transcriptLine);
     }
 
     [HttpPost("translate/{video_id}")]
     public async Task<IActionResult> Translate(int video_id, [FromBody] TranslateRequest request)
     {
-        var (is_valid, message) = TranscriptUtils.ValidateViText(request.ViText);
-        if (!is_valid)
-            return BadRequest(new { message });
+        var parsed = TranscriptUtils.ParseViText(request.ViText);
+        var (isValid, message) = TranscriptUtils.ValidateViText(request.ViText);
 
-        var parsed_vi_text = TranscriptUtils.ParseViText(request.ViText);
+        if (!isValid) return BadRequest(new { message });
 
+        return await UpdateViTextAsync(video_id, parsed);
+    }
+
+    [HttpGet("llm/{video_id}")]
+    public async Task<IActionResult> LLM(int video_id)
+    {
+        var lines = await _context.TranscriptLines.Where(x => x.VideoId == video_id).ToListAsync();
+        var output = await _llm.RunAsync(TranscriptUtils.BuildTranscriptForLlm(lines));
+
+        var (isValid, message) = TranscriptUtils.ValidateViText(output);
+        if (!isValid) return BadRequest(new { message });
+
+        return await UpdateViTextAsync(video_id, TranscriptUtils.ParseViText(output), "Auto saved");
+    }
+
+    private async Task<IActionResult> UpdateViTextAsync(int videoId, List<string> parsedViText, string actionName = "Saved")
+    {
         var transcriptLines = await _context.TranscriptLines
-            .Where(x => x.VideoId == video_id)
+            .Where(x => x.VideoId == videoId)
             .OrderBy(x => x.LineIndex)
             .ToListAsync();
 
         if (transcriptLines.Count == 0)
-            return NotFound(new { message = $"No transcript lines found for video {video_id}" });
+            return NotFound(new { message = $"No transcript lines found for video {videoId}" });
 
-        if (parsed_vi_text.Count != transcriptLines.Count)
-            return BadRequest(new
-            {
-                message =
-                $"Line count mismatch: got {parsed_vi_text.Count} translated lines " +
-                $"but video has {transcriptLines.Count} transcript lines."
-            });
+        if (parsedViText.Count != transcriptLines.Count)
+            return BadRequest(new { message = $"Line count mismatch: got {parsedViText.Count} lines but video has {transcriptLines.Count}." });
 
         for (int i = 0; i < transcriptLines.Count; i++)
-            transcriptLines[i].ViText = parsed_vi_text[i];
+        {
+            transcriptLines[i].ViText = parsedViText[i];
+        }
 
         await _context.SaveChangesAsync();
-
-        return Ok(new { message = $"Saved {parsed_vi_text.Count} vi text lines" });
+        return Ok(new { message = $"{actionName} {parsedViText.Count} vi text lines" });
     }
-}
-
-public class TranslateRequest
-{
-    public string ViText { get; set; }
 }
 
 
