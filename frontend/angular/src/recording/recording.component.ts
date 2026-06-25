@@ -9,6 +9,7 @@ import { TranslationComponent } from "./translation.component";
 import { ModalService } from "../components/modal/modal.service";
 import { signal, computed } from '@angular/core';
 import { SettingComponent } from "./setting.component";
+import { RecordHistoryComponent } from "./recordhistory.component";
 
 interface Sentence {
   id: number;
@@ -78,6 +79,8 @@ interface Sentence {
               <span>⏭ Skip</span>
             </ng-template>
           </button>
+
+          <button (click)="openRecordHistory()" >Record History</button>
         </div>
 
         <!-- My recording -->
@@ -488,6 +491,25 @@ export class RecordingComponent {
       },
       data: {
 
+      },
+    });
+  }
+
+  openRecordHistory() {
+    if (!this.activeTranscriptLine) {
+      messageUtils("activeTranscriptLine null!");
+      return;
+    }
+
+    this.modal.open({
+      title: "Record History Modal",
+      component: RecordHistoryComponent,
+      size: "lg",
+      onClose: async () => {
+        //await this.fetchTranscriptLines()
+      },
+      data: {
+        records: this.activeTranscriptLine?.records
       },
     });
   }
