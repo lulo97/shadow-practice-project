@@ -17,22 +17,6 @@ public class RecordsController : ControllerBase
     {
         using var stream = dto.File.OpenReadStream();
 
-        // WAV Header is 44 bytes
-        byte[] header = new byte[44];
-        await stream.ReadAsync(header, 0, 44);
-
-        // Byte Rate is located at offset 28
-        int byteRate = BitConverter.ToInt32(header, 28);
-
-        // Subchunk2Size (Data Size) is located at offset 40
-        int dataSize = BitConverter.ToInt32(header, 40);
-
-        // Duration = DataSize / ByteRate
-        int durationSeconds = dataSize / byteRate;
-
-        // Reset the stream position
-        stream.Position = 0;
-
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
@@ -61,7 +45,6 @@ public class RecordsController : ControllerBase
             FilePath = null,
             BlobData = bytes, //For test
             Score = SttUtils.GetScore(transcript_line.Text, sttText),
-            DurationSeconds = durationSeconds,
             SttProviderKey = _stt.GetKey()
         };
 
@@ -71,11 +54,47 @@ public class RecordsController : ControllerBase
         return Ok(new { message = $"New record id = {record.Id}" });
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Record>> GetRecord(int id)
+    [HttpGet("metadata/{id}")]
+    public async Task<ActionResult> GetMetadata(int id)
     {
         var record = await _context.Records.FindAsync(id);
-        return record is null ? NotFound() : Ok(record);
+
+        if (record == null)
+        {
+            return NotFound();
+        }
+
+        var record_dto = new
+        {
+            record.Id,
+            record.FilePath,
+            record.TranscriptLineId,
+            record.SttProviderKey,
+            record.SttText,
+            record.CreatedAt
+        };
+
+        return Ok(record_dto);
+    }
+
+    [HttpGet("file/{id}")]
+    public async Task<ActionResult> GetFile(int id)
+    {
+        var record = await _context.Records.FindAsync(id);
+
+        if (record == null)
+        {
+            return NotFound();
+        }
+
+        var blob_data = record.BlobData;
+
+        if (blob_data == null)
+        {
+            return NoContent();
+        }
+
+        return File(blob_data, "audio/wav", $"{id}.wav");
     }
 }
 

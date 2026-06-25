@@ -64,5 +64,23 @@ public class VideosController : ControllerBase
 
         return File(video.BlobData, "video/mp4", enableRangeProcessing: true);
     }
+
+    [HttpGet("metadata/{video_id}")]
+    public async Task<IActionResult> GetVideoMetadata(int video_id)
+    {
+        var video = await _context.Videos.FindAsync(video_id);
+
+        if (video == null) return NotFound();
+        var video_dto = new
+        {
+            video.Id,
+            video.Title,
+            video.CreatedAt,
+            video.Description,
+            video.YoutubeId
+        };
+
+        return Ok(video_dto);
+    }
 }
 

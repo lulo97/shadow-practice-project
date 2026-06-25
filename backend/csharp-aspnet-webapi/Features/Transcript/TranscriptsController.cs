@@ -26,7 +26,6 @@ public class TranscriptsController : ControllerBase
                 FilePath = "/uploads/recordings/user42_line1.webm",
                 BlobData = null,
                 Score = 87,
-                DurationSeconds = 12,
                 SttText = "This is a sample transcription from the user.",
                 SttProviderKey = "google_stt_v1",
                 CreatedAt = DateTime.UtcNow
@@ -44,10 +43,18 @@ public class TranscriptsController : ControllerBase
             line.Start,
             line.End,
             line.Skip,
-            //Records = _context.Records
-            //    .Where(r => r.TranscriptLineId == line.Id)
-            //    .ToList()
-            Records = fake_records
+            Records = _context.Records
+                .Where(r => r.TranscriptLineId == line.Id)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.SttText,
+                    r.Score,
+                    r.SttProviderKey,
+                    r.CreatedAt
+                })
+                .ToList()
+            //Records = fake_records
         })
         .ToListAsync();
 
@@ -70,6 +77,44 @@ public class TranscriptsController : ControllerBase
 
         return Ok(transcriptLine);
     }
+
+    [HttpPost("translate/{video_id}")]
+    public async Task<IActionResult> Translate(int video_id, [FromBody] TranslateRequest request)
+    {
+        var (is_valid, message) = TranscriptUtils.ValidateViText(request.ViText);
+        if (!is_valid)
+            return BadRequest(new { message });
+
+        var parsed_vi_text = TranscriptUtils.ParseViText(request.ViText);
+
+        var transcriptLines = await _context.TranscriptLines
+            .Where(x => x.VideoId == video_id)
+            .OrderBy(x => x.LineIndex)
+            .ToListAsync();
+
+        if (transcriptLines.Count == 0)
+            return NotFound(new { message = $"No transcript lines found for video {video_id}" });
+
+        if (parsed_vi_text.Count != transcriptLines.Count)
+            return BadRequest(new
+            {
+                message =
+                $"Line count mismatch: got {parsed_vi_text.Count} translated lines " +
+                $"but video has {transcriptLines.Count} transcript lines."
+            });
+
+        for (int i = 0; i < transcriptLines.Count; i++)
+            transcriptLines[i].ViText = parsed_vi_text[i];
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = $"Saved {parsed_vi_text.Count} vi text lines" });
+    }
+}
+
+public class TranslateRequest
+{
+    public string ViText { get; set; }
 }
 
 

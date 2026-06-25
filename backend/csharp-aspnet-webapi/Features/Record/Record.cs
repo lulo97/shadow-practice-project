@@ -23,8 +23,6 @@ public class Record
     [Range(0, 100)]
     public int Score { get; set; }
 
-    public int DurationSeconds { get; set; }
-
     public string? SttText { get; set; }
 
     public string? SttProviderKey { get; set; }

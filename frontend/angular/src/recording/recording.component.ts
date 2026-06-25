@@ -4,6 +4,9 @@ import { callApi } from "../utils/apiUtils";
 import { messageUtils } from "../utils/messageUtils";
 import { TranscriptLine } from "./transcriptline.interface";
 import { AudioService } from "../services/audio.service";
+import { Video } from "../homepage/video.interface";
+import { TranslationComponent } from "./translation.component";
+import { ModalService } from "../components/modal/modal.service";
 
 interface Sentence {
   id: number;
@@ -25,9 +28,9 @@ interface Sentence {
     <div style="display:flex; border-bottom:1px solid #ccc;">
       <button (click)="goBack()" style="flex:1; padding:8px;">Back</button>
       <div style="flex:2; padding:8px; text-align:center;">
-        {{ 123333 }}
+        {{ videoMetadata ? videoMetadata.title : "Title" }}
       </div>
-      <button (click)="toggleTranslation()" style="flex:1; padding:8px;">
+      <button (click)="openTranslationModal()" style="flex:1; padding:8px;">
         + Translation
       </button>
       <button (click)="openSettings()" style="flex:1; padding:8px;">
@@ -48,7 +51,11 @@ interface Sentence {
         <div
           style="border:1px solid #ccc; padding:8px; margin-bottom:4px; display:flex; gap:16px;"
         >
-          <button (click)="togglePlay()">▶ Play</button>
+          <button (click)="togglePlay()">
+            <span>
+              {{ this.isPlaying ? "■ Stop" : "▶ Play" }}
+            </span>
+          </button>
           <button (click)="startRecord()">
             <span>
               {{
@@ -76,16 +83,25 @@ interface Sentence {
           style="border:1px solid #ccc; padding:8px; display:flex; justify-content:space-between; align-items:center;"
         >
           <span>Mine record</span>
-          <div>
-            <button (click)="playMyRecord()" [disabled]="!hasMyRecord">
-              ▶
-            </button>
-            <button
-              (click)="deleteMyRecord()"
-              [disabled]="!hasMyRecord"
-              style="margin-left:8px;"
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span
+              *ngIf="mineWavAudio"
+              style="font-family:monospace; font-size:13px;"
             >
-              ✕
+              {{ formatTime(currentAudioTime) }}/{{
+                formatTime(totalAudioDuration)
+              }}
+            </span>
+            <audio
+              *ngIf="mineWavAudio"
+              #mineAudioPlayer
+              [src]="mineWavAudio"
+              (timeupdate)="onAudioTimeUpdate()"
+              (loadedmetadata)="onAudioLoaded()"
+              (ended)="onAudioEnded()"
+            ></audio>
+            <button (click)="playMyRecord()">
+              {{ isAudioPlaying ? "⏸" : "▶" }}
             </button>
           </div>
         </div>
@@ -117,16 +133,16 @@ interface Sentence {
                 <strong>VI:</strong> {{ transcript_line.viText }}
               </div>
               <div
-                *ngIf="transcript_line.records[0].sttText"
+                *ngIf="
+                  transcript_line.records[0] &&
+                  transcript_line.records[0].sttText
+                "
                 style="color:#0070c0;"
               >
                 Heard: {{ transcript_line.records[0].sttText }} (Score
                 {{ transcript_line.records[0].score }})
               </div>
-              <div
-                *ngIf="!transcript_line.records[0].sttText"
-                style="color:#aaa;"
-              >
+              <div *ngIf="!transcript_line.records[0]" style="color:#aaa;">
                 Not recorded yet
               </div>
             </div>
@@ -149,13 +165,40 @@ interface Sentence {
   `,
 })
 export class RecordingComponent {
+  isAudioPlaying = false;
+  currentAudioTime = 0;
+  totalAudioDuration = 0;
+
+  formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(seconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
+  }
+
+  onAudioTimeUpdate(): void {
+    this.currentAudioTime =
+      this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
+  }
+
+  onAudioLoaded(): void {
+    this.totalAudioDuration = this.mineAudioPlayer?.nativeElement.duration ?? 0;
+  }
+
+  onAudioEnded(): void {
+    this.isAudioPlaying = false;
+    this.currentAudioTime = 0;
+  }
+
   audioService = inject(AudioService);
 
   isPlaying = false;
-  hasMyRecord = false;
   showTranslation = true;
 
-  activeTranscriptLineId: number | null = null;
+  activeTranscriptLineId: number = 0;
 
   get activeTranscriptLine(): TranscriptLine | null {
     if (this.activeTranscriptLineId === null || !this.transcriptLines)
@@ -170,9 +213,29 @@ export class RecordingComponent {
 
   videoMp4Data = null;
 
+  videoMetadata: Video | null = null;
+
   @ViewChild("videoPlayer") videoPlayer!: ElementRef<HTMLVideoElement>;
 
+  mineWavAudio = null;
+
+  @ViewChild("mineAudioPlayer") mineAudioPlayer!: ElementRef<HTMLAudioElement>;
+
   transcriptLines: TranscriptLine[] | null = null;
+
+  async fetchVideoMetadata() {
+    const result = await callApi({
+      endpoint: `api/videos/metadata/${this.videoId}`,
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    this.videoMetadata = result.data;
+  }
 
   async fetchTranscriptLines() {
     const result = await callApi({
@@ -211,51 +274,52 @@ export class RecordingComponent {
   ngOnInit(): void {
     this.fetchVideoMp4Data();
     this.fetchTranscriptLines();
+    this.fetchVideoMetadata();
   }
 
   goBack(): void {
     console.log("Navigate back");
-  }
-
-  toggleTranslation(): void {
-    this.showTranslation = !this.showTranslation;
+    window.location.href = "/";
   }
 
   openSettings(): void {
     console.log("Open settings");
   }
-
+  private _pauseAtEndTime: () => void = () => {};
   togglePlay(): void {
-    this.isPlaying = !this.isPlaying;
-    console.log(this.isPlaying ? "Playing video" : "Paused video");
+    const video = this.videoPlayer.nativeElement;
+
+    if (this.isPlaying) {
+      // Stop and snap back to start of current line
+      video.pause();
+      if (this.activeTranscriptLine) {
+        video.currentTime = this.activeTranscriptLine.start;
+      }
+      this.isPlaying = false;
+      video.removeEventListener("timeupdate", this._pauseAtEndTime);
+      return;
+    }
 
     if (!this.activeTranscriptLine) {
       messageUtils("Select record");
       return;
     }
 
-    // Access the video element
-    const video = this.videoPlayer.nativeElement;
-
-    // Jump to the start time
     video.currentTime = this.activeTranscriptLine.start;
-
-    // Play the video
     video.play();
+    this.isPlaying = true;
 
-    // Set up a listener to pause when it reaches the end time
-    const pauseAtEndTime = () => {
+    this._pauseAtEndTime = () => {
       if (video.currentTime >= this.activeTranscriptLine!!.end) {
         video.pause();
+        video.currentTime = this.activeTranscriptLine!!.start; // snap back
         this.isPlaying = false;
-        // Remove the event listener so it doesn't keep triggering
-        video.removeEventListener("timeupdate", pauseAtEndTime);
+        video.removeEventListener("timeupdate", this._pauseAtEndTime);
       }
     };
 
-    video.addEventListener("timeupdate", pauseAtEndTime);
+    video.addEventListener("timeupdate", this._pauseAtEndTime);
   }
-
   async startRecord(): Promise<void> {
     if (!this.activeTranscriptLine?.id) {
       messageUtils("activeTranscriptLine null");
@@ -295,6 +359,8 @@ export class RecordingComponent {
       messageUtils(result.message);
       return;
     }
+
+    this.fetchTranscriptLines();
   }
 
   async skipTranscriptLine(): Promise<void> {
@@ -318,18 +384,61 @@ export class RecordingComponent {
     }
   }
 
-  playMyRecord(): void {
-    console.log("Playing my recording");
+  async playMyRecord(): Promise<void> {
+    if (!this.activeTranscriptLine) {
+      messageUtils("activeTranscriptLine null");
+      return;
+    }
+
+    const record_id = this.activeTranscriptLine.records[0].id;
+
+    if (!record_id) {
+      messageUtils("record_id null");
+      return;
+    }
+
+    const result = await callApi({
+      endpoint: `api/records/file/${record_id}/`,
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    this.mineWavAudio = result.data.url;
+
+    // Reset state for new audio
+    this.isAudioPlaying = false;
+    this.currentAudioTime = 0;
+    this.totalAudioDuration = 0;
+
+    // Wait for *ngIf to render the element, then play
+    setTimeout(() => {
+      const audio = this.mineAudioPlayer?.nativeElement;
+      if (!audio) return;
+      if (this.isAudioPlaying) {
+        audio.pause();
+        this.isAudioPlaying = false;
+      } else {
+        audio.play();
+        this.isAudioPlaying = true;
+      }
+    });
   }
 
   deleteMyRecord(): void {
-    this.hasMyRecord = false;
     console.log("Deleted my recording");
   }
 
   selectTranscriptLine(transcript_line: TranscriptLine): void {
     this.activeTranscriptLineId = transcript_line.id;
-    this.hasMyRecord = !!transcript_line.records[0].sttText;
+    this.mineWavAudio = null;
+    // Reset state for new audio
+    this.isAudioPlaying = false;
+    this.currentAudioTime = 0;
+    this.totalAudioDuration = 0;
     console.log("Selected sentence", transcript_line.id);
   }
 
@@ -338,8 +447,22 @@ export class RecordingComponent {
     const unrecorded = this.transcriptLines.find((s) => s.records.length == 0);
     if (unrecorded) {
       this.activeTranscriptLineId = unrecorded.id;
-      this.hasMyRecord = false;
       console.log("Jumped to unrecorded sentence", unrecorded.id);
     }
+  }
+
+  private modal = inject(ModalService);
+  openTranslationModal() {
+    this.modal.open({
+      title: "Translation Modal",
+      component: TranslationComponent,
+      size: "lg",
+      onClose: () => {},
+      data: {
+        transcriptLines: this.transcriptLines,
+        videoId: this.videoId,
+        fetchTranscriptLines: this.fetchTranscriptLines,
+      },
+    });
   }
 }

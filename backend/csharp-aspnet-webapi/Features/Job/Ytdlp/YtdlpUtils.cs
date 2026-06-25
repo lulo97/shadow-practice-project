@@ -16,7 +16,10 @@ public static class YtdlpUtils
 
         foreach (Match match in blockPattern.Matches(vttContent))
         {
-            var text = tagPattern.Replace(match.Groups[3].Value, "").Trim();
+            var text = tagPattern.Replace(match.Groups[3].Value, "")
+                .Replace("\r", " ")
+                .Replace("\n", " ")
+                .Trim();
 
             if (string.IsNullOrWhiteSpace(text))
                 continue;
