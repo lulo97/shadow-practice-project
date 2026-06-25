@@ -104,17 +104,15 @@ import { expectedPrefixSymbol } from "./utils";
 export class TranslationComponent {
   private modal = inject(ModalService);
 
-  transcriptLines: TranscriptLine[] = this.modal.config().data?.transcriptLines;
+  transcriptLines: TranscriptLine[] = [];
+
+  ngOnInit() {
+    this.reset()
+  }
 
   videoId: number = this.modal.config().data?.videoId;
 
-  vietnameseText = this.transcriptLines
-    .map((s, i) => `${i + 1}${expectedPrefixSymbol} ${s.viText || ""}`)
-    .join("\n");
-
-  close() {
-    this.modal.close();
-  }
+  vietnameseText = "";
 
   copyPrompt() {
     const prompt =
@@ -127,6 +125,16 @@ export class TranslationComponent {
 
   autoTranslate() {
     /* call LLM API */
+  }
+
+  async reset() {
+    const freshData = await this.modal.config().data?.fetchTranscriptLines();
+
+    this.transcriptLines = freshData;
+
+    this.vietnameseText = this.transcriptLines
+      .map((s, i) => `${i + 1}${expectedPrefixSymbol} ${s.viText || ""}`)
+      .join("\n");
   }
 
   async save() {
@@ -150,6 +158,6 @@ export class TranslationComponent {
 
     messageUtils(result.message);
 
-    this.modal.config().data?.fetchTranscriptLines();
+    await this.reset();
   }
 }

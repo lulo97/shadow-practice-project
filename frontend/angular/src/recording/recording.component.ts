@@ -249,6 +249,8 @@ export class RecordingComponent {
     }
 
     this.transcriptLines = result.data;
+
+    return result.data;
   }
 
   async fetchVideoMp4Data() {
