@@ -125,4 +125,9 @@ public class WhisperCpp : ISTT
             if (File.Exists(outputPath)) File.Delete(outputPath);
         }
     }
+
+    public string GetKey()
+    {
+        return "WHISPER_CPP";
+    }
 }

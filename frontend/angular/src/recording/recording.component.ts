@@ -239,6 +239,12 @@ export class RecordingComponent {
   }
 
   async startRecord(): Promise<void> {
+    if (!this.activeTranscriptLine?.id) {
+         messageUtils("activeTranscriptLine null");
+      return;
+    }
+
+
     let blob;
     if (this.audioService.isRecordingValue) {
       blob = await this.audioService.stopRecording();
@@ -253,32 +259,21 @@ export class RecordingComponent {
       return;
     }
 
+
     const formData = new FormData();
     formData.append("file", blob, "audio.wav");
+    formData.append("videoId", this.videoId!!);
+    formData.append("transcriptLineId", this.activeTranscriptLine?.id.toString()!!);
 
-    const result_stt = await callApi({
-      endpoint: "api/stt",
-      method: "POST",
-      body: formData,
-    });
-
-    if (!result_stt.success) {
-      messageUtils(result_stt.message);
-      return;
-    }
-
-    const result_record = await callApi({
+    const result = await callApi({
       endpoint: "api/records",
       method: "POST",
-      body: {
-        videoId: this.videoId,
-        transcriptId: this.activeTranscriptLine?.id,
-        sttText: result_stt.data.sttText,
-      },
+      body: formData,
+      credentials: "include",
     });
 
-    if (!result_record.success) {
-      messageUtils(result_record.message);
+    if (!result.success) {
+      messageUtils(result.message);
       return;
     }
   }
