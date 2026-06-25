@@ -6,11 +6,13 @@ import { callApi } from "../utils/apiUtils";
 import { messageUtils } from "../utils/messageUtils";
 import { Video } from "./video.interface";
 import { VideoProcessComponent } from "./videoprocess.component";
+import { FormsModule } from "@angular/forms";
+import { FilterComponent } from "./filter.component";
 
 @Component({
   selector: "app-shadowing-homepage",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `<div id="main-container">
     <nav id="sidebar" class="flex flex-col justify-between">
       <div id="project-title">Shadowing Project</div>
@@ -42,12 +44,17 @@ import { VideoProcessComponent } from "./videoprocess.component";
 
     <main id="content-area">
       <div id="search-bar-wrapper">
-        <input id="video-search" type="text" placeholder="Search by title..." />
-        <button id="filter-btn">Filter</button>
+        <input
+          [(ngModel)]="searchData.title"
+          (ngModelChange)="fetchVideos()"
+          id="video-search"
+          type="text"
+          placeholder="Search by title..."
+        />
+        <button (click)="openFilterModal()" id="filter-btn">Filter</button>
       </div>
 
       <div id="action-bar">
-        <button id="add-video-btn">+ Add Video</button>
         <button id="jump-unfinished-btn">Jump to Unfinished</button>
       </div>
 
@@ -128,6 +135,12 @@ import { VideoProcessComponent } from "./videoprocess.component";
   `,
 })
 export class HomepageComponent {
+  searchData = {
+    title: "",
+    fromDate: "",
+    toDate: "",
+  };
+
   videos: Video[] = [];
 
   ngOnInit(): void {
@@ -135,8 +148,24 @@ export class HomepageComponent {
   }
 
   async fetchVideos() {
+    const queryParams = new URLSearchParams();
+
+    // Only add parameters if they have values
+    if (this.searchData.title) {
+      queryParams.append("title", this.searchData.title);
+    }
+    if (this.searchData.fromDate) {
+      queryParams.append("fromDate", this.searchData.fromDate);
+    }
+    if (this.searchData.toDate) {
+      queryParams.append("toDate", this.searchData.toDate);
+    }
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `api/videos?${queryString}` : "api/videos";
+
     const result = await callApi({
-      endpoint: "api/videos",
+      endpoint: url,
       method: "GET",
     });
 
@@ -210,6 +239,26 @@ export class HomepageComponent {
   }
 
   toRecording(videoId: number) {
-    window.location.href = `recording/${videoId}`
+    window.location.href = `recording/${videoId}`;
+  }
+
+  openFilterModal() {
+    this.modal.open({
+      title: "Filter Modal",
+      component: FilterComponent,
+      size: "lg",
+      onClose: async () => {
+        //await this.fetchTranscriptLines()
+      },
+      data: {
+        handleFilter: (fromDate: string, toDate: string) => {
+          this.searchData.fromDate = fromDate;
+          this.searchData.toDate = toDate;
+          this.fetchVideos();
+        },
+        fromDate: this.searchData.fromDate,
+        toDate: this.searchData.toDate,
+      },
+    });
   }
 }

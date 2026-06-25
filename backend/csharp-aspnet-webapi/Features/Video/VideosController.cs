@@ -13,9 +13,31 @@ public class VideosController : ControllerBase
     }
 
     [HttpGet("")]
-    public async Task<IActionResult> GetList()
+    public async Task<IActionResult> GetList(
+    [FromQuery] string? title,
+    [FromQuery] DateTime? fromDate,
+    [FromQuery] DateTime? toDate)
     {
-        var videos = await _context.Videos
+        var query = _context.Videos.AsQueryable();
+
+        // Apply filters if parameters are provided
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            query = query.Where(v => v.Title.ToLower().Contains(title.ToLower()));
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(v => v.CreatedAt >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(v => v.CreatedAt <= toDate.Value);
+        }
+
+        // Execute the joined query
+        var videos = await query
             .GroupJoin(
                 _context.Jobs,
                 video => video.Id,
