@@ -43,6 +43,7 @@ public class TranscriptsController : ControllerBase
             line.ViText,
             line.Start,
             line.End,
+            line.Skip,
             //Records = _context.Records
             //    .Where(r => r.TranscriptLineId == line.Id)
             //    .ToList()
@@ -51,6 +52,23 @@ public class TranscriptsController : ControllerBase
         .ToListAsync();
 
         return Ok(transcript_lines);
+    }
+
+    [HttpPost("skip/{transcript_line_id}")]
+    public async Task<IActionResult> Skip(int transcript_line_id)
+    {
+        var transcriptLine = await _context.TranscriptLines.FindAsync(transcript_line_id);
+
+        if (transcriptLine == null)
+        {
+            return NotFound();
+        }
+
+        transcriptLine.Skip = transcriptLine.Skip == 0 ? 1 : 0;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(transcriptLine);
     }
 }
 

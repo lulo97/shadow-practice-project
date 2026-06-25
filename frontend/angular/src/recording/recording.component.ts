@@ -50,16 +50,25 @@ interface Sentence {
         >
           <button (click)="togglePlay()">▶ Play</button>
           <button (click)="startRecord()">
+            <span>
+              {{
+                (audioService.isRecording$ | async)
+                  ? "■ Stop Recording"
+                  : "● Record"
+              }}
+            </span>
+          </button>
+
+          <button (click)="skipTranscriptLine()">
             <ng-container
-              *ngIf="audioService.isRecording$ | async; else notRecording"
+              *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
             >
-              <span class="stop-icon">■</span> Stop Recording
+              <span>⏭ Undo skip</span>
             </ng-container>
-            <ng-template #notRecording>
-              <span class="record-icon">●</span> Record
+            <ng-template #skipLabel>
+              <span>⏭ Skip</span>
             </ng-template>
           </button>
-          <button (click)="skipSentence()">⏭ Skip</button>
         </div>
 
         <!-- My recording -->
@@ -146,7 +155,16 @@ export class RecordingComponent {
   hasMyRecord = false;
   showTranslation = true;
 
-  activeTranscriptLine: TranscriptLine | null = null;
+  activeTranscriptLineId: number | null = null;
+
+  get activeTranscriptLine(): TranscriptLine | null {
+    if (this.activeTranscriptLineId === null || !this.transcriptLines)
+      return null;
+    return (
+      this.transcriptLines.find((s) => s.id === this.activeTranscriptLineId) ??
+      null
+    );
+  }
 
   videoId = window.location.pathname.split("/").filter(Boolean).pop();
 
@@ -240,10 +258,9 @@ export class RecordingComponent {
 
   async startRecord(): Promise<void> {
     if (!this.activeTranscriptLine?.id) {
-         messageUtils("activeTranscriptLine null");
+      messageUtils("activeTranscriptLine null");
       return;
     }
-
 
     let blob;
     if (this.audioService.isRecordingValue) {
@@ -259,11 +276,13 @@ export class RecordingComponent {
       return;
     }
 
-
     const formData = new FormData();
     formData.append("file", blob, "audio.wav");
     formData.append("videoId", this.videoId!!);
-    formData.append("transcriptLineId", this.activeTranscriptLine?.id.toString()!!);
+    formData.append(
+      "transcriptLineId",
+      this.activeTranscriptLine?.id.toString()!!,
+    );
 
     const result = await callApi({
       endpoint: "api/records",
@@ -278,14 +297,24 @@ export class RecordingComponent {
     }
   }
 
-  skipSentence(): void {
+  async skipTranscriptLine(): Promise<void> {
     if (!this.activeTranscriptLine) return;
     if (!this.transcriptLines) return;
     const idx = this.transcriptLines.findIndex(
       (s) => s.id === this.activeTranscriptLine!.id,
     );
     if (idx < this.transcriptLines.length - 1) {
-      this.activeTranscriptLine = this.transcriptLines[idx + 1];
+      const result = await callApi({
+        endpoint: `api/transcripts/skip/${this.activeTranscriptLine.id}`,
+        method: "POST",
+      });
+
+      if (!result.success) {
+        messageUtils(result.message);
+        return;
+      }
+
+      this.fetchTranscriptLines();
     }
   }
 
@@ -299,7 +328,7 @@ export class RecordingComponent {
   }
 
   selectTranscriptLine(transcript_line: TranscriptLine): void {
-    this.activeTranscriptLine = transcript_line;
+    this.activeTranscriptLineId = transcript_line.id;
     this.hasMyRecord = !!transcript_line.records[0].sttText;
     console.log("Selected sentence", transcript_line.id);
   }
@@ -308,7 +337,8 @@ export class RecordingComponent {
     if (!this.transcriptLines) return;
     const unrecorded = this.transcriptLines.find((s) => s.records.length == 0);
     if (unrecorded) {
-      this.selectTranscriptLine(unrecorded);
+      this.activeTranscriptLineId = unrecorded.id;
+      this.hasMyRecord = false;
       console.log("Jumped to unrecorded sentence", unrecorded.id);
     }
   }

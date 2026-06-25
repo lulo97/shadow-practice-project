@@ -5,6 +5,7 @@ export interface TranscriptLine {
   viText: any
   start: number
   end: number
+  skip: number
   records: Record[]
 }
 
