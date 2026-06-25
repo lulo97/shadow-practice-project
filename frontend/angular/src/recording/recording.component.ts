@@ -1,8 +1,9 @@
-import { Component, ElementRef, ViewChild } from "@angular/core";
+import { Component, ElementRef, inject, ViewChild } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { callApi } from "../utils/apiUtils";
 import { messageUtils } from "../utils/messageUtils";
 import { TranscriptLine } from "./transcriptline.interface";
+import { AudioService } from "../services/audio.service";
 
 interface Sentence {
   id: number;
@@ -24,7 +25,7 @@ interface Sentence {
     <div style="display:flex; border-bottom:1px solid #ccc;">
       <button (click)="goBack()" style="flex:1; padding:8px;">Back</button>
       <div style="flex:2; padding:8px; text-align:center;">
-        {{ videoTitle }}
+        {{ 123333 }}
       </div>
       <button (click)="toggleTranslation()" style="flex:1; padding:8px;">
         + Translation
@@ -48,7 +49,16 @@ interface Sentence {
           style="border:1px solid #ccc; padding:8px; margin-bottom:4px; display:flex; gap:16px;"
         >
           <button (click)="togglePlay()">▶ Play</button>
-          <button (click)="startRecord()">● Record</button>
+          <button (click)="startRecord()">
+            <ng-container
+              *ngIf="audioService.isRecording$ | async; else notRecording"
+            >
+              <span class="stop-icon">■</span> Stop Recording
+            </ng-container>
+            <ng-template #notRecording>
+              <span class="record-icon">●</span> Record
+            </ng-template>
+          </button>
           <button (click)="skipSentence()">⏭ Skip</button>
         </div>
 
@@ -130,55 +140,13 @@ interface Sentence {
   `,
 })
 export class RecordingComponent {
-  videoTitle = "Video 1";
+  audioService = inject(AudioService);
+
   isPlaying = false;
   hasMyRecord = false;
   showTranslation = true;
 
   activeTranscriptLine: TranscriptLine | null = null;
-
-  sentences: Sentence[] = [
-    {
-      id: 1,
-      en: "The quick brown fox jumps over the lazy dog.",
-      vi: "Con cáo nâu nhanh nhẹn nhảy qua con chó lười.",
-      heard: "The quick brown fox jumps over the lazy dog.",
-      score: 100,
-      startTime: "00:01",
-      endTime: "00:09",
-      recorded: true,
-    },
-    {
-      id: 2,
-      en: "She sells seashells by the seashore.",
-      vi: "Cô ấy bán vỏ sò bên bờ biển.",
-      heard: "She sells seashells by the seashore.",
-      score: 92,
-      startTime: "00:10",
-      endTime: "00:16",
-      recorded: true,
-    },
-    {
-      id: 3,
-      en: "How much wood would a woodchuck chuck?",
-      vi: "Con sóc đất sẽ ném bao nhiêu gỗ?",
-      heard: "",
-      score: 0,
-      startTime: "00:17",
-      endTime: "00:24",
-      recorded: false,
-    },
-    {
-      id: 4,
-      en: "Peter Piper picked a peck of pickled peppers.",
-      vi: "Peter Piper đã nhặt một phần ớt ngâm chua.",
-      heard: "",
-      score: 0,
-      startTime: "00:25",
-      endTime: "00:33",
-      recorded: false,
-    },
-  ];
 
   videoId = window.location.pathname.split("/").filter(Boolean).pop();
 
@@ -270,14 +238,48 @@ export class RecordingComponent {
     video.addEventListener("timeupdate", pauseAtEndTime);
   }
 
-  startRecord(): void {
-    console.log(
-      "Recording started for sentence",
-      this.activeTranscriptLine?.id,
-    );
-    // After recording, mark as recorded
-    if (this.activeTranscriptLine) {
-      this.hasMyRecord = true;
+  async startRecord(): Promise<void> {
+    let blob;
+    if (this.audioService.isRecordingValue) {
+      blob = await this.audioService.stopRecording();
+      console.log(blob);
+    } else {
+      await this.audioService.startRecording();
+      return;
+    }
+
+    if (!blob) {
+      messageUtils("Blob null");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", blob, "audio.wav");
+
+    const result_stt = await callApi({
+      endpoint: "api/stt",
+      method: "POST",
+      body: formData,
+    });
+
+    if (!result_stt.success) {
+      messageUtils(result_stt.message);
+      return;
+    }
+
+    const result_record = await callApi({
+      endpoint: "api/records",
+      method: "POST",
+      body: {
+        videoId: this.videoId,
+        transcriptId: this.activeTranscriptLine?.id,
+        sttText: result_stt.data.sttText,
+      },
+    });
+
+    if (!result_record.success) {
+      messageUtils(result_record.message);
+      return;
     }
   }
 
@@ -287,7 +289,7 @@ export class RecordingComponent {
     const idx = this.transcriptLines.findIndex(
       (s) => s.id === this.activeTranscriptLine!.id,
     );
-    if (idx < this.sentences.length - 1) {
+    if (idx < this.transcriptLines.length - 1) {
       this.activeTranscriptLine = this.transcriptLines[idx + 1];
     }
   }

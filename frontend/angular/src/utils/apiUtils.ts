@@ -18,10 +18,10 @@ export const BACKEND_ORIGIN = "http://localhost:3000";
 type ContentCategory = "json" | "image" | "video" | "text" | "binary";
 
 function getContentCategory(contentType: string): ContentCategory {
-  if (contentType.includes("application/json"))   return "json";
-  if (contentType.includes("image/"))             return "image";
-  if (contentType.includes("video/"))             return "video";
-  if (contentType.includes("text/"))              return "text";
+  if (contentType.includes("application/json")) return "json";
+  if (contentType.includes("image/")) return "image";
+  if (contentType.includes("video/")) return "video";
+  if (contentType.includes("text/")) return "text";
   return "binary";
 }
 
@@ -36,14 +36,20 @@ export async function callApi(input: IApiInput): Promise<IApiOutput> {
     });
   }
 
+  const isFormData = body instanceof FormData;
+
   const options: RequestInit = {
     method,
-    headers: {
-      "Content-Type": "application/json",
-    },
     credentials: credentials ?? undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: isFormData ? {} : { "Content-Type": "application/json" },
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   };
+
+  // Only set Content-Type for non-FormData bodies
+  if (!(body instanceof FormData)) {
+    (options.headers as Record<string, string>)["Content-Type"] =
+      "application/json";
+  }
 
   const response = await fetch(url.toString(), options);
   const contentType = response.headers.get("Content-Type") ?? "";
