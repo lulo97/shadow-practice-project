@@ -159,5 +159,7 @@ export class TranslationComponent {
     messageUtils(result.message);
 
     await this.reset();
+
+    await this.modal.config().data.fetchTranscriptLines();
   }
 }

@@ -7,6 +7,7 @@ import { AudioService } from "../services/audio.service";
 import { Video } from "../homepage/video.interface";
 import { TranslationComponent } from "./translation.component";
 import { ModalService } from "../components/modal/modal.service";
+import { signal, computed } from '@angular/core';
 
 interface Sentence {
   id: number;
@@ -459,7 +460,9 @@ export class RecordingComponent {
       title: "Translation Modal",
       component: TranslationComponent,
       size: "lg",
-      onClose: () => {},
+      onClose: async () => {
+        await this.fetchTranscriptLines()
+      },
       data: {
         transcriptLines: this.transcriptLines,
         videoId: this.videoId,
