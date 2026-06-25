@@ -1,8 +1,20 @@
-﻿using System.Text.RegularExpressions;
-using static YtdlpUtils;
+﻿using static YtdlpUtils;
 
 public class FakeYtDlp : IYtDlp
 {
+    public async Task<byte[]> GetThumbnailAsync(string youtubeId)
+    {
+
+        string filePath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\6hCo4S_1Fhw.jpg";
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Thumbnail not found for ID: {youtubeId}", filePath);
+        }
+
+        return await File.ReadAllBytesAsync(filePath);
+    }
+
     public Task<string> GetTitleAsync(string youtubeLink) =>
         Task.FromResult("What causes avalanches, and can you survive them? - Simon Trautman");
 

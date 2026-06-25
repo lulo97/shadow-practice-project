@@ -28,6 +28,15 @@ public class VideoJobUtils
         }
         Console.WriteLine($"Video Title = {video.Title}");
 
+        // ── Step 1.5: Fetch thumbnail ──────────────────────────────────────────────
+        await using (var step = await BeginStep(jobId, "Fetching video thumbnail"))
+        {
+            video.Thumbnail = await _ytDlp.GetThumbnailAsync(link);
+            await _context.SaveChangesAsync();
+            await step.Complete();
+        }
+        Console.WriteLine($"Video Thumbnail = {video.Thumbnail.Length}");
+
         // ── Step 2: Fetch description ───────────────────────────────────────────
         await using (var step = await BeginStep(jobId, "Fetching video description"))
         {

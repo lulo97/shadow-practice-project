@@ -1,7 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { callApi } from "../utils/apiUtils";
 import { messageUtils } from "../utils/messageUtils";
 import { FormsModule } from "@angular/forms";
+import { ModalService } from "../components/modal/modal.service";
 
 @Component({
   standalone: true,
@@ -18,6 +19,7 @@ import { FormsModule } from "@angular/forms";
 })
 export class AddVideoComponent {
   youtube_link = "";
+  private modal = inject(ModalService);
 
   async handleAdd() {
     if (!this.youtube_link) {
@@ -38,5 +40,7 @@ export class AddVideoComponent {
       messageUtils(result.message);
       return;
     }
+
+    this.modal.close({});
   }
 }

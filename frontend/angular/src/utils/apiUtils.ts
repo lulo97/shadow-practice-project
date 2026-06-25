@@ -3,16 +3,27 @@ export interface IApiInput {
   query?: Record<string, string | number | boolean>;
   body?: any;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  credentials?: RequestCredentials,
+  credentials?: RequestCredentials;
 }
 
 export interface IApiOutput {
   success: boolean;
-  message: string; //error or message
+  message: string;
   data: any;
+  contentType?: string;
 }
 
 export const BACKEND_ORIGIN = "http://localhost:3000";
+
+type ContentCategory = "json" | "image" | "video" | "text" | "binary";
+
+function getContentCategory(contentType: string): ContentCategory {
+  if (contentType.includes("application/json"))   return "json";
+  if (contentType.includes("image/"))             return "image";
+  if (contentType.includes("video/"))             return "video";
+  if (contentType.includes("text/"))              return "text";
+  return "binary";
+}
 
 export async function callApi(input: IApiInput): Promise<IApiOutput> {
   const { endpoint, query, body, method, credentials } = input;
@@ -29,21 +40,51 @@ export async function callApi(input: IApiInput): Promise<IApiOutput> {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...(body ? {} : {}),
     },
     credentials: credentials ?? undefined,
     body: body ? JSON.stringify(body) : undefined,
   };
 
   const response = await fetch(url.toString(), options);
+  const contentType = response.headers.get("Content-Type") ?? "";
+  const category = getContentCategory(contentType);
 
-  const data = await response.json();
+  let data: any;
+  let message = "";
 
-  const output: IApiOutput = {
-    success: response.status == 200,
-    message: data.message,
-    data: data
+  switch (category) {
+    case "json": {
+      const json = await response.json();
+      data = json;
+      message = json?.message ?? "";
+      break;
+    }
+
+    case "image":
+    case "video":
+    case "binary": {
+      const blob = await response.blob();
+      data = {
+        url: URL.createObjectURL(blob),
+        blob,
+        contentType,
+      };
+      message = response.ok ? "Binary data received" : "Binary request failed";
+      break;
+    }
+
+    case "text": {
+      const text = await response.text();
+      data = text;
+      message = response.ok ? text : "Text request failed";
+      break;
+    }
+  }
+
+  return {
+    success: response.ok,
+    message,
+    data,
+    contentType,
   };
-
-  return output;
 }

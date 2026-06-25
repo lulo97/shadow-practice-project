@@ -2,6 +2,10 @@ import { CommonModule } from "@angular/common";
 import { Component, inject } from "@angular/core";
 import { ModalService } from "../components/modal/modal.service";
 import { AddVideoComponent } from "./addvideo.component";
+import { callApi } from "../utils/apiUtils";
+import { messageUtils } from "../utils/messageUtils";
+import { Video } from "./video.interface";
+import { VideoProcessComponent } from "./videoprocess.component";
 
 @Component({
   selector: "app-shadowing-homepage",
@@ -53,14 +57,25 @@ import { AddVideoComponent } from "./addvideo.component";
           *ngFor="let video of videos"
           class="video-card"
           [id]="'video-' + video.title.replace(' ', '-')"
+          (click)="toRecording(video.id)"
         >
-          <div class="thumbnail-placeholder" id="thumb-{{ video.title }}"></div>
+          <div class="thumbnail-placeholder" id="thumb-{{ video.title }}">
+            <img src="{{ video.thumbnail }}" />
+          </div>
           <div class="video-details">
             <h3 id="title-{{ video.title }}">{{ video.title }}</h3>
-            <span id="status-{{ video.title }}">{{ video.status }}</span>
+            <span id="status-{{ video.title }}">{{ "finished" }}</span>
             <div class="progress-bar" id="progress-{{ video.title }}">
-              <div [style.width.%]="video.progress"></div>
+              <div [style.width.%]="65"></div>
             </div>
+          </div>
+          <div>
+            <button
+              (click)="openVideoProcessModal(video.jobId)"
+              id="video-progress"
+            >
+              ⋮
+            </button>
           </div>
         </div>
       </section>
@@ -93,9 +108,16 @@ import { AddVideoComponent } from "./addvideo.component";
 
     .thumbnail-placeholder {
       width: 150px;
-      height: 80px;
+      aspect-ratio: 16 / 9;
       background-color: #eee;
       margin-right: 15px;
+      overflow: hidden;
+    }
+
+    .thumbnail-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .progress-bar {
@@ -106,27 +128,54 @@ import { AddVideoComponent } from "./addvideo.component";
   `,
 })
 export class HomepageComponent {
-  // You would typically fetch this data from a service
-  videos = [
-    {
-      title: "TedTalk video about cats!",
-      status: "Unfinished",
-      progress: 65,
-      duration: "12:35",
-    },
-    {
-      title: "How to build good habits",
-      status: "Finished",
-      progress: 100,
-      duration: "08:42",
-    },
-    {
-      title: "The future of space exploration",
-      status: "Not started",
-      progress: 0,
-      duration: "15:20",
-    },
-  ];
+  videos: Video[] = [];
+
+  ngOnInit(): void {
+    this.fetchVideos();
+  }
+
+  async fetchVideos() {
+    const result = await callApi({
+      endpoint: "api/videos",
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    this.videos = result.data;
+
+    const thumbnailPromises = this.videos.map((video) =>
+      this.fetchVideoThumbnail(video.id),
+    );
+
+    await Promise.all(thumbnailPromises);
+  }
+
+  async fetchVideoThumbnail(video_id: number) {
+    const result = await callApi({
+      endpoint: `api/videos/thumbnail/${video_id}`,
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    if (result.contentType && !result.contentType.includes("image")) {
+      console.log("thumbnail not ready yet");
+      return;
+    }
+
+    // Update the specific video object
+    const video = this.videos.find((ele) => ele.id === video_id);
+    if (video) {
+      video.thumbnail = result.data.url;
+    }
+  }
 
   currentTab = "MY_VIDEOS"; //SYSTEM_VIDEOS
 
@@ -135,8 +184,32 @@ export class HomepageComponent {
   openModalAddVideo() {
     this.modal.open({
       title: "Add Video Modal",
-      component: AddVideoComponent, // renders any component
+      component: AddVideoComponent,
       size: "lg",
+      onClose: (result) => {
+        this.fetchVideos();
+      },
     });
+  }
+
+  openVideoProcessModal(jobId: number | undefined) {
+    if (!jobId) {
+      messageUtils("Video don't have job id!");
+      return;
+    }
+
+    this.modal.open({
+      title: "Video Process Modal",
+      component: VideoProcessComponent,
+      size: "lg",
+      data: { jobId },
+      onClose: (result) => {
+        this.fetchVideos();
+      },
+    });
+  }
+
+  toRecording(videoId: number) {
+    window.location.href = `recording/${videoId}`
   }
 }

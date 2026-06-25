@@ -28,7 +28,8 @@ public class JobController : ControllerBase
 
         var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
 
-        if (user == null) {
+        if (user == null)
+        {
             return NotFound(new { message = "User not found" });
         }
 
@@ -56,6 +57,28 @@ public class JobController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { jobId = new_job.Id });
+    }
+
+    [HttpGet("video-detail/{job_id}")]
+    public async Task<IActionResult> VideoDetail(int job_id)
+    {
+        var job = await _context.Jobs
+            .FirstOrDefaultAsync(j => j.Id == job_id);
+
+        if (job == null)
+        {
+            return NotFound();
+        }
+
+        var job_steps = await _context.JobSteps
+            .Where(x => x.JobId == job_id)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            job,
+            jobSteps = job_steps
+        });
     }
 }
 

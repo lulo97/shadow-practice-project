@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,13 @@ builder.Services.AddHostedService<JobProcessorService>();
 builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
 builder.Services.AddTransient<IAsrService, FakeAsrService>();
 builder.Services.AddScoped<VideoJobUtils>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // This makes all enums serialize as strings globally
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 var app = builder.Build();
 

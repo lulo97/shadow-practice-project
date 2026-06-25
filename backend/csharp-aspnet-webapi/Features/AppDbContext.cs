@@ -11,4 +11,5 @@ public class AppDbContext : DbContext
     public DbSet<JobStep> JobSteps { get; set; }
     public DbSet<Video> Videos { get; set; }
     public DbSet<TranscriptLine> TranscriptLines { get; set; }
+    public DbSet<Record> Records { get; set; }
 }

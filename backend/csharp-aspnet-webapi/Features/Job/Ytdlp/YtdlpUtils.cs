@@ -1,51 +1,45 @@
-﻿
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 public static class YtdlpUtils
 {
     public static List<TranscriptLineFormat> ParseTranscript(string vttContent)
     {
-        var lines = new List<TranscriptLineFormat>();
-        var tagPattern = new Regex(@"<[^>]+>", RegexOptions.Compiled);
-        var timePattern = new Regex(
-            @"(\d{2}:\d{2}:\d{2}\.\d{3})\s-->\s(\d{2}:\d{2}:\d{2}\.\d{3})",
-            RegexOptions.Compiled);
+        var result = new List<TranscriptLineFormat>();
 
-        static decimal ToSeconds(string timestamp)
+        // Match timestamp lines + the text block that follows
+        var blockPattern = new Regex(
+            @"(\d{2}:\d{2}:\d{2}\.\d+)\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d+)[^\n]*\n([\s\S]*?)(?=\n\n|\z)",
+            RegexOptions.Multiline);
+
+        // Strip HTML/VTT tags like <00:00:01.234><c>, </c>, <b>, etc.
+        var tagPattern = new Regex(@"<[^>]+>");
+
+        foreach (Match match in blockPattern.Matches(vttContent))
         {
-            var t = TimeSpan.Parse(timestamp);
-            return (decimal)t.TotalSeconds;
-        }
+            var text = tagPattern.Replace(match.Groups[3].Value, "").Trim();
 
-        var raw = vttContent.Split('\n');
-        var seen = new HashSet<string>();
+            if (string.IsNullOrWhiteSpace(text))
+                continue;
 
-        for (int i = 0; i < raw.Length; i++)
-        {
-            var match = timePattern.Match(raw[i]);
-            if (!match.Success) continue;
-
-            var start = ToSeconds(match.Groups[1].Value);
-            var end = ToSeconds(match.Groups[2].Value);
-
-            var textLines = new List<string>();
-            for (int j = i + 1; j < raw.Length && !string.IsNullOrWhiteSpace(raw[j]); j++)
+            result.Add(new TranscriptLineFormat
             {
-                var cleaned = tagPattern.Replace(raw[j], "").Trim();
-                if (!string.IsNullOrEmpty(cleaned))
-                    textLines.Add(cleaned);
-            }
-
-            if (textLines.Count == 0) continue;
-
-            var text = textLines[^1];
-            var key = $"{start}|{text}";
-
-            if (seen.Add(key))
-                lines.Add(new TranscriptLineFormat { Start = start, End = end, Text = text });
+                Start = ParseTimestamp(match.Groups[1].Value),
+                End = ParseTimestamp(match.Groups[2].Value),
+                Text = text
+            });
         }
 
-        return lines;
+        return result;
+    }
+
+    private static decimal ParseTimestamp(string ts)
+    {
+        // HH:MM:SS.mmm  →  total seconds
+        var parts = ts.Split(':');
+        decimal hours = decimal.Parse(parts[0]);
+        decimal minutes = decimal.Parse(parts[1]);
+        decimal seconds = decimal.Parse(parts[2], System.Globalization.CultureInfo.InvariantCulture);
+        return hours * 3600 + minutes * 60 + seconds;
     }
 
     public class TranscriptLineFormat

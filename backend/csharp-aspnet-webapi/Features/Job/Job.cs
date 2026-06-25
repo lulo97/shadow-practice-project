@@ -11,8 +11,5 @@ public class Job
     public required JobStatus Status { get; set; } //QUEUED, RUNNING, DONE, FAILED
     public required JobType Type { get; set; } //VIDEO_INGEST or TRANSLATION
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    // Navigation property for EF Core
-    public List<JobStep> Steps { get; set; } = new();
 }
 

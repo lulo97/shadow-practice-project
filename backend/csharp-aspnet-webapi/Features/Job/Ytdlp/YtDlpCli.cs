@@ -4,6 +4,28 @@ using static YtdlpUtils;
 
 public class YtDlpCli : IYtDlp
 {
+    public async Task<byte[]> GetThumbnailAsync(string youtubeLink)
+    {
+        string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            string outputTemplate = Path.Combine(tempDir, "thumb.%(ext)s");
+            await RunAsync($"--write-thumbnail --skip-download --convert-thumbnails jpg -o \"{outputTemplate}\" --no-playlist", youtubeLink);
+
+            var thumbnailFile = Directory.GetFiles(tempDir, "thumb.jpg").FirstOrDefault();
+
+            if (thumbnailFile == null)
+                throw new Exception("Thumbnail could not be downloaded.");
+
+            return await File.ReadAllBytesAsync(thumbnailFile);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
     public Task<string> GetTitleAsync(string youtubeLink) =>
         RunAsync("--print title", youtubeLink);
 

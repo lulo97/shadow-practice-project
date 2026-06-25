@@ -6,6 +6,7 @@ export interface ModalConfig {
   component?: any;
   data?: any;
   size?: 'sm' | 'md' | 'lg';
+  onClose?: (result?: any) => void; // Add this
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,7 +22,8 @@ export class ModalService {
     this._isOpen.set(true);
   }
 
-  close() {
+  close(result?: any) {
+    this._config().onClose?.(result); // Call before clearing
     this._isOpen.set(false);
     this._config.set({});
   }
