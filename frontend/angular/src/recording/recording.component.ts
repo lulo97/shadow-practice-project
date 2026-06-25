@@ -8,6 +8,7 @@ import { Video } from "../homepage/video.interface";
 import { TranslationComponent } from "./translation.component";
 import { ModalService } from "../components/modal/modal.service";
 import { signal, computed } from '@angular/core';
+import { SettingComponent } from "./setting.component";
 
 interface Sentence {
   id: number;
@@ -34,7 +35,7 @@ interface Sentence {
       <button (click)="openTranslationModal()" style="flex:1; padding:8px;">
         + Translation
       </button>
-      <button (click)="openSettings()" style="flex:1; padding:8px;">
+      <button (click)="openSettingModal()" style="flex:1; padding:8px;">
         Setting
       </button>
     </div>
@@ -135,15 +136,15 @@ interface Sentence {
               </div>
               <div
                 *ngIf="
-                  transcript_line.records[0] &&
-                  transcript_line.records[0].sttText
+                  this.getLastRecord(transcript_line) &&
+                  this.getLastRecord(transcript_line)?.sttText
                 "
                 style="color:#0070c0;"
               >
-                Heard: {{ transcript_line.records[0].sttText }} (Score
-                {{ transcript_line.records[0].score }})
+                Heard: {{ this.getLastRecord(transcript_line)?.sttText }} (Score
+                {{ this.getLastRecord(transcript_line)?.score }})
               </div>
-              <div *ngIf="!transcript_line.records[0]" style="color:#aaa;">
+              <div *ngIf="!this.getLastRecord(transcript_line)" style="color:#aaa;">
                 Not recorded yet
               </div>
             </div>
@@ -387,13 +388,18 @@ export class RecordingComponent {
     }
   }
 
+  getLastRecord(transcriptLine: TranscriptLine) {
+    if (!transcriptLine || transcriptLine.records.length == 0) return;
+    return transcriptLine.records[transcriptLine.records.length - 1];
+  }
+
   async playMyRecord(): Promise<void> {
     if (!this.activeTranscriptLine) {
       messageUtils("activeTranscriptLine null");
       return;
     }
 
-    const record_id = this.activeTranscriptLine.records[0].id;
+    const record_id = this.getLastRecord(this.activeTranscriptLine)?.id;
 
     if (!record_id) {
       messageUtils("record_id null");
@@ -455,6 +461,7 @@ export class RecordingComponent {
   }
 
   private modal = inject(ModalService);
+
   openTranslationModal() {
     this.modal.open({
       title: "Translation Modal",
@@ -467,6 +474,20 @@ export class RecordingComponent {
         transcriptLines: this.transcriptLines,
         videoId: this.videoId,
         fetchTranscriptLines: this.fetchTranscriptLines,
+      },
+    });
+  }
+
+  openSettingModal() {
+    this.modal.open({
+      title: "Setting Modal",
+      component: SettingComponent,
+      size: "lg",
+      onClose: async () => {
+        //await this.fetchTranscriptLines()
+      },
+      data: {
+
       },
     });
   }

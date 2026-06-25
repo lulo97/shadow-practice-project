@@ -12,4 +12,5 @@ public class AppDbContext : DbContext
     public DbSet<Video> Videos { get; set; }
     public DbSet<TranscriptLine> TranscriptLines { get; set; }
     public DbSet<Record> Records { get; set; }
+    public DbSet<UserSetting> UserSettings { get; set; }
 }
