@@ -288,4 +288,7 @@ secrets.toml
 jwt.txt
 
 dist
+
 vendor
+
+backend/csharp-aspnet-webapi/Assets/
