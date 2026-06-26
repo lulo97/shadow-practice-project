@@ -7,28 +7,67 @@ import { messageUtils } from "../utils/messageUtils";
   selector: "signup",
   standalone: true,
   imports: [FormsModule],
-  template: `<div>
-    <div>
-      <label>Username</label>
-      <input [(ngModel)]="username" id="username" />
+  template: `<div class="flex flex-col items-center justify-center min-h-screen bg-white p-4">
+  <div class="text-center mb-8">
+    <div class="bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </div>
-    <div>
-      <label>Password</label>
-      <input [(ngModel)]="password" id="password" type="password" />
-    </div>
-    <div>
-      <label>Confirm Password</label>
-      <input
-        [(ngModel)]="confirm_password"
-        id="confirm-password"
-        type="password"
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Shadowing Project</h1>
+    <p class="text-gray-500 text-sm">Practice speaking by shadowing high-quality system videos.</p>
+  </div>
+
+  <div class="w-full max-w-sm space-y-4">
+    <div class="flex flex-col gap-1">
+      <label for="username" class="text-sm font-semibold text-gray-700">Username</label>
+      <input 
+        [(ngModel)]="username" 
+        id="username" 
+        placeholder="Enter your username"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
 
-    <div>
-      <button (click)="handleSignUp()" id="sign-up">Sign Up</button>
+    <div class="flex flex-col gap-1">
+      <label for="password" class="text-sm font-semibold text-gray-700">Password</label>
+      <div class="relative">
+        <input 
+          [(ngModel)]="password" 
+          id="password" 
+          type="password" 
+          placeholder="Enter your password"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <span class="absolute right-3 top-2.5 text-gray-400"><i class="fas fa-eye"></i></span>
+      </div>
     </div>
-  </div>`,
+
+    <div class="flex flex-col gap-1">
+      <label for="confirm-password" class="text-sm font-semibold text-gray-700">Confirm Password</label>
+      <div class="relative">
+        <input 
+          [(ngModel)]="confirm_password" 
+          id="confirm-password" 
+          type="password" 
+          placeholder="Confirm your password"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <span class="absolute right-3 top-2.5 text-gray-400"><i class="fas fa-eye"></i></span>
+      </div>
+    </div>
+
+    <button 
+      (click)="handleSignUp()" 
+      id="sign-up"
+      class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 mt-2"
+    >
+      Sign Up
+    </button>
+
+    <div class="text-center text-sm text-gray-600 mt-4">
+      Already have an account? <a href="#" class="text-blue-600 font-semibold">Sign In</a>
+    </div>
+  </div>
+</div>`,
 })
 export class SignUpComponent {
   //alice 4i5x,p^K96a5

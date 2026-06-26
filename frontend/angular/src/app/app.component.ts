@@ -26,7 +26,9 @@ export class AppComponent {
 
     const currentPath = window.location.pathname;
 
-    if (currentPath !== "/login") {
+    const publicRoutes = ["/login", "/signup"];
+
+    if (!publicRoutes.includes(currentPath)) {
       const result_me = await callApi({
         endpoint: "api/auth/me",
         method: "GET",
