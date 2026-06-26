@@ -171,7 +171,7 @@ import { Subscription } from "rxjs";
                   id="title-{{ video.title }}"
                   (click)="toRecording(video.id)"
                 >
-                  {{ video.title }}
+                  {{ video.title ? video.title : "Title" }}
                 </h3>
 
                 <!-- Status: unfinished -->

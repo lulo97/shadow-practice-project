@@ -7,169 +7,349 @@ import { AudioService } from "../services/audio.service";
 import { Video } from "../homepage/video.interface";
 import { TranslationComponent } from "./translation.component";
 import { ModalService } from "../components/modal/modal.service";
-import { signal, computed } from '@angular/core';
 import { SettingComponent } from "./setting.component";
 import { RecordHistoryComponent } from "./recordhistory.component";
-
-interface Sentence {
-  id: number;
-  en: string;
-  vi: string;
-  heard: string;
-  score: number;
-  startTime: string;
-  endTime: string;
-  recorded: boolean;
-}
+import { OnDestroy, HostListener } from "@angular/core";
 
 @Component({
   selector: "app-video-transcription",
   standalone: true,
   imports: [CommonModule],
   template: `
-    <!-- Top Nav -->
-    <div style="display:flex; border-bottom:1px solid #ccc;">
-      <button (click)="goBack()" style="flex:1; padding:8px;">Back</button>
-      <div style="flex:2; padding:8px; text-align:center;">
-        {{ videoMetadata ? videoMetadata.title : "Title" }}
-      </div>
-      <button (click)="openTranslationModal()" style="flex:1; padding:8px;">
-        + Translation
-      </button>
-      <button (click)="openSettingModal()" style="flex:1; padding:8px;">
-        Setting
-      </button>
-    </div>
-
-    <!-- Main layout -->
-    <div style="display:flex; gap:8px; padding:8px;">
-      <!-- Left: Video + Controls -->
-      <div style="flex:1; border:1px solid #ccc; padding:8px;">
-        <!-- Video player placeholder -->
-        <video #videoPlayer class="youtube-video" controls>
-          <source [src]="videoMp4Data" type="video/mp4" />
-        </video>
-
-        <!-- Playback controls -->
-        <div
-          style="border:1px solid #ccc; padding:8px; margin-bottom:4px; display:flex; gap:16px;"
+    <div
+      class="h-screen bg-gray-50 text-gray-800 antialiased overflow-hidden flex flex-col"
+    >
+      <!-- Header -->
+      <div
+        class="flex-none flex items-center justify-between border-b bg-white px-3 py-1.5 shadow-sm"
+      >
+        <button
+          (click)="goBack()"
+          class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
         >
-          <button (click)="togglePlay()">
-            <span>
-              {{ this.isPlaying ? "■ Stop" : "▶ Play" }}
-            </span>
-          </button>
-          <button (click)="startRecord()">
-            <span>
-              {{
-                (audioService.isRecording$ | async)
-                  ? "■ Stop Recording"
-                  : "● Record"
-              }}
-            </span>
-          </button>
+          ← Back
+        </button>
 
-          <button (click)="skipTranscriptLine()">
-            <ng-container
-              *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
-            >
-              <span>⏭ Undo skip</span>
-            </ng-container>
-            <ng-template #skipLabel>
-              <span>⏭ Skip</span>
-            </ng-template>
-          </button>
-
-          <button (click)="openRecordHistory()" >Record History</button>
+        <div
+          class="flex-1 px-2 text-center font-bold text-base text-gray-900 truncate"
+        >
+          {{ videoMetadata ? videoMetadata.title : "Title" }}
         </div>
 
-        <!-- My recording -->
-        <div
-          style="border:1px solid #ccc; padding:8px; display:flex; justify-content:space-between; align-items:center;"
-        >
-          <span>Mine record</span>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span
-              *ngIf="mineWavAudio"
-              style="font-family:monospace; font-size:13px;"
-            >
-              {{ formatTime(currentAudioTime) }}/{{
-                formatTime(totalAudioDuration)
-              }}
-            </span>
-            <audio
-              *ngIf="mineWavAudio"
-              #mineAudioPlayer
-              [src]="mineWavAudio"
-              (timeupdate)="onAudioTimeUpdate()"
-              (loadedmetadata)="onAudioLoaded()"
-              (ended)="onAudioEnded()"
-            ></audio>
-            <button (click)="playMyRecord()">
-              {{ isAudioPlaying ? "⏸" : "▶" }}
-            </button>
-          </div>
+        <div class="flex items-center gap-1.5">
+          <button
+            (click)="openTranslationModal()"
+            class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+          >
+            ＋ Translation
+          </button>
+          <button
+            (click)="openSettingModal()"
+            class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+          >
+            Settings ⚙
+          </button>
         </div>
       </div>
 
-      <!-- Right: Transcription list -->
-      <div style="flex:1; border:1px solid #ccc; padding:8px;">
-        <!-- Header -->
+      <!-- Body -->
+      <div #resizeContainer class="flex-1 flex overflow-hidden min-h-0">
+        <!-- Left panel -->
         <div
-          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"
+          [style.width]="leftWidthPercent + '%'"
+          class="flex-none overflow-y-auto flex flex-col gap-1.5 p-1.5 min-w-0"
         >
-          <strong>Transcription</strong>
-          <button (click)="jumpToUnrecorded()">Jump to unrecorded</button>
-        </div>
+          <div
+            class="rounded-xl bg-white p-1.5 shadow-sm border border-gray-200 h-full flex flex-col justify-center"
+          >
+            <!-- Video -->
+            <div
+              class="relative overflow-hidden rounded-lg bg-black aspect-video shadow-inner"
+            >
+              <video #videoPlayer controls class="h-full w-full object-contain">
+                <source [src]="videoMp4Data" type="video/mp4" />
+              </video>
+            </div>
 
-        <!-- Sentence list -->
-        <div
-          *ngFor="let transcript_line of transcriptLines"
-          (click)="selectTranscriptLine(transcript_line)"
-          style="border:1px solid #ccc; padding:8px; margin-bottom:6px; cursor:pointer;"
-          [style.background]="
-            activeTranscriptLine?.id === transcript_line.id ? '#eef' : 'white'
-          "
-        >
-          <div style="display:flex; justify-content:space-between;">
-            <div>
-              <div><strong>EN:</strong> {{ transcript_line.text }}</div>
-              <div style="color:#c06000;">
-                <strong>VI:</strong> {{ transcript_line.viText }}
-              </div>
-              <div
-                *ngIf="
-                  this.getLastRecord(transcript_line) &&
-                  this.getLastRecord(transcript_line)?.sttText
-                "
-                style="color:#0070c0;"
+            <!-- Controls -->
+            <div class="mt-1.5 grid grid-cols-2 gap-1">
+              <button
+                (click)="togglePlay()"
+                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
               >
-                Heard: {{ this.getLastRecord(transcript_line)?.sttText }} (Score
-                {{ this.getLastRecord(transcript_line)?.score }})
-              </div>
-              <div *ngIf="!this.getLastRecord(transcript_line)" style="color:#aaa;">
-                Not recorded yet
-              </div>
+                {{ this.isPlaying ? "■ Stop" : "▶ Play" }}
+              </button>
+
+              <button
+                (click)="startRecord()"
+                class="flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-sm font-medium transition active:scale-[0.98]"
+                [ngClass]="
+                  (audioService.isRecording$ | async)
+                    ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                "
+              >
+                {{
+                  (audioService.isRecording$ | async)
+                    ? "■ Stop Recording"
+                    : "● Record"
+                }}
+              </button>
+
+              <button
+                (click)="skipTranscriptLine()"
+                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                <ng-container
+                  *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
+                  >⏭ Undo skip</ng-container
+                >
+                <ng-template #skipLabel>⏭ Skip</ng-template>
+              </button>
+
+              <button
+                (click)="openRecordHistory()"
+                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Record History
+              </button>
             </div>
-            <div style="white-space:nowrap; padding-left:12px;">
-              {{ transcript_line.start }} - {{ transcript_line.end }}
+
+            <!-- Audio preview -->
+            <div
+              class="mt-1.5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5"
+            >
+              <div class="flex flex-col gap-0">
+                <span
+                  class="text-xs font-semibold uppercase tracking-wide text-gray-400"
+                  >Audio Preview</span
+                >
+                <span class="text-xs font-semibold text-gray-700"
+                  >Mine record</span
+                >
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <span
+                  *ngIf="mineWavAudio"
+                  class="font-mono text-xs font-medium text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded"
+                >
+                  {{ formatTime(currentAudioTime) }} /
+                  {{ formatTime(totalAudioDuration) }}
+                </span>
+
+                <audio
+                  *ngIf="mineWavAudio"
+                  #mineAudioPlayer
+                  [src]="mineWavAudio"
+                  (timeupdate)="onAudioTimeUpdate()"
+                  (loadedmetadata)="onAudioLoaded()"
+                  (ended)="onAudioEnded()"
+                ></audio>
+
+                <button
+                  (click)="playMyRecord()"
+                  class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
+                  [title]="isAudioPlaying ? 'Pause Audio' : 'Play Audio'"
+                >
+                  <span class="text-xs font-bold">{{
+                    isAudioPlaying ? "⏸" : "▶"
+                  }}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div style="text-align:center; color:#999;">...</div>
+        <!-- Drag divider -->
+        <div
+          (mousedown)="onDividerMouseDown($event)"
+          class="flex-none w-1.5 cursor-col-resize flex items-center justify-center group select-none"
+        >
+          <div
+            class="w-px h-full bg-gray-200 group-hover:bg-blue-400 transition-colors duration-150"
+          ></div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="flex-1 overflow-hidden min-w-0 p-1.5">
+          <div
+            class="h-full rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm flex flex-col"
+          >
+            <!-- Right header -->
+            <div
+              class="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-1.5 mb-1.5"
+            >
+              <div>
+                <h2 class="text-base font-bold text-gray-900">
+                  Transcription Track
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Review, skip, or select blocks to sync record targets
+                </p>
+              </div>
+              <button
+                (click)="jumpToUnrecorded()"
+                class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+              >
+                Jump to unrecorded
+              </button>
+            </div>
+
+            <!-- Transcript list -->
+            <div class="flex-1 overflow-y-auto min-h-0 space-y-1 pr-0.5">
+              <div
+                *ngFor="let transcript_line of transcriptLines"
+                (click)="selectTranscriptLine(transcript_line)"
+                class="group relative cursor-pointer rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
+                [ngClass]="
+                  activeTranscriptLine?.id === transcript_line.id
+                    ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
+                    : 'border-gray-200 bg-white'
+                "
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="space-y-1 flex-1 min-w-0">
+                    <div
+                      class="font-semibold text-sm text-gray-900 leading-snug"
+                    >
+                      {{ transcript_line.text }}
+                    </div>
+
+                    <div
+                      class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs border-t border-gray-100 pt-1"
+                    >
+                      <div class="flex items-start gap-1 text-gray-500">
+                        <span
+                          class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
+                          >EN:</span
+                        >
+                        <span class="line-clamp-2">{{
+                          transcript_line.text
+                        }}</span>
+                      </div>
+                      <div class="flex items-start gap-1 text-gray-600">
+                        <span
+                          class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
+                          >VI:</span
+                        >
+                        <span class="line-clamp-2 italic text-gray-700">{{
+                          transcript_line.viText || "—"
+                        }}</span>
+                      </div>
+                    </div>
+
+                    <div class="pt-0.5">
+                      <div
+                        *ngIf="
+                          this.getLastRecord(transcript_line) &&
+                          this.getLastRecord(transcript_line)?.sttText
+                        "
+                        class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-100"
+                      >
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                        ></span>
+                        <span>Heard:</span>
+                        <span class="font-semibold text-gray-900"
+                          >"{{
+                            this.getLastRecord(transcript_line)?.sttText
+                          }}"</span
+                        >
+                        <span class="text-emerald-600 font-mono"
+                          >(Score:
+                          {{
+                            this.getLastRecord(transcript_line)?.score
+                          }})</span
+                        >
+                      </div>
+
+                      <div
+                        *ngIf="!this.getLastRecord(transcript_line)"
+                        class="inline-flex items-center gap-1 rounded bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-400 border border-gray-200"
+                      >
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"
+                        ></span>
+                        <span>Not recorded yet</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col items-end justify-between self-stretch shrink-0 gap-1"
+                  >
+                    <span
+                      *ngIf="transcript_line.id === 1"
+                      class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700"
+                      title="Completed"
+                      >✓</span
+                    >
+                    <div *ngIf="transcript_line.id !== 1" class="h-5"></div>
+                    <span
+                      class="whitespace-nowrap font-mono text-xs font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded"
+                    >
+                      {{ transcript_line.start }} - {{ transcript_line.end }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="py-2 text-center text-gray-300 tracking-widest font-bold text-xs"
+              >
+                •••
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  `,
-  styles: `
-    .youtube-video {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background-color: black; /* Optional: for letterboxing */
-    }
   `,
 })
-export class RecordingComponent {
+export class RecordingComponent implements OnDestroy {
+  ngOnDestroy(): void {
+    //throw new Error("Method not implemented.");
+  }
+  @ViewChild("resizeContainer") resizeContainer!: ElementRef<HTMLDivElement>;
+
+  leftWidthPercent = 35; // default 35% of window width
+  private isDragging = false;
+  private dragStartX = 0;
+  private dragStartPercent = 0;
+
+  onDividerMouseDown(event: MouseEvent): void {
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartPercent = this.leftWidthPercent;
+    event.preventDefault();
+  }
+
+  @HostListener("document:mousemove", ["$event"])
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging) return;
+    const containerWidth = this.resizeContainer.nativeElement.offsetWidth;
+    const deltaPercent =
+      ((event.clientX - this.dragStartX) / containerWidth) * 100;
+    this.leftWidthPercent = Math.min(
+      80,
+      Math.max(20, this.dragStartPercent + deltaPercent),
+    );
+  }
+
+  @HostListener("document:mouseup")
+  onMouseUp(): void {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    this.onResizeDone(this.leftWidthPercent);
+  }
+
+  /** Called once when user releases the divider — wire your API call here */
+  onResizeDone(leftWidthPercent: number): void {
+    // e.g. this.settingsService.savePanelWidth(leftWidthPercent).subscribe();
+    console.log("Resize done, left panel %:", leftWidthPercent);
+  }
+
   isAudioPlaying = false;
   currentAudioTime = 0;
   totalAudioDuration = 0;
@@ -471,7 +651,7 @@ export class RecordingComponent {
       component: TranslationComponent,
       size: "lg",
       onClose: async () => {
-        await this.fetchTranscriptLines()
+        await this.fetchTranscriptLines();
       },
       data: {
         transcriptLines: this.transcriptLines,
@@ -489,9 +669,7 @@ export class RecordingComponent {
       onClose: async () => {
         //await this.fetchTranscriptLines()
       },
-      data: {
-
-      },
+      data: {},
     });
   }
 
@@ -509,7 +687,7 @@ export class RecordingComponent {
         //await this.fetchTranscriptLines()
       },
       data: {
-        records: this.activeTranscriptLine?.records
+        records: this.activeTranscriptLine?.records,
       },
     });
   }
