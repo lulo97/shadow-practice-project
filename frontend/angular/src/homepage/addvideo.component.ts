@@ -36,6 +36,10 @@ export class AddVideoComponent {
   youtube_link = "";
   private modal = inject(ModalService);
 
+  ngOnInit() {
+    this.modal.ready();
+  }
+
   async handleAdd() {
     if (!this.youtube_link) {
       messageUtils("Youtube link null!");

@@ -82,7 +82,10 @@ using (var scope = app.Services.CreateScope())
     if (!context.Users.Any())
     {
         context.Users.Add(new User { Id = 1, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
+
         context.Users.Add(new User { Id = -1, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
+
+
 
         context.SaveChanges();
     }

@@ -755,7 +755,6 @@ export class RecordingComponent implements OnDestroy {
     this.modal.open({
       title: "Record History Modal",
       component: RecordHistoryComponent,
-      size: "lg",
       onClose: async () => {
         //await this.fetchTranscriptLines()
       },

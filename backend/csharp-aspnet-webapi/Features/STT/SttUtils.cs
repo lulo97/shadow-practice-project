@@ -3,7 +3,58 @@ public static class SttUtils
 {
     public static int GetScore(string original_text, string tts_test)
     {
-        return 100;
+        // 1. Handle edge cases or empty strings
+        if (string.IsNullOrEmpty(original_text) && string.IsNullOrEmpty(tts_test))
+            return 100;
+
+        if (string.IsNullOrEmpty(original_text) || string.IsNullOrEmpty(tts_test))
+            return 0;
+
+        // 2. Normalize text for fair TTS comparison (case-insensitive, trimmed)
+        string source = original_text.Trim().ToLower();
+        string target = tts_test.Trim().ToLower();
+
+        // If they are identical after normalization, it's a perfect match
+        if (source == target)
+            return 100;
+
+        // 3. Calculate Levenshtein Distance (Optimized Row-by-Row)
+        int m = source.Length;
+        int n = target.Length;
+
+        int[] prevRow = new int[n + 1];
+        int[] currRow = new int[n + 1];
+
+        for (int j = 0; j <= n; j++)
+        {
+            prevRow[j] = j;
+        }
+
+        for (int i = 1; i <= m; i++)
+        {
+            currRow[0] = i;
+            for (int j = 1; j <= n; j++)
+            {
+                int cost = (source[i - 1] == target[j - 1]) ? 0 : 1;
+
+                currRow[j] = Math.Min(
+                    Math.Min(currRow[j - 1] + 1,    // Insertion
+                             prevRow[j] + 1),       // Deletion
+                    prevRow[j - 1] + cost           // Substitution
+                );
+            }
+
+            // Move to the next row: copy currRow to prevRow
+            Array.Copy(currRow, prevRow, n + 1);
+        }
+
+        int distance = prevRow[n];
+
+        // 4. Convert distance to a 0-100 similarity percentage score
+        int maxLength = Math.Max(m, n);
+        double similarity = (double)(maxLength - distance) / maxLength;
+
+        return (int)Math.Round(similarity * 100);
     }
 
     public static async Task<byte[]> ConvertToWavAsync(byte[] inputBytes)

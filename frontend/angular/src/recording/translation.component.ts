@@ -82,6 +82,7 @@ export class TranslationComponent {
 
   ngOnInit() {
     this.reset();
+    this.modal.ready();
   }
 
   videoId: number = this.modal.config().data?.videoId;

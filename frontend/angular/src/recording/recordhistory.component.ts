@@ -11,40 +11,50 @@ import { Record } from "./transcriptline.interface";
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <table class="w-full border-collapse">
-      <thead>
-        <tr>
-          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
-            No.
-          </th>
-          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
-            Created at
-          </th>
-          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
-            Heard text
-          </th>
-          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
-            Score
-          </th>
-          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
-            STT Model Key
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let record of records; let i = index">
-          <td class="border border-gray-300 px-2 py-1">{{ i + 1 }}</td>
-          <td class="border border-gray-300 px-2 py-1">
-            {{ record.createdAt | date: "short" }}
-          </td>
-          <td class="border border-gray-300 px-2 py-1">{{ record.sttText || "-" }}</td>
-          <td class="border border-gray-300 px-2 py-1">{{ record.score }}</td>
-          <td class="border border-gray-300 px-2 py-1">
-            {{ record.sttProviderKey }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="w-[80vw] h-[60vh] overflow-x-auto rounded-lg border border-gray-200">
+      <table class="w-full text-left text-sm text-gray-600">
+        <thead
+          class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-700 border-b border-gray-200"
+        >
+          <tr>
+            <th class="px-4 py-3 w-16">No.</th>
+            <th class="px-4 py-3">Created at</th>
+            <th class="px-4 py-3">Heard text</th>
+            <th class="px-4 py-3">Score</th>
+            <th class="px-4 py-3">STT Model Key</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200 bg-white">
+          @if (records && records.length > 0) {
+            @for (record of records; track record; let i = $index) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ i + 1 }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  {{ record.createdAt | date: "short" }}
+                </td>
+                <td class="px-4 py-3 max-w-xs truncate">
+                  {{ record.sttText || "-" }}
+                </td>
+                <td class="px-4 py-3">{{ record.score }}</td>
+                <td class="px-4 py-3 font-mono text-xs text-gray-500">
+                  {{ record.sttProviderKey }}
+                </td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td
+                colspan="5"
+                class="px-4 py-8 text-center text-gray-400 italic"
+              >
+                No records available.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   `,
 })
 export class RecordHistoryComponent {
@@ -65,16 +75,18 @@ export class RecordHistoryComponent {
     console.log(this.transcriptLineId);
 
     this.fetchRecords();
+
+    this.modal.ready();
   }
 
   async fetchRecords() {
     const result = await callApi({
       endpoint: `api/records/transcript-line/${this.transcriptLineId}`,
-      method: "GET"
-    })
+      method: "GET",
+    });
 
     if (!result.success) {
-      messageUtils(result.message)
+      messageUtils(result.message);
       return;
     }
 

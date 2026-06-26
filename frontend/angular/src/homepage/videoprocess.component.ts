@@ -104,5 +104,7 @@ export class VideoProcessComponent {
     }
 
     this.data = result.data;
+
+    this.modal.ready();
   }
 }
