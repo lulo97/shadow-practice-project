@@ -1,4 +1,6 @@
-﻿public class JobStepScope : IAsyncDisposable
+﻿using System.Runtime.Intrinsics.X86;
+
+public class JobStepScope : IAsyncDisposable
 {
     private readonly JobStep _step;
     private readonly AppDbContext _context;

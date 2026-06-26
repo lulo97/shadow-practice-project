@@ -6,12 +6,14 @@ public class VideoJobUtils
     private readonly AppDbContext _context;
     private readonly IYtDlp _ytDlp;
     private readonly IAsrService _asrService;
+    private readonly SseService _sse;
 
-    public VideoJobUtils(AppDbContext context, IYtDlp ytDlp, IAsrService asrService)
+    public VideoJobUtils(AppDbContext context, IYtDlp ytDlp, IAsrService asrService, SseService sse)
     {
         _context = context;
         _ytDlp = ytDlp;
         _asrService = asrService;
+        _sse = sse;
     }
 
     public async Task Run(int jobId, string youtubeId, int videoId)
@@ -103,6 +105,8 @@ public class VideoJobUtils
             await _context.SaveChangesAsync();
             await step.Complete($"srtText {srtText.Count} lines");
         }
+
+        await _sse.SendToFrontEnd("{\"message\":\"RESET_HOMEPAGE\"}");
     }
 
     private async Task<JobStepScope> BeginStep(int jobId, string stepName)

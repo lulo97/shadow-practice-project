@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, inject } from "@angular/core";
+import { Component, inject, NgZone } from "@angular/core";
 import { ModalService } from "../components/modal/modal.service";
 import { AddVideoComponent } from "./addvideo.component";
 import { callApi } from "../utils/apiUtils";
@@ -8,6 +8,8 @@ import { Video } from "./video.interface";
 import { VideoProcessComponent } from "./videoprocess.component";
 import { FormsModule } from "@angular/forms";
 import { FilterComponent } from "./filter.component";
+import { SseService } from "../sse/sseservice.component";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: "app-shadowing-homepage",
@@ -136,132 +138,152 @@ import { FilterComponent } from "./filter.component";
       <section id="videos-list">
         <h2 class="text-[14px] font-medium text-gray-900 mb-3">My Videos</h2>
 
+<div
+  *ngFor="let video of videos"
+  [id]="'video-' + video.title.replace(' ', '-')"
+  (click)="toRecording(video.id)"
+>
+  <div
+    class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
+  >
+    <!-- Thumbnail -->
+    <div
+      class="relative h-[100px] aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center"
+      id="thumb-{{ video.title }}"
+    >
+      <!-- Loading icon -->
+      <ng-template #loadingThumb>
         <div
-          *ngFor="let video of videos"
-          class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
-          [id]="'video-' + video.title.replace(' ', '-')"
-          (click)="toRecording(video.id)"
+          class="flex flex-col items-center justify-center gap-2 text-gray-400"
         >
-          <!-- Thumbnail -->
+          <i class="fa-solid fa-spinner fa-spin text-xl"></i>
+          <span class="text-[11px]">Loading...</span>
+        </div>
+      </ng-template>
+
+      <ng-container *ngIf="video.thumbnail; else loadingThumb">
+        <img
+          [src]="video.thumbnail"
+          class="w-full h-full object-cover"
+        />
+
+        <span
+          class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
+        >
+          VIDEO
+        </span>
+
+        <span
+          class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
+        >
+          {{ 123 }}
+        </span>
+      </ng-container>
+    </div>
+
+    <!-- Details -->
+    <div class="flex-1 min-w-0 flex flex-col gap-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <h3
+          class="text-[14px] font-medium text-gray-900"
+          id="title-{{ video.title }}"
+        >
+          {{ video.title }}
+        </h3>
+
+        <!-- Status: unfinished -->
+        <!-- <span
+          *ngIf="'not_started' ==== 'unfinished'"
+          class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
+          id="status-{{ video.title }}"
+        >
+          <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
+        </span> -->
+
+        <!-- Status: finished -->
+        <!-- <span
+          *ngIf="'not_started' === 'finished'"
+          class="flex items-center gap-1 text-[12px] font-medium text-green-600"
+          id="status-{{ video.title }}"
+        >
+          <i class="fa-regular fa-circle-check text-[12px]"></i> Finished
+        </span> -->
+
+        <!-- Status: not started -->
+        <span
+          *ngIf="'not_started' === 'not_started'"
+          class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
+          id="status-{{ video.title }}"
+        >
+          <i class="fa-regular fa-circle text-[12px]"></i> Not started
+        </span>
+      </div>
+
+      <!-- Progress bar (shown when has progress) -->
+      <div
+        *ngIf="'not_started' !== 'not_started'"
+        class="flex items-center gap-2"
+        id="progress-{{ video.title }}"
+      >
+        <div
+          class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+        >
           <div
-            class="relative w-[100px] min-w-[100px] h-[62px] rounded-lg overflow-hidden bg-gray-900"
-            id="thumb-{{ video.title }}"
-          >
-            <img
-              src="{{ video.thumbnail }}"
-              class="w-full h-full object-cover"
-            />
-            <span
-              class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
-            >
-              VIDEO
-            </span>
-            <span
-              class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
-            >
-              {{ 123 }}
-            </span>
-          </div>
-
-          <!-- Details -->
-          <div class="flex-1 min-w-0 flex flex-col gap-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h3
-                class="text-[14px] font-medium text-gray-900"
-                id="title-{{ video.title }}"
-              >
-                {{ video.title }}
-              </h3>
-
-              <!-- Status: unfinished -->
-              <!-- <span
-                *ngIf="'not_started' ==== 'unfinished'"
-                class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
-                id="status-{{ video.title }}"
-              >
-                <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
-              </span> -->
-
-              <!-- Status: finished -->
-              <!-- <span
-                *ngIf="'not_started' === 'finished'"
-                class="flex items-center gap-1 text-[12px] font-medium text-green-600"
-                id="status-{{ video.title }}"
-              >
-                <i class="fa-regular fa-circle-check text-[12px]"></i> Finished
-              </span> -->
-
-              <!-- Status: not started -->
-              <span
-                *ngIf="'not_started' === 'not_started'"
-                class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
-                id="status-{{ video.title }}"
-              >
-                <i class="fa-regular fa-circle text-[12px]"></i> Not started
-              </span>
-            </div>
-
-            <!-- Progress bar (shown when has progress) -->
-            <div
-              *ngIf="'not_started' !== 'not_started'"
-              class="flex items-center gap-2"
-              id="progress-{{ video.title }}"
-            >
-              <div
-                class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
-              >
-                <div
-                  class="h-full bg-blue-600 rounded-full"
-                  [style.width.%]="65"
-                ></div>
-              </div>
-              <span class="text-[12px] text-gray-500 min-w-[28px] text-right"
-                >{{ 65 }}%</span
-              >
-            </div>
-
-            <!-- 0% bar for not started -->
-            <div
-              *ngIf="'not_started' === 'not_started'"
-              class="flex items-center gap-2"
-              id="progress-{{ video.title }}"
-            >
-              <div
-                class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
-              >
-                <div
-                  class="h-full bg-blue-600 rounded-full"
-                  [style.width.%]="0"
-                ></div>
-              </div>
-              <span class="text-[12px] text-gray-500 min-w-[28px] text-right"
-                >0%</span
-              >
-            </div>
-
-            <!-- Last practiced -->
-            <div
-              *ngIf="1"
-              class="flex items-center gap-1 text-[12px] text-gray-400"
-            >
-              <i class="fa-regular fa-user-circle text-[11px]"></i> Last
-              practiced: video.lastPracticed
-            </div>
-          </div>
-
-          <!-- More button -->
-          <button
-            (click)="
-              openVideoProcessModal(video.jobId); $event.stopPropagation()
-            "
-            id="video-progress"
-            class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
-            aria-label="More options"
-          >
-            <i class="fa-solid fa-ellipsis-vertical text-base"></i>
-          </button>
+            class="h-full bg-blue-600 rounded-full"
+            [style.width.%]="65"
+          ></div>
         </div>
 
+        <span
+          class="text-[12px] text-gray-500 min-w-[28px] text-right"
+        >
+          {{ 65 }}%
+        </span>
+      </div>
+
+      <!-- 0% bar for not started -->
+      <div
+        *ngIf="'not_started' === 'not_started'"
+        class="flex items-center gap-2"
+        id="progress-{{ video.title }}"
+      >
+        <div
+          class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+        >
+          <div
+            class="h-full bg-blue-600 rounded-full"
+            [style.width.%]="0"
+          ></div>
+        </div>
+
+        <span
+          class="text-[12px] text-gray-500 min-w-[28px] text-right"
+        >
+          0%
+        </span>
+      </div>
+
+      <!-- Last practiced -->
+      <div
+        *ngIf="1"
+        class="flex items-center gap-1 text-[12px] text-gray-400"
+      >
+        <i class="fa-regular fa-user-circle text-[11px]"></i>
+        Last practiced: 12:12:12 12/12/2012
+      </div>
+    </div>
+
+    <!-- More button -->
+    <button
+      (click)="openVideoProcessModal(video.jobId); $event.stopPropagation()"
+      id="video-progress"
+      class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
+      aria-label="More options"
+    >
+      <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+    </button>
+  </div>
+</div>
         <p class="text-[12px] text-gray-400 mt-1">
           Showing 1–{{ videos.length }} of {{ videos.length }} videos
         </p>
@@ -280,7 +302,29 @@ export class HomepageComponent {
 
   ngOnInit(): void {
     this.fetchVideos();
+
+    this.sub = this.sse.onMessage().subscribe((data) => {
+      this.zone.run(() => {
+        const message = JSON.parse(data).message;
+
+        console.log({ message });
+
+        if (message === "RESET_HOMEPAGE") {
+          this.fetchVideos();
+          console.log("RUN fetchVideos by SSE");
+        }
+      });
+    });
   }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
+  private sub!: Subscription;
+  constructor(
+    private sse: SseService,
+    private zone: NgZone,
+  ) {}
 
   async fetchVideos() {
     const queryParams = new URLSearchParams();

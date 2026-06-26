@@ -35,6 +35,7 @@ builder.Services.AddScoped<ISTT, WhisperCpp>();
 builder.Services.AddHostedService<ExternalServerStarter>(); 
 builder.Services.AddScoped<VideoJobUtils>();
 builder.Services.AddScoped<ILLM, FakeLlm>();
+builder.Services.AddSingleton<SseService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
