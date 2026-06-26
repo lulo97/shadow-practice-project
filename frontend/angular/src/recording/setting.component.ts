@@ -8,7 +8,6 @@ import { ModalService } from "../components/modal/modal.service";
 
 interface SettingDatasource {
   sttProviders: string[];
-  recordScreenUiStyles: string[];
   loopOptions: number[];
 }
 
@@ -49,24 +48,6 @@ interface SettingDatasource {
             >{{ setting.volume }}%</span
           >
         </div>
-      </div>
-
-      <!-- UI Style -->
-      <div
-        class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
-      >
-        <label class="font-bold text-gray-700">UI Style</label>
-        <select
-          [(ngModel)]="setting.recordScreenUiStyle"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-        >
-          <option
-            *ngFor="let s of datasource?.recordScreenUiStyles"
-            [value]="s"
-          >
-            {{ s }}
-          </option>
-        </select>
       </div>
 
       <!-- Loop -->

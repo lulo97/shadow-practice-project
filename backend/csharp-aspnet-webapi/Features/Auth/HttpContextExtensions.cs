@@ -60,7 +60,6 @@ public static class HttpContextExtensions
                 UserId = user!.Id,
                 SttProviderKey = "WHISPER_CPP",
                 Volume = 70,
-                RecordScreenUiStyle = "ONE_SENTENCE",
                 Loop = 0,
                 VideoWidthSize = 50
             };

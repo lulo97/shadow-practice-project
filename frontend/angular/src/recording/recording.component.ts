@@ -50,7 +50,7 @@ import { OnDestroy, HostListener } from "@angular/core";
       <div #resizeContainer class="flex-1 flex overflow-hidden min-h-0">
         <!-- Left panel -->
         <div
-          [style.width]="leftWidthPercent + '%'"
+          [style.width]="setting.leftWidthPercent + '%'"
           class="flex-none overflow-y-auto flex flex-col gap-1.5 p-1.5 min-w-0"
         >
           <div
@@ -114,8 +114,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                   skip</ng-container
                 >
                 <ng-template #skipLabel
-                  ><i class="fa-solid fa-forward-step"></i>
-                  Skip</ng-template
+                  ><i class="fa-solid fa-forward-step"></i> Skip</ng-template
                 >
               </button>
 
@@ -198,7 +197,8 @@ import { OnDestroy, HostListener } from "@angular/core";
               <div>
                 <h2 class="text-base font-bold text-gray-900">
                   Transcription Track (Current
-                  {{ this.activeTranscriptLineIdx + 1 }} in total {{ this.transcriptLines?.length}})
+                  {{ this.activeTranscriptLineIdx + 1 }} in total
+                  {{ this.transcriptLines?.length }})
                 </h2>
                 <p class="text-xs text-gray-500">
                   Review, skip, or select blocks to sync record targets
@@ -324,28 +324,50 @@ import { OnDestroy, HostListener } from "@angular/core";
   `,
 })
 export class RecordingComponent implements OnDestroy {
-  @ViewChild("transcriptContainer")
-  transcriptContainer!: ElementRef<HTMLDivElement>;
 
-  shouldNotMoveActiveTranscriptLine() {
-    if (this.isGenerateStt) return true;
-    if (this.isRecording) return true;
-    return false;
+  // ==================== INFRASTRUCTURE ====================
+
+  videoId = window.location.pathname.split("/").filter(Boolean).pop();
+  private modal = inject(ModalService);
+  audioService = inject(AudioService);
+
+  ngOnInit(): void {
+    this.fetchVideoMp4Data();
+    this.fetchTranscriptLines("ON_INIT");
+    this.fetchVideoMetadata();
+    this.fetchSetting();
+    this.audioService.isRecording$.subscribe((value) => {
+      this.isRecording = value;
+    });
   }
-  ngOnDestroy(): void {
-    //throw new Error("Method not implemented.");
+
+  ngOnDestroy(): void {}
+
+  goBack(): void {
+    console.log("Navigate back");
+    window.location.href = "/";
   }
+
+
+  // ==================== FEATURE: PANEL RESIZE ====================
+
   @ViewChild("resizeContainer") resizeContainer!: ElementRef<HTMLDivElement>;
 
-  leftWidthPercent = 35; // default 35% of window width
+  setting = {
+    leftWidthPercent: 35,
+    volume: 70,
+    loop: 0,
+  };
+
   private isDragging = false;
   private dragStartX = 0;
   private dragStartPercent = 0;
+  private debounceTimer: any;
 
   onDividerMouseDown(event: MouseEvent): void {
     this.isDragging = true;
     this.dragStartX = event.clientX;
-    this.dragStartPercent = this.leftWidthPercent;
+    this.dragStartPercent = this.setting.leftWidthPercent;
     event.preventDefault();
   }
 
@@ -355,42 +377,284 @@ export class RecordingComponent implements OnDestroy {
     const containerWidth = this.resizeContainer.nativeElement.offsetWidth;
     const deltaPercent =
       ((event.clientX - this.dragStartX) / containerWidth) * 100;
-    this.leftWidthPercent = Math.min(
+
+    const newLeftWidthPercent = Math.min(
       80,
       Math.max(20, this.dragStartPercent + deltaPercent),
     );
+
+    this.setting.leftWidthPercent = newLeftWidthPercent;
+    this.setLeftWidthPercentDatabaseDebounce(newLeftWidthPercent);
   }
 
   @HostListener("document:mouseup")
   onMouseUp(): void {
     if (!this.isDragging) return;
     this.isDragging = false;
-    this.onResizeDone(this.leftWidthPercent);
+    this.onResizeDone(this.setting.leftWidthPercent);
   }
 
-  /** Called once when user releases the divider — wire your API call here */
   onResizeDone(leftWidthPercent: number): void {
-    // e.g. this.settingsService.savePanelWidth(leftWidthPercent).subscribe();
     console.log("Resize done, left panel %:", leftWidthPercent);
   }
 
+  async setLeftWidthPercentDatabaseDebounce(percent: number) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.setLeftWidthPercentDatabase(percent);
+    }, 500);
+  }
+
+  async setLeftWidthPercentDatabase(percent: number) {
+    const result = await callApi({
+      endpoint: "api/usersettings/update-property",
+      method: "POST",
+      body: { key: "VideoWidthSize", value: percent },
+      credentials: "include",
+    });
+
+    if (!result.success) { messageUtils(result.message); return; }
+  }
+
+
+  // ==================== FEATURE: VIDEO PLAYBACK ====================
+
+  @ViewChild("videoPlayer") videoPlayer!: ElementRef<HTMLVideoElement>;
+
+  videoMp4Data = null;
+  videoMetadata: Video | null = null;
+  isPlaying = false;
+  private _pauseAtEndTime: () => void = () => {};
+
+  async fetchVideoMetadata() {
+    const result = await callApi({
+      endpoint: `api/videos/metadata/${this.videoId}`,
+      method: "GET",
+    });
+
+    if (!result.success) { messageUtils(result.message); return; }
+    this.videoMetadata = result.data;
+  }
+
+  async fetchVideoMp4Data() {
+    const result = await callApi({
+      endpoint: `api/videos/video_data/${this.videoId}`,
+      method: "GET",
+    });
+
+    if (!result.success) { messageUtils(result.message); return; }
+
+    this.videoMp4Data = result.data.url;
+    setTimeout(() => { if (this.videoPlayer) this.videoPlayer.nativeElement.load(); });
+  }
+
+  togglePlay(): void {
+    const video = this.videoPlayer.nativeElement;
+
+    if (this.isPlaying) {
+      video.pause();
+      if (this.activeTranscriptLine) video.currentTime = this.activeTranscriptLine.start;
+      this.isPlaying = false;
+      video.removeEventListener("timeupdate", this._pauseAtEndTime);
+      return;
+    }
+
+    if (!this.activeTranscriptLine) { messageUtils("Select record"); return; }
+
+    video.currentTime = this.activeTranscriptLine.start;
+    video.play();
+    this.isPlaying = true;
+
+    this._pauseAtEndTime = () => {
+      if (video.currentTime >= this.activeTranscriptLine!!.end) {
+        video.pause();
+        video.currentTime = this.activeTranscriptLine!!.start;
+        this.isPlaying = false;
+        video.removeEventListener("timeupdate", this._pauseAtEndTime);
+      }
+    };
+
+    video.addEventListener("timeupdate", this._pauseAtEndTime);
+  }
+
+
+  // ==================== FEATURE: TRANSCRIPT ====================
+
+  @ViewChild("transcriptContainer") transcriptContainer!: ElementRef<HTMLDivElement>;
+
+  transcriptLines: TranscriptLine[] | null = null;
+  activeTranscriptLineIdx: number = 0;
+  showTranslation = true;
+
+  get activeTranscriptLine(): TranscriptLine | null {
+    if (this.activeTranscriptLineIdx === null || !this.transcriptLines) return null;
+    return this.transcriptLines[this.activeTranscriptLineIdx] ?? null;
+  }
+
+  async fetchTranscriptLines(action?: string) {
+    const result = await callApi({
+      endpoint: `api/transcripts/${this.videoId}`,
+      method: "GET",
+    });
+
+    if (!result.success) { messageUtils(result.message); return; }
+
+    this.transcriptLines = result.data;
+    if (action == "ON_INIT") { if (this.jumpToUnrecorded) this.jumpToUnrecorded(); }
+    return result.data;
+  }
+
+  selectTranscriptLine(transcript_line: TranscriptLine): void {
+    if (!this.transcriptLines) { messageUtils("transcriptLines null"); return; }
+
+    const idx = this.transcriptLines.findIndex((ele) => ele.id == transcript_line.id);
+    if (!idx) { messageUtils("idx null"); return; }
+
+    this.activeTranscriptLineIdx = idx;
+    this.mineWavAudio = null;
+    this.isAudioPlaying = false;
+    this.currentAudioTime = 0;
+    this.totalAudioDuration = 0;
+    console.log("Selected sentence", transcript_line.id);
+  }
+
+  jumpToUnrecorded(): void {
+    if (!this.transcriptLines) return;
+
+    const unrecorded_idx = this.transcriptLines.findIndex((s) => s.records.length === 0);
+    const unrecorded = this.transcriptLines[unrecorded_idx];
+
+    if (unrecorded) {
+      this.activeTranscriptLineIdx = unrecorded_idx;
+      setTimeout(() => {
+        document.querySelector(`[data-id="${unrecorded.id}"]`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      console.log("Jumped to unrecorded sentence", unrecorded.id);
+    }
+  }
+
+  shouldNotMoveActiveTranscriptLine() {
+    if (this.isGenerateStt) return true;
+    if (this.isRecording) return true;
+    return false;
+  }
+
+  async skipTranscriptLine(): Promise<void> {
+    if (!this.activeTranscriptLine || !this.transcriptLines) return;
+
+    const idx = this.transcriptLines.findIndex(
+      (s) => s.id === this.activeTranscriptLine!.id,
+    );
+    if (idx < this.transcriptLines.length - 1) {
+      const result = await callApi({
+        endpoint: `api/transcripts/skip/${this.activeTranscriptLine.id}`,
+        method: "POST",
+      });
+
+      if (!result.success) { messageUtils(result.message); return; }
+      this.fetchTranscriptLines();
+    }
+  }
+
+  openTranslationModal() {
+    this.modal.open({
+      title: "Translation Modal",
+      component: TranslationComponent,
+      onClose: async () => { await this.fetchTranscriptLines(); },
+      data: {
+        transcriptLines: this.transcriptLines,
+        videoId: this.videoId,
+        fetchTranscriptLines: this.fetchTranscriptLines,
+      },
+    });
+  }
+
+
+  // ==================== FEATURE: RECORDING ====================
+
+  isRecording = false;
+  isGenerateStt = false;
+
+  get recordButtonText() {
+    if (this.isGenerateStt) return "Loading...";
+    return this.isRecording ? "Stop Recording" : "Record";
+  }
+
+  get recordButtonIcon() {
+    if (this.isGenerateStt) return "fa-spinner fa-spin";
+    return this.isRecording ? "fa-stop" : "fa-microphone";
+  }
+
+  async startRecord(): Promise<void> {
+    if (!this.activeTranscriptLine?.id) { messageUtils("activeTranscriptLine null"); return; }
+
+    let blob;
+    if (this.audioService.isRecordingValue) {
+      blob = await this.audioService.stopRecording();
+    } else {
+      await this.audioService.startRecording();
+      return;
+    }
+
+    if (!blob) { messageUtils("Blob null"); return; }
+
+    const formData = new FormData();
+    formData.append("file", blob, "audio.wav");
+    formData.append("videoId", this.videoId!!);
+    formData.append("transcriptLineId", this.activeTranscriptLine?.id.toString()!!);
+
+    this.isGenerateStt = true;
+    const result = await callApi({
+      endpoint: "api/records",
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+    this.isGenerateStt = false;
+
+    if (!result.success) { messageUtils(result.message); return; }
+    this.fetchTranscriptLines();
+  }
+
+  getLastRecord(transcriptLine: TranscriptLine) {
+    if (!transcriptLine || transcriptLine.records.length == 0) return;
+    return transcriptLine.records[transcriptLine.records.length - 1];
+  }
+
+  deleteMyRecord(): void {
+    console.log("Deleted my recording");
+  }
+
+  openRecordHistory() {
+    if (!this.activeTranscriptLine) { messageUtils("activeTranscriptLine null!"); return; }
+
+    this.modal.open({
+      title: "Record History Modal",
+      component: RecordHistoryComponent,
+      onClose: async () => {},
+      data: { transcriptLineId: this.activeTranscriptLine?.id },
+    });
+  }
+
+
+  // ==================== FEATURE: MY AUDIO PLAYBACK ====================
+
+  @ViewChild("mineAudioPlayer") mineAudioPlayer!: ElementRef<HTMLAudioElement>;
+
+  mineWavAudio = null;
   isAudioPlaying = false;
   currentAudioTime = 0;
   totalAudioDuration = 0;
 
   formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = Math.floor(seconds % 60)
-      .toString()
-      .padStart(2, "0");
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = Math.floor(seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   }
 
   onAudioTimeUpdate(): void {
-    this.currentAudioTime =
-      this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
+    this.currentAudioTime = this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
   }
 
   onAudioLoaded(): void {
@@ -402,258 +666,24 @@ export class RecordingComponent implements OnDestroy {
     this.currentAudioTime = 0;
   }
 
-  audioService = inject(AudioService);
-
-  isPlaying = false;
-  showTranslation = true;
-
-  activeTranscriptLineIdx: number = 0;
-
-  get activeTranscriptLine(): TranscriptLine | null {
-    if (this.activeTranscriptLineIdx === null || !this.transcriptLines)
-      return null;
-    return (
-      this.transcriptLines[this.activeTranscriptLineIdx] ??
-      null
-    );
-  }
-
-  videoId = window.location.pathname.split("/").filter(Boolean).pop();
-
-  videoMp4Data = null;
-
-  videoMetadata: Video | null = null;
-
-  @ViewChild("videoPlayer") videoPlayer!: ElementRef<HTMLVideoElement>;
-
-  mineWavAudio = null;
-
-  @ViewChild("mineAudioPlayer") mineAudioPlayer!: ElementRef<HTMLAudioElement>;
-
-  transcriptLines: TranscriptLine[] | null = null;
-
-  async fetchVideoMetadata() {
-    const result = await callApi({
-      endpoint: `api/videos/metadata/${this.videoId}`,
-      method: "GET",
-    });
-
-    if (!result.success) {
-      messageUtils(result.message);
-      return;
-    }
-
-    this.videoMetadata = result.data;
-  }
-
-  async fetchTranscriptLines(action?: string) {
-    const result = await callApi({
-      endpoint: `api/transcripts/${this.videoId}`,
-      method: "GET",
-    });
-
-    if (!result.success) {
-      messageUtils(result.message);
-      return;
-    }
-
-    this.transcriptLines = result.data;
-
-    if (action == "ON_INIT") {
-      if (this.jumpToUnrecorded) this.jumpToUnrecorded();
-    }
-    return result.data;
-  }
-
-  async fetchVideoMp4Data() {
-    const result = await callApi({
-      endpoint: `api/videos/video_data/${this.videoId}`,
-      method: "GET",
-    });
-
-    if (!result.success) {
-      messageUtils(result.message);
-      return;
-    }
-
-    this.videoMp4Data = result.data.url;
-
-    setTimeout(() => {
-      if (this.videoPlayer) {
-        this.videoPlayer.nativeElement.load();
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    this.fetchVideoMp4Data();
-    this.fetchTranscriptLines("ON_INIT");
-    this.fetchVideoMetadata();
-    this.audioService.isRecording$.subscribe((value) => {
-      this.isRecording = value;
-    });
-  }
-
-  goBack(): void {
-    console.log("Navigate back");
-    window.location.href = "/";
-  }
-
-  openSettings(): void {
-    console.log("Open settings");
-  }
-  private _pauseAtEndTime: () => void = () => {};
-  togglePlay(): void {
-    const video = this.videoPlayer.nativeElement;
-
-    if (this.isPlaying) {
-      // Stop and snap back to start of current line
-      video.pause();
-      if (this.activeTranscriptLine) {
-        video.currentTime = this.activeTranscriptLine.start;
-      }
-      this.isPlaying = false;
-      video.removeEventListener("timeupdate", this._pauseAtEndTime);
-      return;
-    }
-
-    if (!this.activeTranscriptLine) {
-      messageUtils("Select record");
-      return;
-    }
-
-    video.currentTime = this.activeTranscriptLine.start;
-    video.play();
-    this.isPlaying = true;
-
-    this._pauseAtEndTime = () => {
-      if (video.currentTime >= this.activeTranscriptLine!!.end) {
-        video.pause();
-        video.currentTime = this.activeTranscriptLine!!.start; // snap back
-        this.isPlaying = false;
-        video.removeEventListener("timeupdate", this._pauseAtEndTime);
-      }
-    };
-
-    video.addEventListener("timeupdate", this._pauseAtEndTime);
-  }
-
-  isGenerateStt = false;
-  get recordButtonText() {
-    if (this.isGenerateStt) return "Loading...";
-    return this.isRecording ? "Stop Recording" : "Record";
-  }
-
-  get recordButtonIcon() {
-    if (this.isGenerateStt) return "fa-spinner fa-spin";
-    return this.isRecording ? "fa-stop" : "fa-microphone";
-  }
-  isRecording = false;
-
-  async startRecord(): Promise<void> {
-    if (!this.activeTranscriptLine?.id) {
-      messageUtils("activeTranscriptLine null");
-      return;
-    }
-
-    let blob;
-    if (this.audioService.isRecordingValue) {
-      blob = await this.audioService.stopRecording();
-      console.log(blob);
-    } else {
-      await this.audioService.startRecording();
-      return;
-    }
-
-    if (!blob) {
-      messageUtils("Blob null");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", blob, "audio.wav");
-    formData.append("videoId", this.videoId!!);
-    formData.append(
-      "transcriptLineId",
-      this.activeTranscriptLine?.id.toString()!!,
-    );
-
-    this.isGenerateStt = true;
-
-    const result = await callApi({
-      endpoint: "api/records",
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
-
-    this.isGenerateStt = false;
-
-    if (!result.success) {
-      messageUtils(result.message);
-      return;
-    }
-
-    this.fetchTranscriptLines();
-  }
-
-  async skipTranscriptLine(): Promise<void> {
-    if (!this.activeTranscriptLine) return;
-    if (!this.transcriptLines) return;
-    const idx = this.transcriptLines.findIndex(
-      (s) => s.id === this.activeTranscriptLine!.id,
-    );
-    if (idx < this.transcriptLines.length - 1) {
-      const result = await callApi({
-        endpoint: `api/transcripts/skip/${this.activeTranscriptLine.id}`,
-        method: "POST",
-      });
-
-      if (!result.success) {
-        messageUtils(result.message);
-        return;
-      }
-
-      this.fetchTranscriptLines();
-    }
-  }
-
-  getLastRecord(transcriptLine: TranscriptLine) {
-    if (!transcriptLine || transcriptLine.records.length == 0) return;
-    return transcriptLine.records[transcriptLine.records.length - 1];
-  }
-
   async playMyRecord(): Promise<void> {
-    if (!this.activeTranscriptLine) {
-      messageUtils("activeTranscriptLine null");
-      return;
-    }
+    if (!this.activeTranscriptLine) { messageUtils("activeTranscriptLine null"); return; }
 
     const record_id = this.getLastRecord(this.activeTranscriptLine)?.id;
-
-    if (!record_id) {
-      messageUtils("Not recorded yet!");
-      return;
-    }
+    if (!record_id) { messageUtils("Not recorded yet!"); return; }
 
     const result = await callApi({
       endpoint: `api/records/file/${record_id}/`,
       method: "GET",
     });
 
-    if (!result.success) {
-      messageUtils(result.message);
-      return;
-    }
+    if (!result.success) { messageUtils(result.message); return; }
 
     this.mineWavAudio = result.data.url;
-
-    // Reset state for new audio
     this.isAudioPlaying = false;
     this.currentAudioTime = 0;
     this.totalAudioDuration = 0;
 
-    // Wait for *ngIf to render the element, then play
     setTimeout(() => {
       const audio = this.mineAudioPlayer?.nativeElement;
       if (!audio) return;
@@ -667,71 +697,22 @@ export class RecordingComponent implements OnDestroy {
     });
   }
 
-  deleteMyRecord(): void {
-    console.log("Deleted my recording");
-  }
 
-  selectTranscriptLine(transcript_line: TranscriptLine): void {
-    if (!this.transcriptLines) {
-      messageUtils("transcriptLines null");
-      return;
-    }
-    const idx = this.transcriptLines.findIndex(
-      (ele) => ele.id == transcript_line.id,
-    );
-    if (!idx) {
-      messageUtils("idx null");
-      return;
-    }
-    this.activeTranscriptLineIdx = idx;
-    this.mineWavAudio = null;
-    // Reset state for new audio
-    this.isAudioPlaying = false;
-    this.currentAudioTime = 0;
-    this.totalAudioDuration = 0;
-    console.log("Selected sentence", transcript_line.id);
-  }
+  // ==================== FEATURE: SETTINGS ====================
 
-  jumpToUnrecorded(): void {
-    if (!this.transcriptLines) return;
-
-    const unrecorded_idx = this.transcriptLines.findIndex(
-      (s) => s.records.length === 0,
-    );
-
-    const unrecorded = this.transcriptLines[unrecorded_idx];
-
-    if (unrecorded) {
-      this.activeTranscriptLineIdx = unrecorded_idx;
-
-      setTimeout(() => {
-        const element = document.querySelector(`[data-id="${unrecorded.id}"]`);
-
-        element?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      });
-
-      console.log("Jumped to unrecorded sentence", unrecorded.id);
-    }
-  }
-
-  private modal = inject(ModalService);
-
-  openTranslationModal() {
-    this.modal.open({
-      title: "Translation Modal",
-      component: TranslationComponent,
-      onClose: async () => {
-        await this.fetchTranscriptLines();
-      },
-      data: {
-        transcriptLines: this.transcriptLines,
-        videoId: this.videoId,
-        fetchTranscriptLines: this.fetchTranscriptLines,
-      },
+  async fetchSetting() {
+    const result = await callApi({
+      endpoint: "api/usersettings",
+      method: "GET",
+      credentials: "include",
     });
+
+    if (!result.success) { messageUtils(result.message); return; }
+    this.setting.leftWidthPercent = result.data.videoWidthSize ?? this.setting.leftWidthPercent;
+  }
+
+  openSettings(): void {
+    console.log("Open settings");
   }
 
   openSettingModal() {
@@ -739,28 +720,8 @@ export class RecordingComponent implements OnDestroy {
       title: "Setting Modal",
       component: SettingComponent,
       size: "lg",
-      onClose: async () => {
-        //await this.fetchTranscriptLines()
-      },
+      onClose: async () => { await this.fetchSetting(); },
       data: {},
-    });
-  }
-
-  openRecordHistory() {
-    if (!this.activeTranscriptLine) {
-      messageUtils("activeTranscriptLine null!");
-      return;
-    }
-
-    this.modal.open({
-      title: "Record History Modal",
-      component: RecordHistoryComponent,
-      onClose: async () => {
-        //await this.fetchTranscriptLines()
-      },
-      data: {
-        transcriptLineId: this.activeTranscriptLine?.id,
-      },
     });
   }
 }

@@ -3,7 +3,6 @@ export interface UserSetting {
   userId: number
   sttProviderKey: string
   volume: number
-  recordScreenUiStyle: string
   loop: number
   videoWidthSize: number
 }
