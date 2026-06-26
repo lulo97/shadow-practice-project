@@ -30,12 +30,6 @@ import { OnDestroy, HostListener } from "@angular/core";
           ← Back
         </button>
 
-        <div
-          class="flex-1 px-2 text-center font-bold text-base text-gray-900 truncate"
-        >
-          {{ videoMetadata ? videoMetadata.title : "Title" }}
-        </div>
-
         <div class="flex items-center gap-1.5">
           <button
             (click)="openTranslationModal()"
@@ -62,6 +56,13 @@ import { OnDestroy, HostListener } from "@angular/core";
           <div
             class="rounded-xl bg-white p-1.5 shadow-sm border border-gray-200 h-full flex flex-col justify-center"
           >
+            <div class="font-bold text-gray-900">
+              {{ videoMetadata ? videoMetadata.title : "Title" }}
+            </div>
+            <div>
+              {{ videoMetadata ? videoMetadata.description : "Description" }}
+            </div>
+
             <!-- Video -->
             <div
               class="relative overflow-hidden rounded-lg bg-black aspect-video shadow-inner"
@@ -72,7 +73,7 @@ import { OnDestroy, HostListener } from "@angular/core";
             </div>
 
             <!-- Controls -->
-            <div class="mt-1.5 grid grid-cols-2 gap-1">
+            <div class="mt-1.5 grid grid-cols-1 gap-1">
               <button
                 (click)="togglePlay()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
@@ -204,8 +205,8 @@ import { OnDestroy, HostListener } from "@angular/core";
                 class="group relative cursor-pointer rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
                 [ngClass]="
                   activeTranscriptLine?.id === transcript_line.id
-                    ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                    : 'border-gray-200 bg-white'
+                    ? 'bg-blue-50'
+                    : 'bg-white'
                 "
               >
                 <div class="flex items-start justify-between gap-2">
@@ -217,23 +218,14 @@ import { OnDestroy, HostListener } from "@angular/core";
                     </div>
 
                     <div
-                      class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs border-t border-gray-100 pt-1"
+                      class="gap-x-2 gap-y-0.5 text-xs border-t border-gray-100 pt-1"
                     >
-                      <div class="flex items-start gap-1 text-gray-500">
-                        <span
-                          class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
-                          >EN:</span
-                        >
-                        <span class="line-clamp-2">{{
-                          transcript_line.text
-                        }}</span>
-                      </div>
                       <div class="flex items-start gap-1 text-gray-600">
                         <span
                           class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
                           >VI:</span
                         >
-                        <span class="line-clamp-2 italic text-gray-700">{{
+                        <span class="italic text-gray-700">{{
                           transcript_line.viText || "—"
                         }}</span>
                       </div>
@@ -434,6 +426,8 @@ export class RecordingComponent implements OnDestroy {
     }
 
     this.transcriptLines = result.data;
+
+    this.jumpToUnrecorded()
 
     return result.data;
   }
