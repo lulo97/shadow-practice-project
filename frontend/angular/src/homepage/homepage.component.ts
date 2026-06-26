@@ -44,7 +44,7 @@ import { Subscription } from "rxjs";
                 : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
             "
             id="nav-my-videos"
-            (click)="currentTab = 'MY_VIDEOS'"
+            (click)="setCurrentTab('MY_VIDEOS')"
           >
             <i class="fa-regular fa-folder text-base"></i> My Videos
           </button>
@@ -56,19 +56,13 @@ import { Subscription } from "rxjs";
                 : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
             "
             id="nav-system-videos"
-            (click)="currentTab = 'SYSTEM_VIDEOS'"
+            (click)="setCurrentTab('SYSTEM_VIDEOS')"
           >
             <i class="fas fa-tv text-base"></i>
             System Videos
           </button>
 
-          <button
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors"
-            (click)="openModalAddVideo()"
-            id="nav-add-video"
-          >
-            <i class="fas fa-circle-plus text-base"></i> Add Video
-          </button>
+          
         </div>
       </div>
 
@@ -122,6 +116,7 @@ import { Subscription } from "rxjs";
       <!-- Action bar -->
       <div id="action-bar" class="flex items-center justify-between">
         <button
+          (click)="openModalAddVideo()"
           class="h-9 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-[13.5px] font-medium rounded-lg flex items-center gap-1.5 transition-all"
         >
           <i class="fa-solid fa-plus text-sm"></i> Add Video
@@ -136,63 +131,63 @@ import { Subscription } from "rxjs";
 
       <!-- Videos list -->
       <section id="videos-list">
-        <h2 class="text-[14px] font-medium text-gray-900 mb-3">My Videos</h2>
+        <h2 class="text-[14px] font-medium text-gray-900 mb-3">{{ currentTab == 'MY_VIDEOS' ? "My Videos" : "System Videos" }}</h2>
 
-<div
-  *ngFor="let video of videos"
-  [id]="'video-' + video.title.replace(' ', '-')"
-  (click)="toRecording(video.id)"
->
-  <div
-    class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
-  >
-    <!-- Thumbnail -->
-    <div
-      class="relative h-[100px] aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center"
-      id="thumb-{{ video.title }}"
-    >
-      <!-- Loading icon -->
-      <ng-template #loadingThumb>
         <div
-          class="flex flex-col items-center justify-center gap-2 text-gray-400"
+          *ngFor="let video of videos"
+          [id]="'video-' + video.title.replace(' ', '-')"
+          (click)="toRecording(video.id)"
         >
-          <i class="fa-solid fa-spinner fa-spin text-xl"></i>
-          <span class="text-[11px]">Loading...</span>
-        </div>
-      </ng-template>
+          <div
+            class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
+          >
+            <!-- Thumbnail -->
+            <div
+              class="relative h-[100px] aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center"
+              id="thumb-{{ video.title }}"
+            >
+              <!-- Loading icon -->
+              <ng-template #loadingThumb>
+                <div
+                  class="flex flex-col items-center justify-center gap-2 text-gray-400"
+                >
+                  <i class="fa-solid fa-spinner fa-spin text-xl"></i>
+                  <span class="text-[11px]">Loading...</span>
+                </div>
+              </ng-template>
 
-      <ng-container *ngIf="video.thumbnail; else loadingThumb">
-        <img
-          [src]="video.thumbnail"
-          class="w-full h-full object-cover"
-        />
+              <ng-container *ngIf="video.thumbnail; else loadingThumb">
+                <img
+                  [src]="video.thumbnail"
+                  class="w-full h-full object-cover"
+                />
 
-        <span
-          class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
-        >
-          VIDEO
-        </span>
+                <span
+                  class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
+                >
+                  VIDEO
+                </span>
 
-        <span
-          class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
-        >
-          {{ 123 }}
-        </span>
-      </ng-container>
-    </div>
+                <span
+                  class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
+                >
+                  {{ 123 }}
+                </span>
+              </ng-container>
+            </div>
 
-    <!-- Details -->
-    <div class="flex-1 min-w-0 flex flex-col gap-1">
-      <div class="flex items-center gap-2 flex-wrap">
-        <h3
-          class="text-[14px] font-medium text-gray-900"
-          id="title-{{ video.title }}"
-        >
-          {{ video.title }}
-        </h3>
+            <!-- Details -->
+            <div class="flex-1 min-w-0 flex flex-col gap-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3
+                  class="text-[14px] font-medium text-gray-900"
+                  id="title-{{ video.title }}"
+                >
+                  {{ video.title }}
+                </h3>
 
-        <!-- Status: unfinished -->
-        <!-- <span
+                <!-- Status: unfinished -->
+                <!-- <span
           *ngIf="'not_started' ==== 'unfinished'"
           class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
           id="status-{{ video.title }}"
@@ -200,8 +195,8 @@ import { Subscription } from "rxjs";
           <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
         </span> -->
 
-        <!-- Status: finished -->
-        <!-- <span
+                <!-- Status: finished -->
+                <!-- <span
           *ngIf="'not_started' === 'finished'"
           class="flex items-center gap-1 text-[12px] font-medium text-green-600"
           id="status-{{ video.title }}"
@@ -209,81 +204,79 @@ import { Subscription } from "rxjs";
           <i class="fa-regular fa-circle-check text-[12px]"></i> Finished
         </span> -->
 
-        <!-- Status: not started -->
-        <span
-          *ngIf="'not_started' === 'not_started'"
-          class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
-          id="status-{{ video.title }}"
-        >
-          <i class="fa-regular fa-circle text-[12px]"></i> Not started
-        </span>
-      </div>
+                <!-- Status: not started -->
+                <span
+                  *ngIf="'not_started' === 'not_started'"
+                  class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
+                  id="status-{{ video.title }}"
+                >
+                  <i class="fa-regular fa-circle text-[12px]"></i> Not started
+                </span>
+              </div>
 
-      <!-- Progress bar (shown when has progress) -->
-      <div
-        *ngIf="'not_started' !== 'not_started'"
-        class="flex items-center gap-2"
-        id="progress-{{ video.title }}"
-      >
-        <div
-          class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
-        >
-          <div
-            class="h-full bg-blue-600 rounded-full"
-            [style.width.%]="65"
-          ></div>
+              <!-- Progress bar (shown when has progress) -->
+              <div
+                *ngIf="'not_started' !== 'not_started'"
+                class="flex items-center gap-2"
+                id="progress-{{ video.title }}"
+              >
+                <div
+                  class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+                >
+                  <div
+                    class="h-full bg-blue-600 rounded-full"
+                    [style.width.%]="65"
+                  ></div>
+                </div>
+
+                <span class="text-[12px] text-gray-500 min-w-[28px] text-right">
+                  {{ 65 }}%
+                </span>
+              </div>
+
+              <!-- 0% bar for not started -->
+              <div
+                *ngIf="'not_started' === 'not_started'"
+                class="flex items-center gap-2"
+                id="progress-{{ video.title }}"
+              >
+                <div
+                  class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+                >
+                  <div
+                    class="h-full bg-blue-600 rounded-full"
+                    [style.width.%]="0"
+                  ></div>
+                </div>
+
+                <span class="text-[12px] text-gray-500 min-w-[28px] text-right">
+                  0%
+                </span>
+              </div>
+
+              <!-- Last practiced -->
+              <div
+                *ngIf="1"
+                class="flex items-center gap-1 text-[12px] text-gray-400"
+              >
+                <i class="fa-regular fa-user-circle text-[11px]"></i>
+                Last practiced: 12:12:12 12/12/2012
+              </div>
+            </div>
+
+            <!-- More button -->
+            <button
+              (click)="
+                openVideoProcessModal(video.jobId); $event.stopPropagation()
+              "
+              id="video-progress"
+              class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
+              aria-label="More options"
+            >
+              <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+            </button>
+          </div>
         </div>
-
-        <span
-          class="text-[12px] text-gray-500 min-w-[28px] text-right"
-        >
-          {{ 65 }}%
-        </span>
-      </div>
-
-      <!-- 0% bar for not started -->
-      <div
-        *ngIf="'not_started' === 'not_started'"
-        class="flex items-center gap-2"
-        id="progress-{{ video.title }}"
-      >
-        <div
-          class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
-        >
-          <div
-            class="h-full bg-blue-600 rounded-full"
-            [style.width.%]="0"
-          ></div>
-        </div>
-
-        <span
-          class="text-[12px] text-gray-500 min-w-[28px] text-right"
-        >
-          0%
-        </span>
-      </div>
-
-      <!-- Last practiced -->
-      <div
-        *ngIf="1"
-        class="flex items-center gap-1 text-[12px] text-gray-400"
-      >
-        <i class="fa-regular fa-user-circle text-[11px]"></i>
-        Last practiced: 12:12:12 12/12/2012
-      </div>
-    </div>
-
-    <!-- More button -->
-    <button
-      (click)="openVideoProcessModal(video.jobId); $event.stopPropagation()"
-      id="video-progress"
-      class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
-      aria-label="More options"
-    >
-      <i class="fa-solid fa-ellipsis-vertical text-base"></i>
-    </button>
-  </div>
-</div>
         <p class="text-[12px] text-gray-400 mt-1">
           Showing 1–{{ videos.length }} of {{ videos.length }} videos
         </p>
@@ -340,12 +333,15 @@ export class HomepageComponent {
       queryParams.append("toDate", this.searchData.toDate);
     }
 
+    queryParams.append("videoType", this.currentTab);
+
     const queryString = queryParams.toString();
     const url = queryString ? `api/videos?${queryString}` : "api/videos";
 
     const result = await callApi({
       endpoint: url,
       method: "GET",
+      credentials: "include"
     });
 
     if (!result.success) {
@@ -386,6 +382,11 @@ export class HomepageComponent {
   }
 
   currentTab = "MY_VIDEOS"; //SYSTEM_VIDEOS
+
+  setCurrentTab(tab: string) {
+    this.currentTab = tab;
+    this.fetchVideos()
+  }
 
   private modal = inject(ModalService);
 

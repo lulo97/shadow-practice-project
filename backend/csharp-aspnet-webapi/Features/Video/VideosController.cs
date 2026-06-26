@@ -16,7 +16,9 @@ public class VideosController : ControllerBase
     public async Task<IActionResult> GetList(
     [FromQuery] string? title,
     [FromQuery] DateTime? fromDate,
-    [FromQuery] DateTime? toDate)
+    [FromQuery] DateTime? toDate,
+    [FromQuery] string? videoType
+    )
     {
         var query = _context.Videos.AsQueryable();
 
@@ -36,7 +38,26 @@ public class VideosController : ControllerBase
             query = query.Where(v => v.CreatedAt <= toDate.Value);
         }
 
-        // Execute the joined query
+        var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
+
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        if (error.HasValue)
+        {
+            return Unauthorized(new { message = error.ToString() });
+        }
+
+        if (videoType == "SYSTEM_VIDEOS")
+        {
+            query = query.Where(v => v.UserId == Utils.ADMIN_ID);
+        } else
+        {
+            query = query.Where(v => v.UserId == user.Id);
+        }
+
         var videos = await query
             .GroupJoin(
                 _context.Jobs,
