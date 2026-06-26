@@ -61,8 +61,6 @@ import { Subscription } from "rxjs";
             <i class="fas fa-tv text-base"></i>
             System Videos
           </button>
-
-          
         </div>
       </div>
 
@@ -131,22 +129,22 @@ import { Subscription } from "rxjs";
 
       <!-- Videos list -->
       <section id="videos-list">
-        <h2 class="text-[14px] font-medium text-gray-900 mb-3">{{ currentTab == 'MY_VIDEOS' ? "My Videos" : "System Videos" }}</h2>
+        <h2 class="text-[14px] font-medium text-gray-900 mb-3">
+          {{ currentTab == "MY_VIDEOS" ? "My Videos" : "System Videos" }}
+        </h2>
 
         <div
           *ngFor="let video of videos"
           [id]="'video-' + video.title.replace(' ', '-')"
-          (click)="toRecording(video.id)"
         >
           <div
-            class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
+            class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
           >
             <!-- Thumbnail -->
             <div
-              class="relative h-[100px] aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center"
+              class="relative h-[100px] aspect-video rounded-lg bg-gray-900 flex items-center justify-center transition-transform duration-300 hover:scale-105 hover:z-10"
               id="thumb-{{ video.title }}"
             >
-              <!-- Loading icon -->
               <ng-template #loadingThumb>
                 <div
                   class="flex flex-col items-center justify-center gap-2 text-gray-400"
@@ -158,21 +156,10 @@ import { Subscription } from "rxjs";
 
               <ng-container *ngIf="video.thumbnail; else loadingThumb">
                 <img
+                  (click)="toRecording(video.id)"
                   [src]="video.thumbnail"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-cover cursor-pointer rounded-lg"
                 />
-
-                <span
-                  class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
-                >
-                  VIDEO
-                </span>
-
-                <span
-                  class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
-                >
-                  {{ 123 }}
-                </span>
               </ng-container>
             </div>
 
@@ -180,33 +167,35 @@ import { Subscription } from "rxjs";
             <div class="flex-1 min-w-0 flex flex-col gap-1">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3
-                  class="text-[14px] font-medium text-gray-900"
+                  class="text-[14px] font-medium text-gray-900 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
                   id="title-{{ video.title }}"
+                  (click)="toRecording(video.id)"
                 >
                   {{ video.title }}
                 </h3>
 
                 <!-- Status: unfinished -->
-                <!-- <span
-          *ngIf="'not_started' ==== 'unfinished'"
-          class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
-          id="status-{{ video.title }}"
-        >
-          <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
-        </span> -->
+                <span
+                  *ngIf="video.status == 'UNFINISHED'"
+                  class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
+                  id="status-{{ video.title }}"
+                >
+                  <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
+                </span>
 
                 <!-- Status: finished -->
-                <!-- <span
-          *ngIf="'not_started' === 'finished'"
-          class="flex items-center gap-1 text-[12px] font-medium text-green-600"
-          id="status-{{ video.title }}"
-        >
-          <i class="fa-regular fa-circle-check text-[12px]"></i> Finished
-        </span> -->
+                <span
+                  *ngIf="video.status === 'FINISHED'"
+                  class="flex items-center gap-1 text-[12px] font-medium text-green-600"
+                  id="status-{{ video.title }}"
+                >
+                  <i class="fa-regular fa-circle-check text-[12px]"></i>
+                  Finished
+                </span>
 
                 <!-- Status: not started -->
                 <span
-                  *ngIf="'not_started' === 'not_started'"
+                  *ngIf="video.status === 'NOT_STARTED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
                   id="status-{{ video.title }}"
                 >
@@ -216,7 +205,7 @@ import { Subscription } from "rxjs";
 
               <!-- Progress bar (shown when has progress) -->
               <div
-                *ngIf="'not_started' !== 'not_started'"
+                *ngIf="video.status !== 'NOT_STARTED'"
                 class="flex items-center gap-2"
                 id="progress-{{ video.title }}"
               >
@@ -225,18 +214,18 @@ import { Subscription } from "rxjs";
                 >
                   <div
                     class="h-full bg-blue-600 rounded-full"
-                    [style.width.%]="65"
+                    [style.width.%]="video.processPercent"
                   ></div>
                 </div>
 
                 <span class="text-[12px] text-gray-500 min-w-[28px] text-right">
-                  {{ 65 }}%
+                  {{ video.processPercent }}%
                 </span>
               </div>
 
               <!-- 0% bar for not started -->
               <div
-                *ngIf="'not_started' === 'not_started'"
+                *ngIf="video.status === 'NOT_STARTED'"
                 class="flex items-center gap-2"
                 id="progress-{{ video.title }}"
               >
@@ -260,7 +249,10 @@ import { Subscription } from "rxjs";
                 class="flex items-center gap-1 text-[12px] text-gray-400"
               >
                 <i class="fa-regular fa-user-circle text-[11px]"></i>
-                Last practiced: 12:12:12 12/12/2012
+                Last practiced:
+                <span>{{
+                  video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy"
+                }}</span>
               </div>
             </div>
 
@@ -341,7 +333,7 @@ export class HomepageComponent {
     const result = await callApi({
       endpoint: url,
       method: "GET",
-      credentials: "include"
+      credentials: "include",
     });
 
     if (!result.success) {
@@ -385,7 +377,7 @@ export class HomepageComponent {
 
   setCurrentTab(tab: string) {
     this.currentTab = tab;
-    this.fetchVideos()
+    this.fetchVideos();
   }
 
   private modal = inject(ModalService);

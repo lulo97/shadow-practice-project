@@ -7,4 +7,7 @@ export interface Video {
   description: string,
   thumbnail?: string,
   jobId?: number,
+  status?: string,
+  processPercent?: number,
+  lastPracticed?: string,
 }

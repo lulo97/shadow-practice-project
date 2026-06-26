@@ -1,16 +1,16 @@
 ﻿using System;
 using static System.Reflection.Metadata.BlobBuilder;
-
+using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFactory
 public class VideoJobUtils
 {
-    private readonly AppDbContext _context;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IYtDlp _ytDlp;
     private readonly IAsrService _asrService;
     private readonly SseService _sse;
 
-    public VideoJobUtils(AppDbContext context, IYtDlp ytDlp, IAsrService asrService, SseService sse)
+    public VideoJobUtils(IServiceScopeFactory scopeFactory, IYtDlp ytDlp, IAsrService asrService, SseService sse)
     {
-        _context = context;
+        _scopeFactory = scopeFactory;
         _ytDlp = ytDlp;
         _asrService = asrService;
         _sse = sse;
@@ -18,6 +18,9 @@ public class VideoJobUtils
 
     public async Task Run(int jobId, string youtubeId, int videoId)
     {
+        var scope = _scopeFactory.CreateScope();
+        var _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         var link = $"https://youtube.com/watch?v={youtubeId}";
         var video = await _context.Videos.FindAsync(videoId);
 
@@ -111,6 +114,9 @@ public class VideoJobUtils
 
     private async Task<JobStepScope> BeginStep(int jobId, string stepName)
     {
+        var scope = _scopeFactory.CreateScope();
+        var _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         var step = new JobStep
         {
             JobId = jobId,
