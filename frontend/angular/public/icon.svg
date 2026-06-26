@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chat bubble body -->
+  <path d="M3 4C3 2.343 4.343 1 6 1H26C27.657 1 29 2.343 29 4V20C29 21.657 27.657 23 26 23H18L12 31L12 23H6C4.343 23 3 21.657 3 20V4Z" fill="#3D6FF0"/>
+  <!-- Play triangle -->
+  <polygon points="13,8 13,16 21,12" fill="white"/>
+</svg>
