@@ -9,20 +9,25 @@ import { ModalService } from "./modal.service";
   template: `
     @if (modal.isOpen()) {
       <!-- Backdrop -->
-      <div class="modal-backdrop" (click)="modal.close()"></div>
+      <div
+        class="fixed inset-0 bg-black/50 z-[999]"
+        (click)="modal.close()"
+      ></div>
 
       <!-- Modal -->
       <div
-        class="modal-container"
-        [class]="'modal-' + (modal.config().size ?? 'md')"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-[1000] p-6 min-w-80"
+        [class]="sizeClass"
       >
-        <div class="modal-header">
-          <h2>{{ modal.config().title }}</h2>
-          <button (click)="modal.close()">✕</button>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-[18px] font-medium text-gray-900">{{ modal.config().title }}</h2>
+          <button
+            class="text-gray-500 hover:text-gray-900 transition-colors"
+            (click)="modal.close()"
+          >✕</button>
         </div>
-        <div class="modal-body">
+        <div>
           {{ modal.config().message }}
-          <!-- For dynamic components, use NgComponentOutlet -->
           @if (modal.config().component) {
             <ng-container *ngComponentOutlet="modal.config().component" />
           }
@@ -30,41 +35,16 @@ import { ModalService } from "./modal.service";
       </div>
     }
   `,
-  styles: `
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-    }
-    .modal-container {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: 8px;
-      z-index: 1000;
-      padding: 24px;
-      min-width: 320px;
-    }
-    .modal-sm {
-      width: 360px;
-    }
-    .modal-md {
-      width: 520px;
-    }
-    .modal-lg {
-      width: 720px;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-  `,
 })
 export class ModalComponent {
   modal = inject(ModalService);
+
+  get sizeClass(): string {
+    const sizes: Record<string, string> = {
+      sm: "w-[360px]",
+      md: "w-[520px]",
+      lg: "w-[720px]",
+    };
+    return sizes[this.modal.config().size ?? "md"] ?? sizes["md"];
+  }
 }
