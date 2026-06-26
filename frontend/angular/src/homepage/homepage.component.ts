@@ -13,126 +13,261 @@ import { FilterComponent } from "./filter.component";
   selector: "app-shadowing-homepage",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `<div id="main-container">
-    <nav id="sidebar" class="flex flex-col justify-between">
-      <div id="project-title">Shadowing Project</div>
-      <div id="nav-links" class="flex flex-col items-start flex-1">
-        <button
-          [class]="currentTab === 'MY_VIDEOS' ? 'font-bold' : ''"
-          id="nav-my-videos"
-          (click)="currentTab = 'MY_VIDEOS'"
+  template: `<div id="main-container" class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <nav
+      id="sidebar"
+      class="w-52 min-w-[208px] bg-white border-r border-gray-200 flex flex-col justify-between py-5"
+    >
+      <div class="flex flex-col flex-1">
+        <!-- Logo -->
+        <div
+          id="project-title"
+          class="flex items-center gap-2.5 px-4 pb-5 font-medium text-gray-900 text-[15px]"
         >
-          My Videos
-        </button>
-        <button
-          [class]="currentTab === 'SYSTEM_VIDEOS' ? 'font-bold' : ''"
-          id="nav-system-videos"
-          (click)="currentTab = 'SYSTEM_VIDEOS'"
-        >
-          System Videos
-        </button>
-        <button (click)="openModalAddVideo()" id="nav-add-video">
-          + Add Video
-        </button>
+          <div
+            class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-play text-sm"></i>
+          </div>
+          Shadowing Project
+        </div>
+
+        <!-- Nav links -->
+        <div id="nav-links" class="flex flex-col px-2 gap-0.5">
+          <button
+            [class]="
+              currentTab === 'MY_VIDEOS'
+                ? 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-blue-600 bg-blue-50 w-full text-left'
+                : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
+            "
+            id="nav-my-videos"
+            (click)="currentTab = 'MY_VIDEOS'"
+          >
+            <i class="fa-regular fa-folder text-base"></i> My Videos
+          </button>
+
+          <button
+            [class]="
+              currentTab === 'SYSTEM_VIDEOS'
+                ? 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-blue-600 bg-blue-50 w-full text-left'
+                : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
+            "
+            id="nav-system-videos"
+            (click)="currentTab = 'SYSTEM_VIDEOS'"
+          >
+            <i class="fas fa-tv text-base"></i>
+            System Videos
+          </button>
+
+          <button
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors"
+            (click)="openModalAddVideo()"
+            id="nav-add-video"
+          >
+            <i class="fas fa-circle-plus text-base"></i> Add Video
+          </button>
+        </div>
       </div>
-      <hr />
-      <div id="footer-actions" class="flex flex-col items-start">
-        <span id="profile-link">Profile</span>
-        <span id="logout-link">Logout</span>
+
+      <div>
+        <hr class="border-gray-200 mx-2 mb-2" />
+        <div id="footer-actions" class="flex flex-col px-2 gap-0.5">
+          <span
+            id="profile-link"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
+          >
+            <i class="fa-regular fa-user text-base"></i> Profile
+          </span>
+          <span
+            id="logout-link"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
+          >
+            <i class="fas fa-right-from-bracket text-base"></i>
+            Logout
+          </span>
+        </div>
       </div>
     </nav>
 
-    <main id="content-area">
-      <div id="search-bar-wrapper">
-        <input
-          [(ngModel)]="searchData.title"
-          (ngModelChange)="fetchVideos()"
-          id="video-search"
-          type="text"
-          placeholder="Search by title..."
-        />
-        <button (click)="openFilterModal()" id="filter-btn">Filter</button>
+    <!-- Main content -->
+    <main id="content-area" class="flex-1 p-6 flex flex-col gap-4">
+      <!-- Search bar -->
+      <div id="search-bar-wrapper" class="flex items-center gap-2.5">
+        <div class="relative flex-1">
+          <i
+            class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+          ></i>
+
+          <input
+            [(ngModel)]="searchData.title"
+            (ngModelChange)="fetchVideos()"
+            id="video-search"
+            type="text"
+            placeholder="Search by title..."
+            class="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-[13.5px] bg-white text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+          />
+        </div>
+        <button
+          (click)="openFilterModal()"
+          id="filter-btn"
+          class="h-9 px-3 border border-gray-300 rounded-lg bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-1.5 text-[13.5px]"
+        >
+          <i class="fa-solid fa-sliders text-sm"></i>
+        </button>
       </div>
 
-      <div id="action-bar">
-        <button id="jump-unfinished-btn">Jump to Unfinished</button>
+      <!-- Action bar -->
+      <div id="action-bar" class="flex items-center justify-between">
+        <button
+          class="h-9 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-[13.5px] font-medium rounded-lg flex items-center gap-1.5 transition-all"
+        >
+          <i class="fa-solid fa-plus text-sm"></i> Add Video
+        </button>
+        <button
+          id="jump-unfinished-btn"
+          class="h-9 px-4 border border-blue-600 text-blue-600 text-[13.5px] rounded-lg hover:bg-blue-50 transition-colors"
+        >
+          Jump to Unfinished
+        </button>
       </div>
 
+      <!-- Videos list -->
       <section id="videos-list">
-        <h2>My Videos</h2>
+        <h2 class="text-[14px] font-medium text-gray-900 mb-3">My Videos</h2>
+
         <div
           *ngFor="let video of videos"
-          class="video-card"
+          class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
           [id]="'video-' + video.title.replace(' ', '-')"
           (click)="toRecording(video.id)"
         >
-          <div class="thumbnail-placeholder" id="thumb-{{ video.title }}">
-            <img src="{{ video.thumbnail }}" />
+          <!-- Thumbnail -->
+          <div
+            class="relative w-[100px] min-w-[100px] h-[62px] rounded-lg overflow-hidden bg-gray-900"
+            id="thumb-{{ video.title }}"
+          >
+            <img
+              src="{{ video.thumbnail }}"
+              class="w-full h-full object-cover"
+            />
+            <span
+              class="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-sm tracking-wide"
+            >
+              VIDEO
+            </span>
+            <span
+              class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-sm"
+            >
+              {{ 123 }}
+            </span>
           </div>
-          <div class="video-details">
-            <h3 id="title-{{ video.title }}">{{ video.title }}</h3>
-            <span id="status-{{ video.title }}">{{ "finished" }}</span>
-            <div class="progress-bar" id="progress-{{ video.title }}">
-              <div [style.width.%]="65"></div>
+
+          <!-- Details -->
+          <div class="flex-1 min-w-0 flex flex-col gap-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3
+                class="text-[14px] font-medium text-gray-900"
+                id="title-{{ video.title }}"
+              >
+                {{ video.title }}
+              </h3>
+
+              <!-- Status: unfinished -->
+              <!-- <span
+                *ngIf="'not_started' ==== 'unfinished'"
+                class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
+                id="status-{{ video.title }}"
+              >
+                <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
+              </span> -->
+
+              <!-- Status: finished -->
+              <!-- <span
+                *ngIf="'not_started' === 'finished'"
+                class="flex items-center gap-1 text-[12px] font-medium text-green-600"
+                id="status-{{ video.title }}"
+              >
+                <i class="fa-regular fa-circle-check text-[12px]"></i> Finished
+              </span> -->
+
+              <!-- Status: not started -->
+              <span
+                *ngIf="'not_started' === 'not_started'"
+                class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
+                id="status-{{ video.title }}"
+              >
+                <i class="fa-regular fa-circle text-[12px]"></i> Not started
+              </span>
+            </div>
+
+            <!-- Progress bar (shown when has progress) -->
+            <div
+              *ngIf="'not_started' !== 'not_started'"
+              class="flex items-center gap-2"
+              id="progress-{{ video.title }}"
+            >
+              <div
+                class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+              >
+                <div
+                  class="h-full bg-blue-600 rounded-full"
+                  [style.width.%]="65"
+                ></div>
+              </div>
+              <span class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                >{{ 65 }}%</span
+              >
+            </div>
+
+            <!-- 0% bar for not started -->
+            <div
+              *ngIf="'not_started' === 'not_started'"
+              class="flex items-center gap-2"
+              id="progress-{{ video.title }}"
+            >
+              <div
+                class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+              >
+                <div
+                  class="h-full bg-blue-600 rounded-full"
+                  [style.width.%]="0"
+                ></div>
+              </div>
+              <span class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                >0%</span
+              >
+            </div>
+
+            <!-- Last practiced -->
+            <div
+              *ngIf="1"
+              class="flex items-center gap-1 text-[12px] text-gray-400"
+            >
+              <i class="fa-regular fa-user-circle text-[11px]"></i> Last
+              practiced: video.lastPracticed
             </div>
           </div>
-          <div>
-            <button
-              (click)="openVideoProcessModal(video.jobId)"
-              id="video-progress"
-            >
-              ⋮
-            </button>
-          </div>
+
+          <!-- More button -->
+          <button
+            (click)="
+              openVideoProcessModal(video.jobId); $event.stopPropagation()
+            "
+            id="video-progress"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
+            aria-label="More options"
+          >
+            <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+          </button>
         </div>
+
+        <p class="text-[12px] text-gray-400 mt-1">
+          Showing 1–{{ videos.length }} of {{ videos.length }} videos
+        </p>
       </section>
     </main>
   </div>`,
-  styles: `
-    /* Minimal layout structure */
-    #main-container {
-      display: flex;
-      height: 100vh;
-    }
-
-    #sidebar {
-      width: 250px;
-      border-right: 1px solid #ccc;
-      padding: 20px;
-    }
-
-    #content-area {
-      flex-grow: 1;
-      padding: 20px;
-    }
-
-    .video-card {
-      display: flex;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
-      padding: 10px;
-    }
-
-    .thumbnail-placeholder {
-      width: 150px;
-      aspect-ratio: 16 / 9;
-      background-color: #eee;
-      margin-right: 15px;
-      overflow: hidden;
-    }
-
-    .thumbnail-placeholder img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background-color: #eee;
-    }
-  `,
 })
 export class HomepageComponent {
   searchData = {
