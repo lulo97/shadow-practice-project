@@ -20,11 +20,15 @@ import { ModalService } from "./modal.service";
         [class]="sizeClass"
       >
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-[18px] font-medium text-gray-900">{{ modal.config().title }}</h2>
+          <h2 class="text-[18px] font-medium text-gray-900">
+            {{ modal.config().title }}
+          </h2>
           <button
             class="text-gray-500 hover:text-gray-900 transition-colors"
             (click)="modal.close()"
-          >✕</button>
+          >
+            ✕
+          </button>
         </div>
         <div>
           {{ modal.config().message }}
@@ -41,9 +45,9 @@ export class ModalComponent {
 
   get sizeClass(): string {
     const sizes: Record<string, string> = {
-      sm: "w-[360px]",
-      md: "w-[520px]",
-      lg: "w-[720px]",
+      sm: "max-w-[360px]",
+      md: "max-w-[520px]",
+      lg: "max-w-[720px]",
     };
     return sizes[this.modal.config().size ?? "md"] ?? sizes["md"];
   }
