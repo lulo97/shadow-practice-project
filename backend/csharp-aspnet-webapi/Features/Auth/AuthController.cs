@@ -63,8 +63,6 @@ public class AuthController : ControllerBase
     {
         int totalUsers = await _context.Users.CountAsync();
 
-        Console.WriteLine(totalUsers);
-
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
 
         if (user == null || !HashUtils.Verify(request.Password, user.PasswordHashed))

@@ -37,7 +37,7 @@ import { Record } from "./transcriptline.interface";
           <td class="border border-gray-300 px-2 py-1">
             {{ record.createdAt | date: "short" }}
           </td>
-          <td class="border border-gray-300 px-2 py-1">{{ record.sttText }}</td>
+          <td class="border border-gray-300 px-2 py-1">{{ record.sttText || "-" }}</td>
           <td class="border border-gray-300 px-2 py-1">{{ record.score }}</td>
           <td class="border border-gray-300 px-2 py-1">
             {{ record.sttProviderKey }}
@@ -50,7 +50,9 @@ import { Record } from "./transcriptline.interface";
 export class RecordHistoryComponent {
   private modal = inject(ModalService);
 
-  records: Record[] = this.modal.config().data?.records;
+  transcriptLineId: string = this.modal.config().data?.transcriptLineId;
+
+  records: Record[] = [];
 
   ngOnInit() {
     //     [{
@@ -60,6 +62,22 @@ export class RecordHistoryComponent {
     //     "sttProviderKey": "WHISPER_CPP",
     //     "createdAt": "2026-06-25T21:29:19.3838918Z"
     // }]
-    console.log(this.records);
+    console.log(this.transcriptLineId);
+
+    this.fetchRecords();
+  }
+
+  async fetchRecords() {
+    const result = await callApi({
+      endpoint: `api/records/transcript-line/${this.transcriptLineId}`,
+      method: "GET"
+    })
+
+    if (!result.success) {
+      messageUtils(result.message)
+      return;
+    }
+
+    this.records = result.data;
   }
 }

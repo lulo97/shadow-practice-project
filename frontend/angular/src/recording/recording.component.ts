@@ -27,7 +27,7 @@ import { OnDestroy, HostListener } from "@angular/core";
           (click)="goBack()"
           class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
         >
-          ← Back
+          <i class="fa-solid fa-arrow-left"></i> Back
         </button>
 
         <div class="flex items-center gap-1.5">
@@ -35,13 +35,13 @@ import { OnDestroy, HostListener } from "@angular/core";
             (click)="openTranslationModal()"
             class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
           >
-            ＋ Translation
+            <i class="fa-solid fa-plus"></i> Translation
           </button>
           <button
             (click)="openSettingModal()"
             class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
           >
-            Settings ⚙
+            <i class="fa-solid fa-gear"></i> Settings
           </button>
         </div>
       </div>
@@ -74,11 +74,19 @@ import { OnDestroy, HostListener } from "@angular/core";
 
             <!-- Controls -->
             <div class="mt-1.5 grid grid-cols-1 gap-1">
+              <div class="text-center font-bold">
+                Current {{ activeTranscriptLineIdx + 1 }}
+              </div>
               <button
                 (click)="togglePlay()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
               >
-                {{ this.isPlaying ? "■ Stop" : "▶ Play" }}
+                <i
+                  class="fa-solid"
+                  [ngClass]="isPlaying ? 'fa-stop' : 'fa-play'"
+                ></i>
+
+                {{ isPlaying ? "Stop" : "Play" }}
               </button>
 
               <button
@@ -90,11 +98,10 @@ import { OnDestroy, HostListener } from "@angular/core";
                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                 "
               >
-                {{
-                  (audioService.isRecording$ | async)
-                    ? "■ Stop Recording"
-                    : "● Record"
-                }}
+                <button>
+                  <i class="fa-solid" [ngClass]="recordButtonIcon"></i>
+                  {{ recordButtonText }}
+                </button>
               </button>
 
               <button
@@ -103,16 +110,20 @@ import { OnDestroy, HostListener } from "@angular/core";
               >
                 <ng-container
                   *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
-                  >⏭ Undo skip</ng-container
+                  ><i class="fa-solid fa-forward-step"></i> Skip Undo
+                  skip</ng-container
                 >
-                <ng-template #skipLabel>⏭ Skip</ng-template>
+                <ng-template #skipLabel
+                  ><i class="fa-solid fa-forward-step"></i>
+                  Skip</ng-template
+                >
               </button>
 
               <button
                 (click)="openRecordHistory()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                Record History
+                <i class="fa-solid fa-clock-rotate-left"></i> Record History
               </button>
             </div>
 
@@ -153,9 +164,12 @@ import { OnDestroy, HostListener } from "@angular/core";
                   class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
                   [title]="isAudioPlaying ? 'Pause Audio' : 'Play Audio'"
                 >
-                  <span class="text-xs font-bold">{{
-                    isAudioPlaying ? "⏸" : "▶"
-                  }}</span>
+                  <span class="text-xs font-bold">
+                    <i
+                      class="fa-solid"
+                      [ngClass]="isAudioPlaying ? 'fa-pause' : 'fa-play'"
+                    ></i>
+                  </span>
                 </button>
               </div>
             </div>
@@ -183,13 +197,18 @@ import { OnDestroy, HostListener } from "@angular/core";
             >
               <div>
                 <h2 class="text-base font-bold text-gray-900">
-                  Transcription Track
+                  Transcription Track (Current
+                  {{ this.activeTranscriptLineIdx + 1 }} in total {{ this.transcriptLines?.length}})
                 </h2>
                 <p class="text-xs text-gray-500">
                   Review, skip, or select blocks to sync record targets
                 </p>
               </div>
               <button
+                [ngClass]="{
+                  'cursor-not-allowed': shouldNotMoveActiveTranscriptLine(),
+                  'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
+                }"
                 (click)="jumpToUnrecorded()"
                 class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
               >
@@ -198,23 +217,28 @@ import { OnDestroy, HostListener } from "@angular/core";
             </div>
 
             <!-- Transcript list -->
-            <div class="flex-1 overflow-y-auto min-h-0 space-y-1 pr-0.5">
+            <div
+              #transcriptContainer
+              class="flex-1 overflow-y-auto min-h-0 space-y-1 pr-0.5"
+            >
               <div
-                *ngFor="let transcript_line of transcriptLines"
+                [attr.data-id]="transcript_line.id"
+                *ngFor="let transcript_line of transcriptLines; let i = index"
                 (click)="selectTranscriptLine(transcript_line)"
-                class="group relative cursor-pointer rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
-                [ngClass]="
-                  activeTranscriptLine?.id === transcript_line.id
-                    ? 'bg-blue-50'
-                    : 'bg-white'
-                "
+                class="group relative rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
+                [ngClass]="{
+                  'bg-blue-50': activeTranscriptLine?.id === transcript_line.id,
+                  'bg-white': activeTranscriptLine?.id !== transcript_line.id,
+                  'cursor-not-allowed': shouldNotMoveActiveTranscriptLine(),
+                  'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
+                }"
               >
                 <div class="flex items-start justify-between gap-2">
                   <div class="space-y-1 flex-1 min-w-0">
                     <div
                       class="font-semibold text-sm text-gray-900 leading-snug"
                     >
-                      {{ transcript_line.text }}
+                      {{ i + 1 }}: {{ transcript_line.text }}
                     </div>
 
                     <div
@@ -235,7 +259,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                       <div
                         *ngIf="
                           this.getLastRecord(transcript_line) &&
-                          this.getLastRecord(transcript_line)?.sttText
+                          this.getLastRecord(transcript_line)?.id
                         "
                         class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-100"
                       >
@@ -245,7 +269,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                         <span>Heard:</span>
                         <span class="font-semibold text-gray-900"
                           >"{{
-                            this.getLastRecord(transcript_line)?.sttText
+                            this.getLastRecord(transcript_line)?.sttText || "-"
                           }}"</span
                         >
                         <span class="text-emerald-600 font-mono"
@@ -300,6 +324,14 @@ import { OnDestroy, HostListener } from "@angular/core";
   `,
 })
 export class RecordingComponent implements OnDestroy {
+  @ViewChild("transcriptContainer")
+  transcriptContainer!: ElementRef<HTMLDivElement>;
+
+  shouldNotMoveActiveTranscriptLine() {
+    if (this.isGenerateStt) return true;
+    if (this.isRecording) return true;
+    return false;
+  }
   ngOnDestroy(): void {
     //throw new Error("Method not implemented.");
   }
@@ -375,13 +407,13 @@ export class RecordingComponent implements OnDestroy {
   isPlaying = false;
   showTranslation = true;
 
-  activeTranscriptLineId: number = 0;
+  activeTranscriptLineIdx: number = 0;
 
   get activeTranscriptLine(): TranscriptLine | null {
-    if (this.activeTranscriptLineId === null || !this.transcriptLines)
+    if (this.activeTranscriptLineIdx === null || !this.transcriptLines)
       return null;
     return (
-      this.transcriptLines.find((s) => s.id === this.activeTranscriptLineId) ??
+      this.transcriptLines[this.activeTranscriptLineIdx] ??
       null
     );
   }
@@ -414,7 +446,7 @@ export class RecordingComponent implements OnDestroy {
     this.videoMetadata = result.data;
   }
 
-  async fetchTranscriptLines() {
+  async fetchTranscriptLines(action?: string) {
     const result = await callApi({
       endpoint: `api/transcripts/${this.videoId}`,
       method: "GET",
@@ -427,8 +459,9 @@ export class RecordingComponent implements OnDestroy {
 
     this.transcriptLines = result.data;
 
-    if (this.jumpToUnrecorded) this.jumpToUnrecorded();
-
+    if (action == "ON_INIT") {
+      if (this.jumpToUnrecorded) this.jumpToUnrecorded();
+    }
     return result.data;
   }
 
@@ -454,8 +487,11 @@ export class RecordingComponent implements OnDestroy {
 
   ngOnInit(): void {
     this.fetchVideoMp4Data();
-    this.fetchTranscriptLines();
+    this.fetchTranscriptLines("ON_INIT");
     this.fetchVideoMetadata();
+    this.audioService.isRecording$.subscribe((value) => {
+      this.isRecording = value;
+    });
   }
 
   goBack(): void {
@@ -501,6 +537,19 @@ export class RecordingComponent implements OnDestroy {
 
     video.addEventListener("timeupdate", this._pauseAtEndTime);
   }
+
+  isGenerateStt = false;
+  get recordButtonText() {
+    if (this.isGenerateStt) return "Loading...";
+    return this.isRecording ? "Stop Recording" : "Record";
+  }
+
+  get recordButtonIcon() {
+    if (this.isGenerateStt) return "fa-spinner fa-spin";
+    return this.isRecording ? "fa-stop" : "fa-microphone";
+  }
+  isRecording = false;
+
   async startRecord(): Promise<void> {
     if (!this.activeTranscriptLine?.id) {
       messageUtils("activeTranscriptLine null");
@@ -529,12 +578,16 @@ export class RecordingComponent implements OnDestroy {
       this.activeTranscriptLine?.id.toString()!!,
     );
 
+    this.isGenerateStt = true;
+
     const result = await callApi({
       endpoint: "api/records",
       method: "POST",
       body: formData,
       credentials: "include",
     });
+
+    this.isGenerateStt = false;
 
     if (!result.success) {
       messageUtils(result.message);
@@ -579,7 +632,7 @@ export class RecordingComponent implements OnDestroy {
     const record_id = this.getLastRecord(this.activeTranscriptLine)?.id;
 
     if (!record_id) {
-      messageUtils("record_id null");
+      messageUtils("Not recorded yet!");
       return;
     }
 
@@ -619,7 +672,18 @@ export class RecordingComponent implements OnDestroy {
   }
 
   selectTranscriptLine(transcript_line: TranscriptLine): void {
-    this.activeTranscriptLineId = transcript_line.id;
+    if (!this.transcriptLines) {
+      messageUtils("transcriptLines null");
+      return;
+    }
+    const idx = this.transcriptLines.findIndex(
+      (ele) => ele.id == transcript_line.id,
+    );
+    if (!idx) {
+      messageUtils("idx null");
+      return;
+    }
+    this.activeTranscriptLineIdx = idx;
     this.mineWavAudio = null;
     // Reset state for new audio
     this.isAudioPlaying = false;
@@ -630,9 +694,25 @@ export class RecordingComponent implements OnDestroy {
 
   jumpToUnrecorded(): void {
     if (!this.transcriptLines) return;
-    const unrecorded = this.transcriptLines.find((s) => s.records.length == 0);
+
+    const unrecorded_idx = this.transcriptLines.findIndex(
+      (s) => s.records.length === 0,
+    );
+
+    const unrecorded = this.transcriptLines[unrecorded_idx];
+
     if (unrecorded) {
-      this.activeTranscriptLineId = unrecorded.id;
+      this.activeTranscriptLineIdx = unrecorded_idx;
+
+      setTimeout(() => {
+        const element = document.querySelector(`[data-id="${unrecorded.id}"]`);
+
+        element?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+
       console.log("Jumped to unrecorded sentence", unrecorded.id);
     }
   }
@@ -680,7 +760,7 @@ export class RecordingComponent implements OnDestroy {
         //await this.fetchTranscriptLines()
       },
       data: {
-        records: this.activeTranscriptLine?.records,
+        transcriptLineId: this.activeTranscriptLine?.id,
       },
     });
   }

@@ -54,7 +54,9 @@ builder.Services.AddHostedService<JobProcessorService>();
 //Testing
 builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
 builder.Services.AddTransient<IAsrService, FakeAsrService>();
-builder.Services.AddScoped<ISTT, WhisperCpp>();
+builder.Services.AddScoped<WhisperCpp>();
+builder.Services.AddScoped<Parakeet>();
+builder.Services.AddScoped<ISTTFactory, STTFactory>();
 builder.Services.AddHostedService<ExternalServerStarter>(); 
 builder.Services.AddScoped<VideoJobUtils>();
 builder.Services.AddScoped<ILLM, FakeLlm>();

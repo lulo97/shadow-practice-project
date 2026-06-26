@@ -108,8 +108,6 @@ public class VideosController : ControllerBase
             v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;
     ";
 
-        Console.WriteLine(sql);
-
         var results = await _context.Database
             .SqlQueryRaw<VideoHomepageDto>(sql, parameters.ToArray())
             .ToListAsync();

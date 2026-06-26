@@ -7,6 +7,8 @@ public class ExternalServerStarter : BackgroundService
     {
         new ServerConfig { Port = 8080, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Features\Utils\stt.bat" },
         //new ServerConfig { Port = 8081, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Features\Utils\llm.bat" },
+        new ServerConfig { Port = 8082, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\services\stt\parakeet\run.bat" },
+
     };
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)

@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 public class RecordsController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly ISTT _stt;
-    public RecordsController(AppDbContext context, ISTT stt)
+    private readonly ISTTFactory _sttFactory;
+    public RecordsController(AppDbContext context, ISTTFactory sttFactory)
     {
-        _context = context; _stt = stt;
+        _context = context; _sttFactory = sttFactory;
     }
 
     [HttpPost]
@@ -20,14 +20,17 @@ public class RecordsController : ControllerBase
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
-        var sttText = await _stt.RunAsync(bytes);
 
-        var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
+        var (user_setting, error) = await HttpContext.GetSettingFromCookieAsync(_context);
 
-        if (user == null)
+        if (user_setting == null)
         {
             return BadRequest(new { message = error });
         }
+
+        var stt = _sttFactory.GetSTT(user_setting);
+
+        var sttText = await stt.RunAsync(bytes);
 
         var transcript_line = await _context.TranscriptLines.FirstOrDefaultAsync(x => x.Id == dto.TranscriptLineId);
 
@@ -41,11 +44,11 @@ public class RecordsController : ControllerBase
             VideoId = dto.VideoId,
             TranscriptLineId = dto.TranscriptLineId,
             SttText = sttText,
-            UserId = user.Id,
+            UserId = user_setting.Id,
             FilePath = null,
             BlobData = bytes, //For test
             Score = SttUtils.GetScore(transcript_line.Text, sttText),
-            SttProviderKey = _stt.GetKey()
+            SttProviderKey = stt.GetKey()
         };
 
         _context.Records.Add(record);
@@ -95,6 +98,13 @@ public class RecordsController : ControllerBase
         }
 
         return File(blob_data, "audio/wav", $"{id}.wav");
+    }
+
+    [HttpGet("transcript-line/{transcript_line_id}")]
+    public async Task<ActionResult> GetRecordsFromTranscriptLineId(int transcript_line_id)
+    {
+        var records = await _context.Records.Where(r => r.TranscriptLineId == transcript_line_id).ToListAsync();
+        return Ok(records);
     }
 }
 
