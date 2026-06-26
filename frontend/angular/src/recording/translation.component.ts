@@ -11,95 +11,69 @@ import { expectedPrefixSymbol } from "./utils";
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div>
-      <div class="flex gap-2 items-stretch">
-        <div id="left-layout" class="w-1/2 h-full">
-          <div class="flex justify-between">
-            <div id="tab-english">English transcript</div>
-            <button id="tab-copy-prompt" (click)="copyPrompt()">
-              Copy + Prompt
-            </button>
-          </div>
-
-          <div id="panel-english" class="panel">
-            <div *ngFor="let ele of transcriptLines; let i = index">
-              <div>{{ i + 1 }}: {{ ele.text }}</div>
-              <hr />
-            </div>
-          </div>
-        </div>
-
-        <div id="right-layout" class="w-1/2 h-full flex flex-col">
-          <div id="tab-vietnamese">Vietnamese transcript</div>
-
-          <!-- Right: Vietnamese transcript (editable) -->
-          <textarea
-            id="vietnamese-transcript-textarea"
-            [(ngModel)]="vietnameseText"
-            placeholder="Paste Vietnamese translation here..."
-            class="w-full h-[300px]"
-          ></textarea>
-        </div>
+  <div class="w-[90vw] h-[80vh]">
+  <div class="flex gap-2 items-stretch">
+    <!-- Left Layout -->
+    <div id="left-layout" class="w-1/2 h-full">
+      <div class="flex justify-between mb-2 h-[5vh]">
+        <div id="tab-english" class="font-bold">English transcript</div>
+        <button 
+          id="tab-copy-prompt" 
+          (click)="copyPrompt()"
+          class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors"
+        >
+          Copy + Prompt
+        </button>
       </div>
 
-      <!-- Footer actions -->
-      <div id="translation-footer" class="footer">
-        <button id="btn-auto-translation" class="btn" (click)="autoTranslate()">
-          Auto translation
-        </button>
-        <button id="btn-save" class="btn btn-primary" (click)="save()">
-          Save
-        </button>
+      <div 
+        id="panel-english" 
+        class="flex-1 border border-gray-300 p-2 h-[65vh] overflow-y-auto"
+      >
+        <div *ngFor="let ele of transcriptLines; let i = index">
+          <div class="text-sm">{{ i + 1 }}: {{ ele.text }}</div>
+          <hr class="my-1 border-gray-200" />
+        </div>
       </div>
     </div>
+
+    <!-- Right Layout -->
+    <div id="right-layout" class="w-1/2 h-full flex flex-col">
+      <div id="tab-vietnamese" class="mb-2 font-medium h-[5vh]">Vietnamese transcript</div>
+
+      <!-- Vietnamese transcript textarea -->
+      <textarea
+        id="vietnamese-transcript-textarea"
+        [(ngModel)]="vietnameseText"
+        placeholder="Paste Vietnamese translation here..."
+        class="w-full h-[65vh] border border-gray-300 p-2 resize-none text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- Footer actions -->
+  <div 
+    id="translation-footer" 
+    class="flex gap-2 justify-end mt-4"
+  >
+    <button 
+      id="btn-auto-translation" 
+      (click)="autoTranslate()"
+      class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors"
+    >
+      Auto translation
+    </button>
+    <button 
+      id="btn-save" 
+      (click)="save()"
+      class="px-3.5 py-1.5 border border-blue-600 bg-blue-600 text-white cursor-pointer text-sm hover:bg-blue-700 transition-colors"
+    >
+      Save
+    </button>
+  </div>
+</div>
   `,
-  styles: [
-    `
-      .panels {
-        display: flex;
-        gap: 8px;
-        height: 220px;
-      }
-      .panel {
-        flex: 1;
-        border: 1px solid #ccc;
-        padding: 8px;
-        /* Constrain height to enable internal scrolling */
-        height: 300px;
-        overflow-y: auto;
-      }
-      .sentence-list {
-        margin: 0;
-        padding-left: 20px;
-        font-size: 13px;
-      }
-      .viet-textarea {
-        width: 100%;
-        height: 100%;
-        border: none;
-        resize: none;
-        font-size: 13px;
-        outline: none;
-      }
-      .footer {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-      }
-      .btn {
-        padding: 6px 14px;
-        border: 1px solid #ccc;
-        background: #fff;
-        cursor: pointer;
-        font-size: 13px;
-      }
-      .btn-primary {
-        background: #1a73e8;
-        color: #fff;
-        border-color: #1a73e8;
-      }
-    `,
-  ],
+
 })
 export class TranslationComponent {
   private modal = inject(ModalService);

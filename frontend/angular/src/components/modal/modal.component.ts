@@ -49,6 +49,8 @@ export class ModalComponent {
       md: "max-w-[520px]",
       lg: "max-w-[720px]",
     };
-    return sizes[this.modal.config().size ?? "md"] ?? sizes["md"];
+    const modal_input_size = this.modal.config().size;
+    if (!modal_input_size) return ""
+    return sizes[modal_input_size];
   }
 }

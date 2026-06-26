@@ -74,6 +74,7 @@ import { Subscription } from "rxjs";
             <i class="fa-regular fa-user text-base"></i> Profile
           </span>
           <span
+            (click)="logOut()"
             id="logout-link"
             class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
           >
@@ -95,7 +96,7 @@ import { Subscription } from "rxjs";
 
           <input
             [(ngModel)]="searchData.title"
-            (ngModelChange)="fetchVideos()"
+            (ngModelChange)="fetchVideosDebounce()"
             id="video-search"
             type="text"
             placeholder="Search by title..."
@@ -311,6 +312,16 @@ export class HomepageComponent {
     private zone: NgZone,
   ) {}
 
+  private debounceTimer: any;
+
+  async fetchVideosDebounce() {
+    clearTimeout(this.debounceTimer);
+
+    this.debounceTimer = setTimeout(() => {
+      this.fetchVideos();
+    }, 500);
+  }
+
   async fetchVideos() {
     const queryParams = new URLSearchParams();
 
@@ -432,5 +443,19 @@ export class HomepageComponent {
         toDate: this.searchData.toDate,
       },
     });
+  }
+
+  async logOut() {
+    const result = await callApi({
+      endpoint: `api/auth/logout`,
+      method: "POST",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    } else {
+      window.location.href = "/login";
+    }
   }
 }

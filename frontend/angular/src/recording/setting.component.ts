@@ -15,47 +15,77 @@ interface SettingDatasource {
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div class="settings-container" *ngIf="setting">
-      <div class="setting-row">
-        <label>STT Provider</label>
-        <select [(ngModel)]="setting.sttProviderKey">
-          <option *ngFor="let p of datasource?.sttProviders" [value]="p">{{p}}</option>
-        </select>
-      </div>
+   <div class="settings-container" *ngIf="setting">
+  <!-- STT Provider -->
+  <div class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200">
+    <label class="font-bold text-gray-700">STT Provider</label>
+    <select 
+      [(ngModel)]="setting.sttProviderKey"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+      <option *ngFor="let p of datasource?.sttProviders" [value]="p">{{p}}</option>
+    </select>
+  </div>
 
-      <div class="setting-row">
-        <label>Volume</label>
-        <input type="range" [(ngModel)]="setting.volume" min="0" max="100" />
-        <span>{{ setting.volume }}%</span>
-      </div>
-
-      <div class="setting-row">
-        <label>UI Style</label>
-        <select [(ngModel)]="setting.recordScreenUiStyle">
-          <option *ngFor="let s of datasource?.recordScreenUiStyles" [value]="s">{{s}}</option>
-        </select>
-      </div>
-
-      <div class="setting-row">
-        <label>Loop</label>
-        <button (click)="setting.loop = setting.loop === 1 ? 0 : 1" [class.active]="setting.loop === 1">
-          {{ setting.loop === 1 ? "ON" : "OFF" }}
-        </button>
-      </div>
-
-      <div class="setting-row">
-        <label>Video Width (%)</label>
-        <input type="number" [(ngModel)]="setting.videoWidthSize" min="10" max="90" />
-      </div>
-
-      <button (click)="save()">Save Settings</button>
+  <!-- Volume -->
+  <div class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200">
+    <label class="font-bold text-gray-700">Volume</label>
+    <div class="flex items-center gap-3">
+      <input 
+        type="range" 
+        [(ngModel)]="setting.volume" 
+        min="0" 
+        max="100"
+        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+      <span class="text-sm font-medium text-gray-600 min-w-[3rem]">{{ setting.volume }}%</span>
     </div>
+  </div>
+
+  <!-- UI Style -->
+  <div class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200">
+    <label class="font-bold text-gray-700">UI Style</label>
+    <select 
+      [(ngModel)]="setting.recordScreenUiStyle"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+      <option *ngFor="let s of datasource?.recordScreenUiStyles" [value]="s">{{s}}</option>
+    </select>
+  </div>
+
+  <!-- Loop -->
+  <div class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200">
+    <label class="font-bold text-gray-700">Loop</label>
+    <button 
+      (click)="setting.loop = setting.loop === 1 ? 0 : 1"
+      [class.active]="setting.loop === 1"
+      class="px-6 py-2 rounded-md font-medium transition-colors duration-200"
+      [ngClass]="{
+        'bg-blue-600 text-white hover:bg-blue-700': setting.loop === 1,
+        'bg-gray-200 text-gray-700 hover:bg-gray-300': setting.loop !== 1
+      }">
+      {{ setting.loop === 1 ? "ON" : "OFF" }}
+    </button>
+  </div>
+
+  <!-- Video Width -->
+  <div class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200">
+    <label class="font-bold text-gray-700">Video Width (%)</label>
+    <input 
+      type="number" 
+      [(ngModel)]="setting.videoWidthSize" 
+      min="10" 
+      max="90"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+  </div>
+
+  <!-- Save Button -->
+  <div class="pt-4">
+    <button 
+      (click)="save()"
+      class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+      Save Settings
+    </button>
+  </div>
+</div>
   `,
-  styles: [`
-    .settings-container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
-    .setting-row { display: flex; justify-content: space-between; align-items: center; }
-    button.active { background-color: #007bff; color: white; }
-  `]
 })
 export class SettingComponent implements OnInit {
   setting: UserSetting | null = null;

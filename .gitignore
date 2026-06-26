@@ -294,3 +294,4 @@ vendor
 backend/csharp-aspnet-webapi/Assets/
 backend/csharp-aspnet-webapi/app_debug.db-wal
 backend/csharp-aspnet-webapi/app_debug.db-shm
+services/stt/parakeet/assets

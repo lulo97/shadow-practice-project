@@ -271,13 +271,13 @@ import { OnDestroy, HostListener } from "@angular/core";
                   <div
                     class="flex flex-col items-end justify-between self-stretch shrink-0 gap-1"
                   >
-                    <span
+                    <!-- <span
                       *ngIf="transcript_line.id === 1"
                       class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700"
                       title="Completed"
                       >✓</span
                     >
-                    <div *ngIf="transcript_line.id !== 1" class="h-5"></div>
+                    <div *ngIf="transcript_line.id !== 1" class="h-5"></div> -->
                     <span
                       class="whitespace-nowrap font-mono text-xs font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded"
                     >
@@ -427,7 +427,7 @@ export class RecordingComponent implements OnDestroy {
 
     this.transcriptLines = result.data;
 
-    this.jumpToUnrecorded()
+    if (this.jumpToUnrecorded) this.jumpToUnrecorded();
 
     return result.data;
   }
@@ -643,7 +643,6 @@ export class RecordingComponent implements OnDestroy {
     this.modal.open({
       title: "Translation Modal",
       component: TranslationComponent,
-      size: "lg",
       onClose: async () => {
         await this.fetchTranscriptLines();
       },

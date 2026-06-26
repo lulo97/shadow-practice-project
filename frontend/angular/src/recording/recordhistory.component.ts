@@ -10,29 +10,38 @@ import { Record } from "./transcriptline.interface";
 @Component({
   standalone: true,
   imports: [FormsModule, CommonModule],
-  styles: [`
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-  `],
   template: `
-    <table>
+    <table class="w-full border-collapse">
       <thead>
         <tr>
-          <th>No.</th>
-          <th>Created at</th>
-          <th>Heard text</th>
-          <th>Score</th>
-          <th>STT Model Key</th>
+          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
+            No.
+          </th>
+          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
+            Created at
+          </th>
+          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
+            Heard text
+          </th>
+          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
+            Score
+          </th>
+          <th class="border border-gray-300 px-2 py-1 text-left bg-gray-100">
+            STT Model Key
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let record of records; let i = index">
-          <td>{{ i + 1 }}</td>
-          <td>{{ record.createdAt | date:'short' }}</td>
-          <td>{{ record.sttText }}</td>
-          <td>{{ record.score }}</td>
-          <td>{{ record.sttProviderKey }}</td>
+          <td class="border border-gray-300 px-2 py-1">{{ i + 1 }}</td>
+          <td class="border border-gray-300 px-2 py-1">
+            {{ record.createdAt | date: "short" }}
+          </td>
+          <td class="border border-gray-300 px-2 py-1">{{ record.sttText }}</td>
+          <td class="border border-gray-300 px-2 py-1">{{ record.score }}</td>
+          <td class="border border-gray-300 px-2 py-1">
+            {{ record.sttProviderKey }}
+          </td>
         </tr>
       </tbody>
     </table>
@@ -44,13 +53,13 @@ export class RecordHistoryComponent {
   records: Record[] = this.modal.config().data?.records;
 
   ngOnInit() {
-//     [{
-//     "id": 1,
-//     "sttText": "*Pewds*",
-//     "score": 100,
-//     "sttProviderKey": "WHISPER_CPP",
-//     "createdAt": "2026-06-25T21:29:19.3838918Z"
-// }]
-    console.log(this.records)
+    //     [{
+    //     "id": 1,
+    //     "sttText": "*Pewds*",
+    //     "score": 100,
+    //     "sttProviderKey": "WHISPER_CPP",
+    //     "createdAt": "2026-06-25T21:29:19.3838918Z"
+    // }]
+    console.log(this.records);
   }
 }

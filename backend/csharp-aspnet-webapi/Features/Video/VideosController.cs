@@ -14,32 +14,13 @@ public class VideosController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("")]
     public async Task<IActionResult> GetList(
     [FromQuery] string? title,
     [FromQuery] DateTime? fromDate,
     [FromQuery] DateTime? toDate,
     [FromQuery] string? videoType
-    )
+)
     {
-        var query = _context.Videos.AsQueryable();
-
-        // Apply filters if parameters are provided
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            query = query.Where(v => v.Title.ToLower().Contains(title.ToLower()));
-        }
-
-        if (fromDate.HasValue)
-        {
-            query = query.Where(v => v.CreatedAt >= fromDate.Value);
-        }
-
-        if (toDate.HasValue)
-        {
-            query = query.Where(v => v.CreatedAt <= toDate.Value);
-        }
-
         var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
 
         if (user == null)
@@ -52,53 +33,85 @@ public class VideosController : ControllerBase
             return Unauthorized(new { message = error.ToString() });
         }
 
+        // Build WHERE conditions
+        var whereConditions = new List<string>();
+        var parameters = new List<object>();
+        int paramIndex = 0;
+
+        // Title filter
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            whereConditions.Add($"LOWER(v.Title) LIKE LOWER({{{paramIndex}}})");
+            parameters.Add($"%{title}%");
+            paramIndex++;
+        }
+
+        // Date range filters
+        if (fromDate.HasValue)
+        {
+            whereConditions.Add($"v.CreatedAt >= {{{paramIndex}}}");
+            parameters.Add(fromDate.Value);
+            paramIndex++;
+        }
+
+        if (toDate.HasValue)
+        {
+            whereConditions.Add($"v.CreatedAt <= {{{paramIndex}}}");
+            parameters.Add(toDate.Value);
+            paramIndex++;
+        }
+
+        // User/VideoType filter
         if (videoType == "SYSTEM_VIDEOS")
         {
-            query = query.Where(v => v.UserId == Utils.ADMIN_ID);
+            whereConditions.Add($"v.UserId = {{{paramIndex}}}");
+            parameters.Add(Utils.ADMIN_ID);
         }
         else
         {
-            query = query.Where(v => v.UserId == user.Id);
+            whereConditions.Add($"v.UserId = {{{paramIndex}}}");
+            parameters.Add(user.Id);
         }
 
-        var sql = @"
-            SELECT 
-                v.Id, 
-                v.Title, 
-                v.YoutubeId, 
-                v.UserId, 
-                v.CreatedAt, 
-                v.Description,
-                MAX(j.Id) AS JobId, -- Using MAX to handle grouping if a video has one job
-        
-                CASE 
-                    -- 1. If there are no transcript lines at all
-                    WHEN COUNT(tl.Id) = 0 THEN 'NOT_STARTED'
-            
-                    -- 2. If the count of matching records is 0 (all tl have no record)
-                    WHEN COUNT(r.TranscriptLineId) = 0 THEN 'NOT_STARTED'
-            
-                    -- 3. If some transcript lines have records, but not all of them
-                    WHEN COUNT(DISTINCT r.TranscriptLineId) < COUNT(DISTINCT tl.Id) THEN 'UNFINISHED'
-            
-                    -- 4. If every transcript line has a matching record
-                    ELSE 'FINISHED'
-                END AS Status,
+        // Build the WHERE clause
+        var whereClause = whereConditions.Any()
+            ? "WHERE " + string.Join(" AND ", whereConditions)
+            : "";
 
-                CAST(COUNT(DISTINCT r.TranscriptLineId) AS REAL) / COUNT(DISTINCT tl.Id) * 100 AS ProcessPercent,
+        var sql = $@"
+        SELECT 
+            v.Id, 
+            v.Title, 
+            v.YoutubeId, 
+            v.UserId, 
+            v.CreatedAt, 
+            v.Description,
+            MAX(j.Id) AS JobId,
+    
+            CASE 
+                WHEN COUNT(tl.Id) = 0 THEN 'NOT_STARTED'
+                WHEN COUNT(r.TranscriptLineId) = 0 THEN 'NOT_STARTED'
+                WHEN COUNT(DISTINCT r.TranscriptLineId) < COUNT(DISTINCT tl.Id) THEN 'UNFINISHED'
+                ELSE 'FINISHED'
+            END AS Status,
 
-                MAX(r.CreatedAt) AS LastPracticed
+            CAST(COUNT(DISTINCT r.TranscriptLineId) AS REAL) / NULLIF(COUNT(DISTINCT tl.Id), 0) * 100 AS ProcessPercent,
 
-            FROM Videos v
-            LEFT JOIN Jobs j ON v.Id = j.VideoId
-            LEFT JOIN TranscriptLines tl ON v.Id = tl.VideoId
-            LEFT JOIN Records r ON tl.Id = r.TranscriptLineId
-            GROUP BY 
-                v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;
-        ";
+            MAX(r.CreatedAt) AS LastPracticed
+
+        FROM Videos v
+        LEFT JOIN Jobs j ON v.Id = j.VideoId
+        LEFT JOIN TranscriptLines tl ON v.Id = tl.VideoId
+        LEFT JOIN Records r ON tl.Id = r.TranscriptLineId
+        {whereClause}
+        GROUP BY 
+            v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;
+    ";
+
+        Console.WriteLine(sql);
 
         var results = await _context.Database
-            .SqlQueryRaw<VideoHomepageDto>(sql)
+            .SqlQueryRaw<VideoHomepageDto>(sql, parameters.ToArray())
             .ToListAsync();
 
         return Ok(results);
