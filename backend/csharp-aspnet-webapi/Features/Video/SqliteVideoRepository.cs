@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using static VideosController;
 
 public class SqliteVideoRepository : IVideoRepository
@@ -18,58 +20,59 @@ public class SqliteVideoRepository : IVideoRepository
 
         if (!string.IsNullOrWhiteSpace(filter.Title))
         {
-            whereConditions.Add($"LOWER(v.Title) LIKE LOWER({{{paramIndex}}})");
+            whereConditions.Add($"LOWER(v.title) LIKE LOWER({{{paramIndex}}})");
             parameters.Add($"%{filter.Title}%");
             paramIndex++;
         }
 
         if (filter.FromDate.HasValue)
         {
-            whereConditions.Add($"v.CreatedAt >= {{{paramIndex}}}");
+            whereConditions.Add($"v.created_at >= {{{paramIndex}}}");
             parameters.Add(filter.FromDate.Value);
             paramIndex++;
         }
 
         if (filter.ToDate.HasValue)
         {
-            whereConditions.Add($"v.CreatedAt <= {{{paramIndex}}}");
+            whereConditions.Add($"v.created_at <= {{{paramIndex}}}");
             parameters.Add(filter.ToDate.Value);
             paramIndex++;
         }
 
-        whereConditions.Add($"v.UserId = {{{paramIndex}}}");
+        whereConditions.Add($"v.user_id = {{{paramIndex}}}");
         parameters.Add(filter.VideoType == "SYSTEM_VIDEOS" ? Utils.ADMIN_ID : userId);
 
         var whereClause = "WHERE " + string.Join(" AND ", whereConditions);
 
         var sql = $@"
             SELECT 
-                v.Id, 
-                v.Title, 
-                v.YoutubeId, 
-                v.UserId, 
-                v.CreatedAt, 
-                v.Description,
-                MAX(j.Id) AS JobId,
+                v.id AS ""Id"", 
+                v.title AS ""Title"", 
+                v.youtube_id AS ""YoutubeId"", 
+                v.user_id AS ""UserId"", 
+                v.created_at AS ""CreatedAt"", 
+                v.description AS ""Description"",
+                MAX(j.id) AS ""JobId"",
         
                 CASE 
-                    WHEN COUNT(tl.Id) = 0 THEN 'NOT_STARTED'
-                    WHEN COUNT(r.TranscriptLineId) = 0 THEN 'NOT_STARTED'
-                    WHEN COUNT(DISTINCT r.TranscriptLineId) < COUNT(DISTINCT tl.Id) THEN 'UNFINISHED'
+                    WHEN COUNT(tl.id) = 0 THEN 'NOT_STARTED'
+                    WHEN COUNT(r.transcript_line_id) = 0 THEN 'NOT_STARTED'
+                    WHEN COUNT(DISTINCT r.transcript_line_id) < COUNT(DISTINCT tl.id) THEN 'UNFINISHED'
                     ELSE 'FINISHED'
-                END AS Status,
+                END AS ""Status"",
 
-                CAST(COUNT(DISTINCT r.TranscriptLineId) AS REAL) / NULLIF(COUNT(DISTINCT tl.Id), 0) * 100 AS ProcessPercent,
+                -- Performs integer division securely and casts the resulting value to an INT
+                CAST(COUNT(DISTINCT r.transcript_line_id) * 100 / NULLIF(COUNT(DISTINCT tl.id), 0) AS INT) AS ""ProcessPercent"",
 
-                MAX(r.CreatedAt) AS LastPracticed
+                MAX(r.created_at) AS ""LastPracticed""
 
-            FROM Video v
-            LEFT JOIN Job j ON v.Id = j.VideoId
-            LEFT JOIN TranscriptLine tl ON v.Id = tl.VideoId
-            LEFT JOIN Record r ON tl.Id = r.TranscriptLineId
+            FROM video v
+            LEFT JOIN job j ON v.id = j.video_id
+            LEFT JOIN transcript_line tl ON v.id = tl.video_id
+            LEFT JOIN record r ON tl.id = r.transcript_line_id
             {whereClause}
             GROUP BY 
-                v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;
+                v.id, v.title, v.youtube_id, v.user_id, v.created_at, v.description;
         ";
 
         return await _context.Database
