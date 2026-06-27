@@ -159,7 +159,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                 ></audio>
 
                 <button
-                  (click)="playMyRecord()"
+                  (click)="togglePlayMyRecord()"
                   class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
                   [title]="isAudioPlaying ? 'Pause Audio' : 'Play Audio'"
                 >
@@ -324,7 +324,6 @@ import { OnDestroy, HostListener } from "@angular/core";
   `,
 })
 export class RecordingComponent implements OnDestroy {
-
   // ==================== INFRASTRUCTURE ====================
 
   videoId = window.location.pathname.split("/").filter(Boolean).pop();
@@ -347,7 +346,6 @@ export class RecordingComponent implements OnDestroy {
     console.log("Navigate back");
     window.location.href = "/";
   }
-
 
   // ==================== FEATURE: PANEL RESIZE ====================
 
@@ -413,9 +411,11 @@ export class RecordingComponent implements OnDestroy {
       credentials: "include",
     });
 
-    if (!result.success) { messageUtils(result.message); return; }
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
   }
-
 
   // ==================== FEATURE: VIDEO PLAYBACK ====================
 
@@ -426,13 +426,23 @@ export class RecordingComponent implements OnDestroy {
   isPlaying = false;
   private _pauseAtEndTime: () => void = () => {};
 
+  setVolume(): void {
+    // We add a check for 'this.setting' to prevent errors if the DB hasn't responded yet
+    if (this.videoPlayer?.nativeElement && this.setting) {
+      this.videoPlayer.nativeElement.volume = this.setting.volume / 100;
+    }
+  }
+
   async fetchVideoMetadata() {
     const result = await callApi({
       endpoint: `api/videos/metadata/${this.videoId}`,
       method: "GET",
     });
 
-    if (!result.success) { messageUtils(result.message); return; }
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
     this.videoMetadata = result.data;
   }
 
@@ -442,10 +452,19 @@ export class RecordingComponent implements OnDestroy {
       method: "GET",
     });
 
-    if (!result.success) { messageUtils(result.message); return; }
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
 
     this.videoMp4Data = result.data.url;
-    setTimeout(() => { if (this.videoPlayer) this.videoPlayer.nativeElement.load(); });
+
+    setTimeout(() => {
+      if (this.videoPlayer) {
+        this.videoPlayer.nativeElement.load();
+        this.setVolume();
+      }
+    });
   }
 
   togglePlay(): void {
@@ -453,13 +472,17 @@ export class RecordingComponent implements OnDestroy {
 
     if (this.isPlaying) {
       video.pause();
-      if (this.activeTranscriptLine) video.currentTime = this.activeTranscriptLine.start;
+      if (this.activeTranscriptLine)
+        video.currentTime = this.activeTranscriptLine.start;
       this.isPlaying = false;
       video.removeEventListener("timeupdate", this._pauseAtEndTime);
       return;
     }
 
-    if (!this.activeTranscriptLine) { messageUtils("Select record"); return; }
+    if (!this.activeTranscriptLine) {
+      messageUtils("Select record");
+      return;
+    }
 
     video.currentTime = this.activeTranscriptLine.start;
     video.play();
@@ -477,17 +500,18 @@ export class RecordingComponent implements OnDestroy {
     video.addEventListener("timeupdate", this._pauseAtEndTime);
   }
 
-
   // ==================== FEATURE: TRANSCRIPT ====================
 
-  @ViewChild("transcriptContainer") transcriptContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild("transcriptContainer")
+  transcriptContainer!: ElementRef<HTMLDivElement>;
 
   transcriptLines: TranscriptLine[] | null = null;
   activeTranscriptLineIdx: number = 0;
   showTranslation = true;
 
   get activeTranscriptLine(): TranscriptLine | null {
-    if (this.activeTranscriptLineIdx === null || !this.transcriptLines) return null;
+    if (this.activeTranscriptLineIdx === null || !this.transcriptLines)
+      return null;
     return this.transcriptLines[this.activeTranscriptLineIdx] ?? null;
   }
 
@@ -497,18 +521,31 @@ export class RecordingComponent implements OnDestroy {
       method: "GET",
     });
 
-    if (!result.success) { messageUtils(result.message); return; }
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
 
     this.transcriptLines = result.data;
-    if (action == "ON_INIT") { if (this.jumpToUnrecorded) this.jumpToUnrecorded(); }
+    if (action == "ON_INIT") {
+      if (this.jumpToUnrecorded) this.jumpToUnrecorded();
+    }
     return result.data;
   }
 
   selectTranscriptLine(transcript_line: TranscriptLine): void {
-    if (!this.transcriptLines) { messageUtils("transcriptLines null"); return; }
+    if (!this.transcriptLines) {
+      messageUtils("transcriptLines null");
+      return;
+    }
 
-    const idx = this.transcriptLines.findIndex((ele) => ele.id == transcript_line.id);
-    if (!idx) { messageUtils("idx null"); return; }
+    const idx = this.transcriptLines.findIndex(
+      (ele) => ele.id == transcript_line.id,
+    );
+    if (idx < 0) {
+      messageUtils("idx null");
+      return;
+    }
 
     this.activeTranscriptLineIdx = idx;
     this.mineWavAudio = null;
@@ -521,13 +558,16 @@ export class RecordingComponent implements OnDestroy {
   jumpToUnrecorded(): void {
     if (!this.transcriptLines) return;
 
-    const unrecorded_idx = this.transcriptLines.findIndex((s) => s.records.length === 0);
+    const unrecorded_idx = this.transcriptLines.findIndex(
+      (s) => s.records.length === 0,
+    );
     const unrecorded = this.transcriptLines[unrecorded_idx];
 
     if (unrecorded) {
       this.activeTranscriptLineIdx = unrecorded_idx;
       setTimeout(() => {
-        document.querySelector(`[data-id="${unrecorded.id}"]`)
+        document
+          .querySelector(`[data-id="${unrecorded.id}"]`)
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
       console.log("Jumped to unrecorded sentence", unrecorded.id);
@@ -552,7 +592,10 @@ export class RecordingComponent implements OnDestroy {
         method: "POST",
       });
 
-      if (!result.success) { messageUtils(result.message); return; }
+      if (!result.success) {
+        messageUtils(result.message);
+        return;
+      }
       this.fetchTranscriptLines();
     }
   }
@@ -561,7 +604,9 @@ export class RecordingComponent implements OnDestroy {
     this.modal.open({
       title: "Translation Modal",
       component: TranslationComponent,
-      onClose: async () => { await this.fetchTranscriptLines(); },
+      onClose: async () => {
+        await this.fetchTranscriptLines();
+      },
       data: {
         transcriptLines: this.transcriptLines,
         videoId: this.videoId,
@@ -569,7 +614,6 @@ export class RecordingComponent implements OnDestroy {
       },
     });
   }
-
 
   // ==================== FEATURE: RECORDING ====================
 
@@ -587,7 +631,10 @@ export class RecordingComponent implements OnDestroy {
   }
 
   async startRecord(): Promise<void> {
-    if (!this.activeTranscriptLine?.id) { messageUtils("activeTranscriptLine null"); return; }
+    if (!this.activeTranscriptLine?.id) {
+      messageUtils("activeTranscriptLine null");
+      return;
+    }
 
     let blob;
     if (this.audioService.isRecordingValue) {
@@ -597,12 +644,18 @@ export class RecordingComponent implements OnDestroy {
       return;
     }
 
-    if (!blob) { messageUtils("Blob null"); return; }
+    if (!blob) {
+      messageUtils("Blob null");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", blob, "audio.wav");
     formData.append("videoId", this.videoId!!);
-    formData.append("transcriptLineId", this.activeTranscriptLine?.id.toString()!!);
+    formData.append(
+      "transcriptLineId",
+      this.activeTranscriptLine?.id.toString()!!,
+    );
 
     this.isGenerateStt = true;
     const result = await callApi({
@@ -613,7 +666,10 @@ export class RecordingComponent implements OnDestroy {
     });
     this.isGenerateStt = false;
 
-    if (!result.success) { messageUtils(result.message); return; }
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
     this.fetchTranscriptLines();
   }
 
@@ -627,7 +683,10 @@ export class RecordingComponent implements OnDestroy {
   }
 
   openRecordHistory() {
-    if (!this.activeTranscriptLine) { messageUtils("activeTranscriptLine null!"); return; }
+    if (!this.activeTranscriptLine) {
+      messageUtils("activeTranscriptLine null!");
+      return;
+    }
 
     this.modal.open({
       title: "Record History Modal",
@@ -636,7 +695,6 @@ export class RecordingComponent implements OnDestroy {
       data: { transcriptLineId: this.activeTranscriptLine?.id },
     });
   }
-
 
   // ==================== FEATURE: MY AUDIO PLAYBACK ====================
 
@@ -648,13 +706,18 @@ export class RecordingComponent implements OnDestroy {
   totalAudioDuration = 0;
 
   formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(seconds % 60)
+      .toString()
+      .padStart(2, "0");
     return `${m}:${s}`;
   }
 
   onAudioTimeUpdate(): void {
-    this.currentAudioTime = this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
+    this.currentAudioTime =
+      this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
   }
 
   onAudioLoaded(): void {
@@ -666,37 +729,55 @@ export class RecordingComponent implements OnDestroy {
     this.currentAudioTime = 0;
   }
 
-  async playMyRecord(): Promise<void> {
-    if (!this.activeTranscriptLine) { messageUtils("activeTranscriptLine null"); return; }
+  async togglePlayMyRecord(): Promise<void> {
+    if (!this.activeTranscriptLine) {
+      messageUtils("activeTranscriptLine null");
+      return;
+    }
 
     const record_id = this.getLastRecord(this.activeTranscriptLine)?.id;
-    if (!record_id) { messageUtils("Not recorded yet!"); return; }
+    if (!record_id) {
+      messageUtils("Not recorded yet!");
+      return;
+    }
 
-    const result = await callApi({
-      endpoint: `api/records/file/${record_id}/`,
-      method: "GET",
-    });
+    const audio = this.mineAudioPlayer?.nativeElement;
+    if (!audio) return;
 
-    if (!result.success) { messageUtils(result.message); return; }
+    // If already playing, just pause and stop
+    if (this.isAudioPlaying) {
+      audio.pause();
+      this.isAudioPlaying = false;
+      return;
+    }
 
-    this.mineWavAudio = result.data.url;
-    this.isAudioPlaying = false;
-    this.currentAudioTime = 0;
-    this.totalAudioDuration = 0;
+    // Only fetch & reload the source if it's not already loaded
+    if (!this.mineWavAudio) {
+      const result = await callApi({
+        endpoint: `api/records/file/${record_id}/`,
+        method: "GET",
+      });
+      if (!result.success) {
+        messageUtils(result.message);
+        return;
+      }
+      this.mineWavAudio = result.data.url;
+      this.currentAudioTime = 0;
+      this.totalAudioDuration = 0;
 
-    setTimeout(() => {
-      const audio = this.mineAudioPlayer?.nativeElement;
-      if (!audio) return;
-      if (this.isAudioPlaying) {
-        audio.pause();
-        this.isAudioPlaying = false;
-      } else {
+      // Let Angular bind the new src, then play
+      setTimeout(() => {
+        audio.load();
         audio.play();
         this.isAudioPlaying = true;
-      }
-    });
-  }
+      });
+      return;
+    }
 
+    // Source already loaded — just play from current position
+    audio.play();
+    this.isAudioPlaying = true;
+  }
 
   // ==================== FEATURE: SETTINGS ====================
 
@@ -707,8 +788,15 @@ export class RecordingComponent implements OnDestroy {
       credentials: "include",
     });
 
-    if (!result.success) { messageUtils(result.message); return; }
-    this.setting.leftWidthPercent = result.data.videoWidthSize ?? this.setting.leftWidthPercent;
+    if (!result.success) {
+      messageUtils(result.message);
+      return;
+    }
+
+    this.setting.leftWidthPercent =
+      result.data.videoWidthSize ?? this.setting.leftWidthPercent;
+
+    this.setVolume();
   }
 
   openSettings(): void {
@@ -720,7 +808,9 @@ export class RecordingComponent implements OnDestroy {
       title: "Setting Modal",
       component: SettingComponent,
       size: "lg",
-      onClose: async () => { await this.fetchSetting(); },
+      onClose: async () => {
+        await this.fetchSetting();
+      },
       data: {},
     });
   }
