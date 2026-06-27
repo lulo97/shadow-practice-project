@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -8,9 +7,11 @@ public class RecordsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ISTTFactory _sttFactory;
-    public RecordsController(AppDbContext context, ISTTFactory sttFactory)
+    private readonly IRecordFileReader _recordReader;
+    private readonly IRecordFileWriter _recordWriter;
+    public RecordsController(AppDbContext context, ISTTFactory sttFactory, IRecordFileReader recordReader, IRecordFileWriter recordWriter)
     {
-        _context = context; _sttFactory = sttFactory;
+        _context = context; _sttFactory = sttFactory; _recordReader = recordReader; _recordWriter = recordWriter;
     }
 
     [HttpPost]
@@ -62,14 +63,21 @@ public class RecordsController : ControllerBase
             TranscriptLineId = dto.TranscriptLineId,
             SttText = sttText,
             UserId = user_setting.Id,
-            FilePath = null,
-            BlobData = bytes, //For test
+            //FilePath = null,
+            //BlobData = bytes, //For test
             Score = SttUtils.GetScore(transcript_line.Text, sttText),
             SttProviderKey = stt.GetKey()
         };
 
         _context.Records.Add(record);
         await _context.SaveChangesAsync();
+
+        var result_write_byte = await _recordWriter.WriteAudioAsync(record.Id, _context, bytes);
+
+        if (!result_write_byte.success)
+        {
+            return BadRequest(new { message = result_write_byte.error });
+        }
 
         return Ok(new { message = $"New record id = {record.Id}" });
     }
@@ -91,7 +99,8 @@ public class RecordsController : ControllerBase
             record.TranscriptLineId,
             record.SttProviderKey,
             record.SttText,
-            record.CreatedAt
+            record.CreatedAt,
+            record.Score
         };
 
         return Ok(record_dto);
@@ -107,9 +116,9 @@ public class RecordsController : ControllerBase
             return NotFound();
         }
 
-        var blob_data = record.BlobData;
+        var blob_data = await _recordReader.ReadAudioAsync(record);
 
-        if (blob_data == null)
+        if (blob_data == null || blob_data.Length == 0)
         {
             return NoContent();
         }
@@ -121,7 +130,17 @@ public class RecordsController : ControllerBase
     public async Task<ActionResult> GetRecordsFromTranscriptLineId(int transcript_line_id)
     {
         var records = await _context.Records.Where(r => r.TranscriptLineId == transcript_line_id).ToListAsync();
-        return Ok(records);
+        var records_dto = records.Select(record => new
+        {
+            record.Id,
+            record.FilePath,
+            record.TranscriptLineId,
+            record.SttProviderKey,
+            record.SttText,
+            record.CreatedAt,
+            record.Score
+        });
+        return Ok(records_dto);
     }
 }
 

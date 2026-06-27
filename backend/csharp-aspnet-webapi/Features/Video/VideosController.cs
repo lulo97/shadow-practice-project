@@ -8,10 +8,12 @@ using System.Linq;
 public class VideosController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IVideoFileReader _videoReader;
 
-    public VideosController(AppDbContext context)
+    public VideosController(AppDbContext context, IVideoFileReader videoFileReader)
     {
         _context = context;
+        _videoReader = videoFileReader;
     }
 
     public async Task<IActionResult> GetList(
@@ -135,12 +137,14 @@ public class VideosController : ControllerBase
         var video = await _context.Videos.FindAsync(video_id);
 
         if (video == null) return NotFound();
-        if (video.Thumbnail == null)
+
+        var file = await _videoReader.ReadThumbnailAsync(video);
+
+        if (file == null || file.Length == 0)
         {
             return Ok(new { message = "Thumbnail not available." });
         }
-
-        return File(video.Thumbnail, "image/jpeg");
+        return File(file, "image/jpeg");
     }
 
     [HttpGet("video_data/{video_id}")]
@@ -149,9 +153,12 @@ public class VideosController : ControllerBase
         var video = await _context.Videos.FindAsync(video_id);
 
         if (video == null) return NotFound();
-        if (video.BlobData == null) throw new Exception("Video data not available.");
 
-        return File(video.BlobData, "video/mp4", enableRangeProcessing: true);
+        var file = await _videoReader.ReadVideoAsync(video);
+
+        if (file == null || file.Length == 0) return Ok(new { message = "Video data not available." });
+
+        return File(file, "video/mp4", enableRangeProcessing: true);
     }
 
     [HttpGet("metadata/{video_id}")]

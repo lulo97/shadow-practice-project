@@ -1,7 +1,4 @@
-﻿using System;
-using static System.Reflection.Metadata.BlobBuilder;
-using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFactory
-public class VideoJobUtils
+﻿public class VideoJobUtils
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IYtDlp _ytDlp;
@@ -20,6 +17,7 @@ public class VideoJobUtils
     {
         var scope = _scopeFactory.CreateScope();
         var _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var _videoWrite = scope.ServiceProvider.GetRequiredService<IVideoFileWriter>();
 
         var link = $"https://youtube.com/watch?v={youtubeId}";
         var video = await _context.Videos.FindAsync(videoId);
@@ -34,13 +32,23 @@ public class VideoJobUtils
         Console.WriteLine($"Video Title = {video.Title}");
 
         // ── Step 1.5: Fetch thumbnail ──────────────────────────────────────────────
+        byte[] thumbnailByte = null;
         await using (var step = await BeginStep(jobId, "Fetching video thumbnail"))
         {
-            video.Thumbnail = await _ytDlp.GetThumbnailAsync(link);
+            thumbnailByte = await _ytDlp.GetThumbnailAsync(link);
+
+            var (data, error) = await _videoWrite.WriteThumbnailAsync(video.Id, _context, thumbnailByte);
+
+            if (error != null)
+            {
+                await step.Fail($"Failed to save video: {error}");
+                throw new Exception($"Video save failed: {error}");
+            }
+
             await _context.SaveChangesAsync();
             await step.Complete();
         }
-        Console.WriteLine($"Video Thumbnail = {video.Thumbnail.Length}");
+        Console.WriteLine($"Video Thumbnail = {thumbnailByte.Length}");
 
         // ── Step 2: Fetch description ───────────────────────────────────────────
         await using (var step = await BeginStep(jobId, "Fetching video description"))
@@ -52,14 +60,22 @@ public class VideoJobUtils
         Console.WriteLine($"Video Description = {video.Description}");
 
         // ── Step 3: Download video ──────────────────────────────────────────────
+        byte[] videoBlobData = null;
         await using (var step = await BeginStep(jobId, "Downloading video at 720p"))
         {
-            video.BlobData = await _ytDlp.DownloadVideoAsync(link);
-            //video.Filename = $"{videoId}.mp4"; Implement file save instead of bytes in memory later
+            videoBlobData = await _ytDlp.DownloadVideoAsync(link);
+            var (data, error) = await _videoWrite.WriteVideoAsync(video.Id, _context, videoBlobData);
+
+            if (error != null)
+            {
+                await step.Fail($"Failed to save video: {error}");
+                throw new Exception($"Video save failed: {error}");
+            }
+
             await _context.SaveChangesAsync();
             await step.Complete();
         }
-        Console.WriteLine($"Video BlobData = {video.BlobData.Length}");
+        Console.WriteLine($"Video BlobData = {videoBlobData.Length}");
 
         // ── Step 4: Fetch built-in English transcript ───────────────────────────
         List<YtdlpUtils.TranscriptLineFormat> srtText = null;
@@ -79,6 +95,15 @@ public class VideoJobUtils
             await using (var step = await BeginStep(jobId, "Extracting audio to MP3"))
             {
                 audioBlobData = await _ytDlp.DownloadAudioAsync(link);
+
+                var (data, error) = await _videoWrite.WriteAudioAsync(video.Id, _context, audioBlobData);
+
+                if (error != null)
+                {
+                    await step.Fail($"Failed to save video: {error}");
+                    throw new Exception($"Video save failed: {error}");
+                }
+
                 await _context.SaveChangesAsync();
                 await step.Complete();
             }
@@ -87,7 +112,7 @@ public class VideoJobUtils
             // ── Step 6: Transcribe audio ────────────────────────────────────────
             await using (var step = await BeginStep(jobId, "Transcribing audio with local ASR model"))
             {
-                srtText = await _asrService.TranscribeAsync(video.BlobData!);
+                srtText = await _asrService.TranscribeAsync(audioBlobData!);
                 await step.Complete();
             }
             Console.WriteLine($"srtText = {srtText.Count}");

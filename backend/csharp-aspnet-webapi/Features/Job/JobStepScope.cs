@@ -21,6 +21,15 @@ public class JobStepScope : IAsyncDisposable
         _completed = true;
     }
 
+    public async Task Fail(string errorMessage)
+    {
+        _step.Status = JobStepStatus.FAILED;
+        _step.ErrorMsg = errorMessage;
+        _step.EndedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        _completed = true;          // Prevent DisposeAsync from overwriting
+    }
+
     // Called automatically at end of `await using` block
     // If Complete() was never called, the step threw — mark it Failed
     public async ValueTask DisposeAsync()

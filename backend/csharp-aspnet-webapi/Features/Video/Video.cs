@@ -21,6 +21,9 @@ public class Video
     public string? Filename { get; set; }
 
     public byte[]? BlobData { get; set; }
+    public string? AudioFilename { get; set; }
+
+    public byte[]? AudioBlobData { get; set; }
 
     [Required]
     public string Title { get; set; } = string.Empty;

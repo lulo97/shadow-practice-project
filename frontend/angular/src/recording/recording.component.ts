@@ -67,7 +67,7 @@ import { OnDestroy, HostListener } from "@angular/core";
             <div id="video-title" class="font-bold text-gray-900">
               {{ videoMetadata ? videoMetadata.title : "Title" }}
             </div>
-            <div id="video-description">
+            <div id="video-description" class="line-clamp-3">
               {{ videoMetadata ? videoMetadata.description : "Description" }}
             </div>
 

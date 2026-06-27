@@ -52,7 +52,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHostedService<JobProcessorService>();
 
 //Testing
-builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
+builder.Services.AddScoped<IYtDlp, YtDlpCli>();
 builder.Services.AddTransient<IAsrService, FakeAsrService>();
 builder.Services.AddScoped<WhisperCpp>();
 builder.Services.AddScoped<Parakeet>();
@@ -61,6 +61,18 @@ builder.Services.AddHostedService<ExternalServerStarter>();
 builder.Services.AddScoped<VideoJobUtils>();
 builder.Services.AddScoped<ILLM, LlamaCpp>();
 builder.Services.AddSingleton<SseService>();
+
+//For blob test
+builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
+builder.Services.AddSingleton<IVideoFileWriter, VideoDatabaseStorage>();
+builder.Services.AddSingleton<IRecordFileReader, RecordDatabaseReader>();
+builder.Services.AddSingleton<IRecordFileWriter, RecordDatabaseStorage>();
+
+//For actual production
+//builder.Services.AddSingleton<IVideoFileReader, VideoLocalFileReader>();
+//builder.Services.AddSingleton<IVideoFileWriter, VideoLocalFileStorage>();
+//builder.Services.AddSingleton<IRecordFileReader, RecordLocalFileReader>();
+//builder.Services.AddSingleton<IRecordFileWriter, RecordLocalFileStorage>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

@@ -37,8 +37,8 @@ public class YtDlpCli : IYtDlp
         var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp4");
         try
         {
-            // 720p: best video up to 720p height + best audio, merged into mp4
-            await RunAsync($"-f \"bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]\" -o \"{tempFile}\" --no-playlist", youtubeLink);
+            // 360p: best video up to 360p height + best audio, merged into mp4
+            await RunAsync($"-f \"bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]\" -o \"{tempFile}\" --no-playlist", youtubeLink);
             return await File.ReadAllBytesAsync(tempFile);
         }
         finally
