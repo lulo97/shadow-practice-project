@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // 1. Define the DB file name
 const string DbFileName = "app_debug.db";
@@ -33,8 +34,14 @@ builder.Services.AddSwaggerGen();
 
 //Error: microsoft.data.sqlite.sqliteexception (0x80004005): sqlite error 5: 'unable to delete/modify user-function due to active statements'.
 //Switch to file and delete after use
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlite($"Data Source={DbFileName}"));
+
+//Switch to PostgSQL
+var connectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite($"Data Source={DbFileName}"));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddCors(options =>
 {
@@ -63,7 +70,9 @@ builder.Services.AddScoped<ILLM, LlamaCpp>();
 builder.Services.AddSingleton<SseService>();
 
 //Sqlite database for test
-builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
+//builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
+
+builder.Services.AddScoped<IVideoRepository, PostgresVideoRepository>();
 
 //For blob test
 builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
@@ -97,11 +106,7 @@ using (var scope = app.Services.CreateScope())
     if (!context.Users.Any())
     {
         context.Users.Add(new User { Id = 1, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
-
         context.Users.Add(new User { Id = -1, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
-
-
-
         context.SaveChanges();
     }
 }

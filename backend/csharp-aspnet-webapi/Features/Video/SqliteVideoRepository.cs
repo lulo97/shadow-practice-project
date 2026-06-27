@@ -63,10 +63,10 @@ public class SqliteVideoRepository : IVideoRepository
 
                 MAX(r.CreatedAt) AS LastPracticed
 
-            FROM Videos v
-            LEFT JOIN Jobs j ON v.Id = j.VideoId
-            LEFT JOIN TranscriptLines tl ON v.Id = tl.VideoId
-            LEFT JOIN Records r ON tl.Id = r.TranscriptLineId
+            FROM Video v
+            LEFT JOIN Job j ON v.Id = j.VideoId
+            LEFT JOIN TranscriptLine tl ON v.Id = tl.VideoId
+            LEFT JOIN Record r ON tl.Id = r.TranscriptLineId
             {whereClause}
             GROUP BY 
                 v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;

@@ -44,7 +44,7 @@ public class VideosController : ControllerBase
         public int Id { get; set; }
         public string? Title { get; set; }
         public string? YoutubeId { get; set; }
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string? Description { get; set; }
         public int? JobId { get; set; } // Must be nullable (?) because of the LEFT JOIN
