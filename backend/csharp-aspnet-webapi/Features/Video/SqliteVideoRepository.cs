@@ -44,27 +44,29 @@ public class SqliteVideoRepository : IVideoRepository
 
         var whereClause = "WHERE " + string.Join(" AND ", whereConditions);
 
+        //In a C# verbatim string (@"..."), "" is the escape sequence for a literal ".
+        //So AS ""Id"" becomes AS "Id" — which is valid in PostgreSQL but not in SQLite
+
         var sql = $@"
             SELECT 
-                v.id AS ""Id"", 
-                v.title AS ""Title"", 
-                v.youtube_id AS ""YoutubeId"", 
-                v.user_id AS ""UserId"", 
-                v.created_at AS ""CreatedAt"", 
-                v.description AS ""Description"",
-                MAX(j.id) AS ""JobId"",
-        
+                v.id AS Id, 
+                v.title AS Title, 
+                v.youtube_id AS YoutubeId, 
+                v.user_id AS UserId, 
+                v.created_at AS CreatedAt, 
+                v.description AS Description,
+                MAX(j.id) AS JobId,
+
                 CASE 
                     WHEN COUNT(tl.id) = 0 THEN 'NOT_STARTED'
                     WHEN COUNT(r.transcript_line_id) = 0 THEN 'NOT_STARTED'
                     WHEN COUNT(DISTINCT r.transcript_line_id) < COUNT(DISTINCT tl.id) THEN 'UNFINISHED'
                     ELSE 'FINISHED'
-                END AS ""Status"",
+                END AS Status,
 
-                -- Performs integer division securely and casts the resulting value to an INT
-                CAST(COUNT(DISTINCT r.transcript_line_id) * 100 / NULLIF(COUNT(DISTINCT tl.id), 0) AS INT) AS ""ProcessPercent"",
+                CAST(COUNT(DISTINCT r.transcript_line_id) * 100 / NULLIF(COUNT(DISTINCT tl.id), 0) AS INT) AS ProcessPercent,
 
-                MAX(r.created_at) AS ""LastPracticed""
+                MAX(r.created_at) AS LastPracticed
 
             FROM video v
             LEFT JOIN job j ON v.id = j.video_id

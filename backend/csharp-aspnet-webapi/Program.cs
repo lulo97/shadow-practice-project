@@ -28,20 +28,19 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
 
-//Can't use sql with this
+//Can't use sql with this (this is dead code exist for fun only)
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //    options.UseInMemoryDatabase("MyDb"));
 
 //Error: microsoft.data.sqlite.sqliteexception (0x80004005): sqlite error 5: 'unable to delete/modify user-function due to active statements'.
 //Switch to file and delete after use
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlite($"Data Source={DbFileName}"));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite($"Data Source={DbFileName}"));
 
 //Switch to PostgSQL
-var connectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+//var connectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseNpgsql(connectionString));
 
 builder.Services.AddCors(options =>
 {
@@ -59,7 +58,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHostedService<JobProcessorService>();
 
 //Testing
-builder.Services.AddScoped<IYtDlp, YtDlpCli>();
+builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
 builder.Services.AddTransient<IAsrService, FakeAsrService>();
 builder.Services.AddScoped<WhisperCpp>();
 builder.Services.AddScoped<Parakeet>();
@@ -72,7 +71,7 @@ builder.Services.AddSingleton<SseService>();
 //Sqlite database for test
 //builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
 
-builder.Services.AddScoped<IVideoRepository, PostgresVideoRepository>();
+builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
 
 //For blob test
 builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
