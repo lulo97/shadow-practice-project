@@ -178,24 +178,11 @@ import { OnDestroy, HostListener } from "@angular/core";
               >
                 <audio
                   id="audio-player-mine"
-                  *ngIf="mineWavAudio"
-                  [src]="mineWavAudio"
+                  [src]="mineWavAudio || ''"
                   [loop]="setting.loop === 1"
                   controls
                   class="h-8 w-full"
                 ></audio>
-
-                <button
-                  id="btn-load-my-record"
-                  *ngIf="!mineWavAudio"
-                  (click)="loadMyRecord()"
-                  class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
-                  title="Load Audio"
-                >
-                  <span id="btn-load-my-record-text" class="text-xs font-bold">
-                    <i id="icon-load-record" class="fa-solid fa-play"></i>
-                  </span>
-                </button>
               </div>
             </div>
           </div>
@@ -360,9 +347,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                           id="status-skipped-dot"
                           class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
                         ></span>
-                        <span id="status-skipped-label"
-                          >Skipped</span
-                        >
+                        <span id="status-skipped-label">Skipped</span>
                       </div>
                     </div>
                   </div>
@@ -410,8 +395,6 @@ export class RecordingComponent implements OnDestroy {
       this.isRecording = value;
     });
   }
-
-  ngOnDestroy(): void {}
 
   goBack(): void {
     console.log("Navigate back");
@@ -610,6 +593,7 @@ export class RecordingComponent implements OnDestroy {
     }
 
     this.activeTranscriptLineIdx = idx;
+    this.loadMyRecord();
     this.mineWavAudio = null;
     console.log("Selected sentence", transcript_line.id);
   }
@@ -657,6 +641,10 @@ export class RecordingComponent implements OnDestroy {
       }
       this.fetchTranscriptLines();
     }
+  }
+  ngOnDestroy(): void {
+    // Stop tracks only when component is fully destroyed
+    this.audioService.cleanup();
   }
 
   openTranslationModal() {
@@ -729,7 +717,8 @@ export class RecordingComponent implements OnDestroy {
       messageUtils(result.message);
       return;
     }
-    this.fetchTranscriptLines();
+    await this.fetchTranscriptLines();
+    await this.loadMyRecord();
   }
 
   getLastRecord(transcriptLine: TranscriptLine) {
@@ -771,7 +760,7 @@ export class RecordingComponent implements OnDestroy {
       return;
     }
 
-    if (this.mineWavAudio) return; // already loaded
+    //if (this.mineWavAudio) return;
 
     const result = await callApi({
       endpoint: `api/records/file/${record_id}/`,
@@ -784,6 +773,26 @@ export class RecordingComponent implements OnDestroy {
     }
 
     this.mineWavAudio = result.data.url;
+
+    //loadMyRecord run when active line change, later let user play mine audio themself
+    // setTimeout(() => {
+    //   this.playAudioElement();
+    // }, 50);
+  }
+
+  private playAudioElement(): void {
+    const audio = document.getElementById(
+      "audio-player-mine",
+    ) as HTMLAudioElement;
+
+    if (!audio) return;
+
+    if (!audio.src || audio.src === window.location.href) {
+      console.log("Audio has no source loaded yet.");
+      return;
+    }
+
+    audio.play().catch((err) => console.error("Playback failed:", err));
   }
 
   // ==================== FEATURE: SETTINGS ====================

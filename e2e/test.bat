@@ -1,1 +1,1 @@
-npx playwright test tests/video.spec.ts
+npx playwright test tests/frontend.spec.ts --headed

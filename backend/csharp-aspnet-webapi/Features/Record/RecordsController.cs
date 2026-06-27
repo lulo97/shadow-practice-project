@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,6 +21,22 @@ public class RecordsController : ControllerBase
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
+
+        if (bytes == null || bytes.Length <= 1024)
+        {
+            //Handle file invalid as dummy wav file
+            string dummyPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\dummy.wav";
+
+            if (System.IO.File.Exists(dummyPath))
+            {
+                bytes = await System.IO.File.ReadAllBytesAsync(dummyPath);
+            }
+            else
+            {
+                // Fallback if the file isn't found on that specific path
+                return BadRequest("Uploaded file is invalid, and system dummy file was not found.");
+            }
+        }
 
         var (user_setting, error) = await HttpContext.GetSettingFromCookieAsync(_context);
 

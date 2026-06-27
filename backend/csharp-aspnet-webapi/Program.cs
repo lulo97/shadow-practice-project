@@ -99,7 +99,7 @@ app.MapGet("/health", () => new
 {
     message = "ok"
 });
-
+app.UseStaticFiles();
 app.UseSwagger();
 
 app.UseSwaggerUI();

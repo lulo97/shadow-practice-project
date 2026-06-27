@@ -11,7 +11,7 @@ import { expectedPrefixSymbol } from "./utils";
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div id="main-container" class="w-[80vw] h-[70vh]">
+    <div id="main-container" class="w-[80vw] h-[80vh]">
       <div id="layout-wrapper" class="flex gap-2 items-stretch">
         <div id="left-layout" class="w-1/2 h-full">
           <div id="left-header" class="flex justify-between mb-2 h-[5vh]">
@@ -60,10 +60,15 @@ import { expectedPrefixSymbol } from "./utils";
 
       <div id="translation-footer" class="flex gap-2 justify-end mt-4">
         <button
-          id="btn-auto-translation"
+          [id]="
+            isAutoTranslate
+              ? 'btn-auto-translation-loading'
+              : 'btn-auto-translation'
+          "
           (click)="autoTranslate()"
           class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors"
         >
+          <i *ngIf="isAutoTranslate" class="fa-solid fa-spinner fa-spin"></i>
           Auto translation
         </button>
         <button
@@ -100,7 +105,11 @@ export class TranslationComponent {
     navigator.clipboard.writeText(prompt);
   }
 
+  isAutoTranslate = false;
+
   async autoTranslate() {
+    this.isAutoTranslate = true;
+
     const result = await callApi({
       endpoint: `api/transcripts/llm/${this.videoId}`,
       method: "GET",
@@ -116,6 +125,8 @@ export class TranslationComponent {
     await this.reset();
 
     await this.modal.config().data.fetchTranscriptLines();
+
+    this.isAutoTranslate = false;
   }
 
   async reset() {

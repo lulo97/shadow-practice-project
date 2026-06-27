@@ -42,7 +42,19 @@ click id="btn-jump-unrecorded" and click id="btn-skip-line"
 
 click id="btn-jump-unrecorded"
 
-click id="btn-translation" 
+click id="btn-translation" and id will change to "btn-auto-translation-loading" and wait for it to turn into "btn-auto-translation" back 
+
+click id="close-modal" and find first id="translation-vi-text" and check it have inner text
+
+click id="btn-settings" and wait id="sttProviderWrapper" appear
+
+click id="sttProviderSelect" <select> and click <option> with inner text == "PARAKEET", click id="loopToggleButton", click <input id="videoWidthInput"> change to 40, and click id="saveSettingsButton"
+
+click id="close-modal" and click id="btn-jump-unrecorded" and click id="btn-record-inner" and do the same before (find id="btn-toggle-record" and click, wait 1s and click again to stop record, after click stop backend run stt modal and wait for id="btn-toggle-record" have inner text = %Record% again), after that click id="btn-record-history" and wait id="table-container" to appear and wait id="record-row-0" to appear and check id="td-model-key-0" have innter text = "PARAKEET" and click id="close-modal"
+
+click id="btn-load-my-record" and find <audio id="audio-player-mine"> to play and check if it actually looping <audio loop>
+
+click stop autio and click id="btn-back" and click id="logout-link" and wait to id="username" appear to ensure it go to /login page
 
 
 

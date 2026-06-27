@@ -15,28 +15,36 @@ interface SettingDatasource {
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div class="settings-container" *ngIf="setting">
-      <!-- STT Provider -->
+    <div id="settingsContainer" class="settings-container" *ngIf="setting">
       <div
+        id="sttProviderWrapper"
         class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
       >
-        <label class="font-bold text-gray-700">STT Provider</label>
+        <label id="sttProviderLabel" class="font-bold text-gray-700"
+          >STT Provider</label
+        >
         <select
+          id="sttProviderSelect"
           [(ngModel)]="setting.sttProviderKey"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
         >
-          <option *ngFor="let p of datasource?.sttProviders" [value]="p">
+          <option
+            id="sttProviderOption"
+            *ngFor="let p of datasource?.sttProviders"
+            [value]="p"
+          >
             {{ p }}
           </option>
         </select>
       </div>
 
-      <!-- Loop -->
       <div
+        id="loopWrapper"
         class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
       >
-        <label class="font-bold text-gray-700">Loop</label>
+        <label id="loopLabel" class="font-bold text-gray-700">Loop</label>
         <button
+          id="loopToggleButton"
           (click)="setting.loop = setting.loop === 1 ? 0 : 1"
           [class.active]="setting.loop === 1"
           class="px-6 py-2 rounded-md font-medium transition-colors duration-200"
@@ -49,12 +57,15 @@ interface SettingDatasource {
         </button>
       </div>
 
-      <!-- Video Width -->
       <div
+        id="videoWidthWrapper"
         class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
       >
-        <label class="font-bold text-gray-700">Video Width (%)</label>
+        <label id="videoWidthLabel" class="font-bold text-gray-700"
+          >Video Width (%)</label
+        >
         <input
+          id="videoWidthInput"
           type="number"
           [(ngModel)]="setting.videoWidthSize"
           min="10"
@@ -63,9 +74,9 @@ interface SettingDatasource {
         />
       </div>
 
-      <!-- Save Button -->
-      <div class="pt-4">
+      <div id="saveButtonWrapper" class="pt-4">
         <button
+          id="saveSettingsButton"
           (click)="save()"
           class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
         >
