@@ -51,4 +51,14 @@ public static class YtdlpUtils
         public decimal End { get; set; }  // seconds, e.g. 6.910
         public string Text { get; set; }  // plain text, tags stripped
     }
+
+    public class YtDlpResult<T>
+    {
+        public bool Success { get; init; }
+        public T? Data { get; init; }
+        public string? Error { get; init; }
+
+        public static YtDlpResult<T> Ok(T data) => new() { Success = true, Data = data };
+        public static YtDlpResult<T> Fail(string error) => new() { Success = false, Error = error };
+    }
 }

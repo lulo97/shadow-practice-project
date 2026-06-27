@@ -9,11 +9,13 @@ public class VideosController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IVideoFileReader _videoReader;
+    private readonly IVideoRepository _videoRepository;
 
-    public VideosController(AppDbContext context, IVideoFileReader videoFileReader)
+    public VideosController(AppDbContext context, IVideoFileReader videoFileReader, IVideoRepository videoRepository)
     {
         _context = context;
         _videoReader = videoFileReader;
+        _videoRepository = videoRepository;
     }
 
     public async Task<IActionResult> GetList(
@@ -26,93 +28,13 @@ public class VideosController : ControllerBase
         var (user, error) = await HttpContext.GetUserFromCookieAsync(_context);
 
         if (user == null)
-        {
             return NotFound(new { message = "User not found" });
-        }
 
         if (error.HasValue)
-        {
             return Unauthorized(new { message = error.ToString() });
-        }
 
-        // Build WHERE conditions
-        var whereConditions = new List<string>();
-        var parameters = new List<object>();
-        int paramIndex = 0;
-
-        // Title filter
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            whereConditions.Add($"LOWER(v.Title) LIKE LOWER({{{paramIndex}}})");
-            parameters.Add($"%{title}%");
-            paramIndex++;
-        }
-
-        // Date range filters
-        if (fromDate.HasValue)
-        {
-            whereConditions.Add($"v.CreatedAt >= {{{paramIndex}}}");
-            parameters.Add(fromDate.Value);
-            paramIndex++;
-        }
-
-        if (toDate.HasValue)
-        {
-            whereConditions.Add($"v.CreatedAt <= {{{paramIndex}}}");
-            parameters.Add(toDate.Value);
-            paramIndex++;
-        }
-
-        // User/VideoType filter
-        if (videoType == "SYSTEM_VIDEOS")
-        {
-            whereConditions.Add($"v.UserId = {{{paramIndex}}}");
-            parameters.Add(Utils.ADMIN_ID);
-        }
-        else
-        {
-            whereConditions.Add($"v.UserId = {{{paramIndex}}}");
-            parameters.Add(user.Id);
-        }
-
-        // Build the WHERE clause
-        var whereClause = whereConditions.Any()
-            ? "WHERE " + string.Join(" AND ", whereConditions)
-            : "";
-
-        var sql = $@"
-        SELECT 
-            v.Id, 
-            v.Title, 
-            v.YoutubeId, 
-            v.UserId, 
-            v.CreatedAt, 
-            v.Description,
-            MAX(j.Id) AS JobId,
-    
-            CASE 
-                WHEN COUNT(tl.Id) = 0 THEN 'NOT_STARTED'
-                WHEN COUNT(r.TranscriptLineId) = 0 THEN 'NOT_STARTED'
-                WHEN COUNT(DISTINCT r.TranscriptLineId) < COUNT(DISTINCT tl.Id) THEN 'UNFINISHED'
-                ELSE 'FINISHED'
-            END AS Status,
-
-            CAST(COUNT(DISTINCT r.TranscriptLineId) AS REAL) / NULLIF(COUNT(DISTINCT tl.Id), 0) * 100 AS ProcessPercent,
-
-            MAX(r.CreatedAt) AS LastPracticed
-
-        FROM Videos v
-        LEFT JOIN Jobs j ON v.Id = j.VideoId
-        LEFT JOIN TranscriptLines tl ON v.Id = tl.VideoId
-        LEFT JOIN Records r ON tl.Id = r.TranscriptLineId
-        {whereClause}
-        GROUP BY 
-            v.Id, v.Title, v.YoutubeId, v.UserId, v.CreatedAt, v.Description;
-    ";
-
-        var results = await _context.Database
-            .SqlQueryRaw<VideoHomepageDto>(sql, parameters.ToArray())
-            .ToListAsync();
+        var filter = new VideoListFilter(title, fromDate, toDate, videoType);
+        var results = await _videoRepository.GetListAsync(user.Id, filter);
 
         return Ok(results);
     }

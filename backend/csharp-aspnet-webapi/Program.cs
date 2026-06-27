@@ -62,6 +62,9 @@ builder.Services.AddScoped<VideoJobUtils>();
 builder.Services.AddScoped<ILLM, LlamaCpp>();
 builder.Services.AddSingleton<SseService>();
 
+//Sqlite database for test
+builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
+
 //For blob test
 builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
 builder.Services.AddSingleton<IVideoFileWriter, VideoDatabaseStorage>();

@@ -2,10 +2,10 @@
 
 public interface IYtDlp
 {
-    Task<string> GetTitleAsync(string youtubeLink);
-    Task<byte[]> GetThumbnailAsync(string youtubeLink);
-    Task<string> GetDescriptionAsync(string youtubeLink);
-    Task<byte[]> DownloadVideoAsync(string youtubeLink);
-    Task<List<TranscriptLineFormat>> FetchBuiltInTranscriptAsync(string youtubeLink); 
-    Task<byte[]> DownloadAudioAsync(string youtubeLink);
+    Task<YtDlpResult<string>> GetTitleAsync(string youtubeLink);
+    Task<YtDlpResult<byte[]>> GetThumbnailAsync(string youtubeLink);
+    Task<YtDlpResult<string>> GetDescriptionAsync(string youtubeLink);
+    Task<YtDlpResult<byte[]>> DownloadVideoAsync(string youtubeLink);
+    Task<YtDlpResult<List<TranscriptLineFormat>>> FetchBuiltInTranscriptAsync(string youtubeLink);
+    Task<YtDlpResult<byte[]>> DownloadAudioAsync(string youtubeLink);
 }

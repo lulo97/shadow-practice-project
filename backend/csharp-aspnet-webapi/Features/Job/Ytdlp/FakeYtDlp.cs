@@ -2,58 +2,58 @@
 
 public class FakeYtDlp : IYtDlp
 {
-    public async Task<byte[]> GetThumbnailAsync(string youtubeId)
-    {
-
-        string filePath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\6hCo4S_1Fhw.jpg";
-
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException($"Thumbnail not found for ID: {youtubeId}", filePath);
-        }
-
-        return await File.ReadAllBytesAsync(filePath);
-    }
-
-    public Task<string> GetTitleAsync(string youtubeLink) =>
-        Task.FromResult("What causes avalanches, and can you survive them? - Simon Trautman");
-
-    public Task<string> GetDescriptionAsync(string youtubeLink) =>
-        Task.FromResult("Explore the three conditions needed to trigger an avalanche, and what makes these natural disasters so hard to survive.\r\n");
-
-    public async Task<byte[]> DownloadVideoAsync(string youtubeLink)
-    {
-        string filePath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\6hCo4S_1Fhw.mp4";
-
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException("Video file not found.", filePath);
-        }
-
-        return await File.ReadAllBytesAsync(filePath);
-    }
+    private const string AssetsPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets";
+    private const string VideoId = "6hCo4S_1Fhw";
 
     public bool HasBuiltInTranscript { get; set; } = true; // toggle in tests
 
-    public async Task<List<TranscriptLineFormat>> FetchBuiltInTranscriptAsync(string youtubeLink)
+    public async Task<YtDlpResult<byte[]>> GetThumbnailAsync(string youtubeLink)
     {
-        var content = await File.ReadAllTextAsync(@"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\6hCo4S_1Fhw.vtt");
-        return ParseTranscript(content);
+        var filePath = Path.Combine(AssetsPath, $"{VideoId}.jpg");
+
+        if (!File.Exists(filePath))
+            return YtDlpResult<byte[]>.Fail($"Thumbnail not found at: {filePath}");
+
+        return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(filePath));
     }
 
+    public Task<YtDlpResult<string>> GetTitleAsync(string youtubeLink) =>
+        Task.FromResult(YtDlpResult<string>.Ok("What causes avalanches, and can you survive them? - Simon Trautman"));
 
-    public async Task<byte[]> DownloadAudioAsync(string youtubeLink)
+    public Task<YtDlpResult<string>> GetDescriptionAsync(string youtubeLink) =>
+        Task.FromResult(YtDlpResult<string>.Ok("Explore the three conditions needed to trigger an avalanche, and what makes these natural disasters so hard to survive.\r\n"));
+
+    public async Task<YtDlpResult<byte[]>> DownloadVideoAsync(string youtubeLink)
     {
-        // Path to your audio file
-        string filePath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Assets\6hCo4S_1Fhw.mp3";
+        var filePath = Path.Combine(AssetsPath, $"{VideoId}.mp4");
 
-        // Verify the file exists before reading
         if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException("Audio file not found.", filePath);
-        }
+            return YtDlpResult<byte[]>.Fail($"Video file not found at: {filePath}");
 
-        // Read the file asynchronously
-        return await File.ReadAllBytesAsync(filePath);
+        return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(filePath));
+    }
+
+    public async Task<YtDlpResult<List<TranscriptLineFormat>>> FetchBuiltInTranscriptAsync(string youtubeLink)
+    {
+        if (!HasBuiltInTranscript)
+            return YtDlpResult<List<TranscriptLineFormat>>.Fail("No built-in transcript available (HasBuiltInTranscript = false).");
+
+        var filePath = Path.Combine(AssetsPath, $"{VideoId}.vtt");
+
+        if (!File.Exists(filePath))
+            return YtDlpResult<List<TranscriptLineFormat>>.Fail($"Transcript file not found at: {filePath}");
+
+        var content = await File.ReadAllTextAsync(filePath);
+        return YtDlpResult<List<TranscriptLineFormat>>.Ok(ParseTranscript(content));
+    }
+
+    public async Task<YtDlpResult<byte[]>> DownloadAudioAsync(string youtubeLink)
+    {
+        var filePath = Path.Combine(AssetsPath, $"{VideoId}.mp3");
+
+        if (!File.Exists(filePath))
+            return YtDlpResult<byte[]>.Fail($"Audio file not found at: {filePath}");
+
+        return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(filePath));
     }
 }

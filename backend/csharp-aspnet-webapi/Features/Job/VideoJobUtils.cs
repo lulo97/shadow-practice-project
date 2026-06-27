@@ -1,4 +1,6 @@
-﻿public class VideoJobUtils
+﻿using static YtdlpUtils;
+
+public class VideoJobUtils
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IYtDlp _ytDlp;
@@ -22,10 +24,23 @@
         var link = $"https://youtube.com/watch?v={youtubeId}";
         var video = await _context.Videos.FindAsync(videoId);
 
+        if (video == null)
+        {
+            throw new Exception("Video must not be null here");
+        }
+
         // ── Step 1: Fetch title ─────────────────────────────────────────────────
         await using (var step = await BeginStep(jobId, "Fetching video title"))
         {
-            video.Title = await _ytDlp.GetTitleAsync(link);
+            var ytDlpResult = await _ytDlp.GetTitleAsync(link);
+
+            if (!ytDlpResult.Success || ytDlpResult.Data == null)
+            {
+                await step.Fail(ytDlpResult.Error ?? "Error");
+                throw new Exception($"Video save failed: {ytDlpResult.Error}");
+            }
+
+            video.Title = ytDlpResult.Data;
             await _context.SaveChangesAsync();
             await step.Complete();
         }
@@ -35,7 +50,15 @@
         byte[] thumbnailByte = null;
         await using (var step = await BeginStep(jobId, "Fetching video thumbnail"))
         {
-            thumbnailByte = await _ytDlp.GetThumbnailAsync(link);
+            var ytDlpResult = await _ytDlp.GetThumbnailAsync(link);
+
+            if (!ytDlpResult.Success || ytDlpResult.Data == null)
+            {
+                await step.Fail(ytDlpResult.Error ?? "Error");
+                throw new Exception(ytDlpResult.Error);
+            }
+
+            thumbnailByte = ytDlpResult.Data;
 
             var (data, error) = await _videoWrite.WriteThumbnailAsync(video.Id, _context, thumbnailByte);
 
@@ -53,7 +76,15 @@
         // ── Step 2: Fetch description ───────────────────────────────────────────
         await using (var step = await BeginStep(jobId, "Fetching video description"))
         {
-            video.Description = await _ytDlp.GetDescriptionAsync(link);
+            var ytDlpResult = await _ytDlp.GetDescriptionAsync(link);
+
+            if (!ytDlpResult.Success || ytDlpResult.Data == null)
+            {
+                await step.Fail(ytDlpResult.Error ?? "Error");
+                throw new Exception(ytDlpResult.Error);
+            }
+
+            video.Description = ytDlpResult.Data;
             await _context.SaveChangesAsync();
             await step.Complete();
         }
@@ -61,9 +92,19 @@
 
         // ── Step 3: Download video ──────────────────────────────────────────────
         byte[] videoBlobData = null;
-        await using (var step = await BeginStep(jobId, "Downloading video at 720p"))
+        await using (var step = await BeginStep(jobId, "Downloading video"))
         {
-            videoBlobData = await _ytDlp.DownloadVideoAsync(link);
+            
+            var ytDlpResult = await _ytDlp.DownloadVideoAsync(link);
+
+            if (!ytDlpResult.Success || ytDlpResult.Data == null)
+            {
+                await step.Fail(ytDlpResult.Error ?? "Error");
+                throw new Exception(ytDlpResult.Error);
+            }
+
+            videoBlobData = ytDlpResult.Data;
+
             var (data, error) = await _videoWrite.WriteVideoAsync(video.Id, _context, videoBlobData);
 
             if (error != null)
@@ -81,7 +122,16 @@
         List<YtdlpUtils.TranscriptLineFormat> srtText = null;
         await using (var step = await BeginStep(jobId, "Checking for built-in English transcript"))
         {
-            srtText = await _ytDlp.FetchBuiltInTranscriptAsync(link);
+            var ytDlpResult = await _ytDlp.FetchBuiltInTranscriptAsync(link);
+
+            if (!ytDlpResult.Success || ytDlpResult.Data == null)
+            {
+                await step.Fail(ytDlpResult.Error ?? "Error");
+                throw new Exception(ytDlpResult.Error);
+            }
+
+            srtText = ytDlpResult.Data;
+
             await step.Complete(srtText != null
                 ? "Found built-in transcript"
                 : "No built-in transcript, will use ASR");
@@ -94,7 +144,15 @@
             byte[] audioBlobData;
             await using (var step = await BeginStep(jobId, "Extracting audio to MP3"))
             {
-                audioBlobData = await _ytDlp.DownloadAudioAsync(link);
+                var ytDlpResult = await _ytDlp.DownloadAudioAsync(link);
+
+                if (!ytDlpResult.Success || ytDlpResult.Data == null)
+                {
+                    await step.Fail(ytDlpResult.Error ?? "Error");
+                    throw new Exception(ytDlpResult.Error);
+                }
+
+                audioBlobData = ytDlpResult.Data;
 
                 var (data, error) = await _videoWrite.WriteAudioAsync(video.Id, _context, audioBlobData);
 

@@ -4,7 +4,7 @@ using static YtdlpUtils;
 
 public class YtDlpCli : IYtDlp
 {
-    public async Task<byte[]> GetThumbnailAsync(string youtubeLink)
+    public async Task<YtDlpResult<byte[]>> GetThumbnailAsync(string youtubeLink)
     {
         string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
@@ -12,34 +12,47 @@ public class YtDlpCli : IYtDlp
         try
         {
             string outputTemplate = Path.Combine(tempDir, "thumb.%(ext)s");
-            await RunAsync($"--write-thumbnail --skip-download --convert-thumbnails jpg -o \"{outputTemplate}\" --no-playlist", youtubeLink);
+            var run = await RunAsync($"--write-thumbnail --skip-download --convert-thumbnails jpg -o \"{outputTemplate}\" --no-playlist", youtubeLink);
+            if (!run.Success) return YtDlpResult<byte[]>.Fail(run.Error!);
 
             var thumbnailFile = Directory.GetFiles(tempDir, "thumb.jpg").FirstOrDefault();
-
             if (thumbnailFile == null)
-                throw new Exception("Thumbnail could not be downloaded.");
+                return YtDlpResult<byte[]>.Fail("Thumbnail file was not created after download.");
 
-            return await File.ReadAllBytesAsync(thumbnailFile);
+            return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(thumbnailFile));
+        }
+        catch (Exception ex)
+        {
+            return YtDlpResult<byte[]>.Fail($"Unexpected error: {ex.Message}");
         }
         finally
         {
             if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
         }
     }
-    public Task<string> GetTitleAsync(string youtubeLink) =>
-        RunAsync("--print title", youtubeLink);
 
-    public Task<string> GetDescriptionAsync(string youtubeLink) =>
-        RunAsync("--print description", youtubeLink);
+    public async Task<YtDlpResult<string>> GetTitleAsync(string youtubeLink) =>
+        await RunAsync("--print title", youtubeLink);
 
-    public async Task<byte[]> DownloadVideoAsync(string youtubeLink)
+    public async Task<YtDlpResult<string>> GetDescriptionAsync(string youtubeLink) =>
+        await RunAsync("--print description", youtubeLink);
+
+    public async Task<YtDlpResult<byte[]>> DownloadVideoAsync(string youtubeLink)
     {
         var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp4");
         try
         {
-            // 360p: best video up to 360p height + best audio, merged into mp4
-            await RunAsync($"-f \"bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]\" -o \"{tempFile}\" --no-playlist", youtubeLink);
-            return await File.ReadAllBytesAsync(tempFile);
+            var run = await RunAsync($"-f \"bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]\" -o \"{tempFile}\" --no-playlist", youtubeLink);
+            if (!run.Success) return YtDlpResult<byte[]>.Fail(run.Error!);
+
+            if (!File.Exists(tempFile))
+                return YtDlpResult<byte[]>.Fail("Video file was not created after download.");
+
+            return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(tempFile));
+        }
+        catch (Exception ex)
+        {
+            return YtDlpResult<byte[]>.Fail($"Unexpected error: {ex.Message}");
         }
         finally
         {
@@ -47,7 +60,61 @@ public class YtDlpCli : IYtDlp
         }
     }
 
-    private async Task<string> RunAsync(string arguments, string? url = null)
+    public async Task<YtDlpResult<List<TranscriptLineFormat>>> FetchBuiltInTranscriptAsync(string youtubeLink)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var run = await RunAsync(
+                $"--skip-download --write-subs --sub-lang en --sub-format vtt -o \"{tempDir}/sub\"",
+                youtubeLink);
+            if (!run.Success) return YtDlpResult<List<TranscriptLineFormat>>.Fail(run.Error!);
+
+            var vttFile = Directory.GetFiles(tempDir, "*.vtt").FirstOrDefault();
+            if (vttFile == null)
+                return YtDlpResult<List<TranscriptLineFormat>>.Fail("No built-in English subtitles found for this video.");
+
+            var raw = await File.ReadAllTextAsync(vttFile);
+            return YtDlpResult<List<TranscriptLineFormat>>.Ok(ParseTranscript(raw));
+        }
+        catch (Exception ex)
+        {
+            return YtDlpResult<List<TranscriptLineFormat>>.Fail($"Unexpected error: {ex.Message}");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    public async Task<YtDlpResult<byte[]>> DownloadAudioAsync(string youtubeLink)
+    {
+        var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");
+        try
+        {
+            var run = await RunAsync(
+                $"-f bestaudio -x --audio-format mp3 -o \"{tempFile}\" --no-playlist",
+                youtubeLink);
+            if (!run.Success) return YtDlpResult<byte[]>.Fail(run.Error!);
+
+            if (!File.Exists(tempFile))
+                return YtDlpResult<byte[]>.Fail("Audio file was not created after download.");
+
+            return YtDlpResult<byte[]>.Ok(await File.ReadAllBytesAsync(tempFile));
+        }
+        catch (Exception ex)
+        {
+            return YtDlpResult<byte[]>.Fail($"Unexpected error: {ex.Message}");
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
+    }
+
+    // Returns YtDlpResult<string> so callers can check success before using stdout
+    private async Task<YtDlpResult<string>> RunAsync(string arguments, string? url = null)
     {
         var fullArgs = url != null ? $"{arguments} \"{url}\"" : arguments;
 
@@ -70,48 +137,8 @@ public class YtDlpCli : IYtDlp
         await process.WaitForExitAsync();
 
         if (process.ExitCode != 0)
-            throw new Exception($"yt-dlp failed (exit {process.ExitCode}): {stderr}");
+            return YtDlpResult<string>.Fail($"yt-dlp failed (exit {process.ExitCode}): {stderr.Trim()}");
 
-        return stdout;
-    }
-
-    public async Task<List<TranscriptLineFormat>> FetchBuiltInTranscriptAsync(string youtubeLink)
-    {
-        // --write-auto-subs would get auto-generated, we only want manual/built-in
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
-        try
-        {
-            // Download only subtitle file, no video, English only, convert to plain text via vtt
-            await RunAsync(
-                $"--skip-download --write-subs --sub-lang en --sub-format vtt -o \"{tempDir}/sub\" ",
-                youtubeLink);
-
-            var vttFile = Directory.GetFiles(tempDir, "*.vtt").FirstOrDefault();
-            if (vttFile == null) return null;
-
-            var raw = await File.ReadAllTextAsync(vttFile);
-            return ParseTranscript(raw); // strip timestamps
-        }
-        finally
-        {
-            Directory.Delete(tempDir, recursive: true);
-        }
-    }
-
-    public async Task<byte[]> DownloadAudioAsync(string youtubeLink)
-    {
-        var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");
-        try
-        {
-            await RunAsync(
-                $"-f bestaudio -x --audio-format mp3 -o \"{tempFile}\" --no-playlist",
-                youtubeLink);
-            return await File.ReadAllBytesAsync(tempFile);
-        }
-        finally
-        {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
-        }
+        return YtDlpResult<string>.Ok(stdout);
     }
 }
