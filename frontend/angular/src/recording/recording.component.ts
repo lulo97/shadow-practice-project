@@ -17,71 +17,89 @@ import { OnDestroy, HostListener } from "@angular/core";
   imports: [CommonModule],
   template: `
     <div
+      id="main-container"
       class="h-screen bg-gray-50 text-gray-800 antialiased overflow-hidden flex flex-col"
     >
-      <!-- Header -->
       <div
+        id="header-bar"
         class="flex-none flex items-center justify-between border-b bg-white px-3 py-1.5 shadow-sm"
       >
         <button
+          id="btn-back"
           (click)="goBack()"
           class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
         >
-          <i class="fa-solid fa-arrow-left"></i> Back
+          <i id="icon-back" class="fa-solid fa-arrow-left"></i> Back
         </button>
 
-        <div class="flex items-center gap-1.5">
+        <div id="header-actions" class="flex items-center gap-1.5">
           <button
+            id="btn-translation"
             (click)="openTranslationModal()"
             class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
           >
-            <i class="fa-solid fa-plus"></i> Translation
+            <i id="icon-translation" class="fa-solid fa-plus"></i> Translation
           </button>
           <button
+            id="btn-settings"
             (click)="openSettingModal()"
             class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
           >
-            <i class="fa-solid fa-gear"></i> Settings
+            <i id="icon-settings" class="fa-solid fa-gear"></i> Settings
           </button>
         </div>
       </div>
 
-      <!-- Body -->
-      <div #resizeContainer class="flex-1 flex overflow-hidden min-h-0">
-        <!-- Left panel -->
+      <div
+        id="body-container"
+        #resizeContainer
+        class="flex-1 flex overflow-hidden min-h-0"
+      >
         <div
+          id="left-panel"
           [style.width]="setting.videoWidthSize + '%'"
           class="flex-none overflow-y-auto flex flex-col gap-1.5 p-1.5 min-w-0"
         >
           <div
+            id="left-panel-card"
             class="rounded-xl bg-white p-1.5 shadow-sm border border-gray-200 h-full flex flex-col justify-center"
           >
-            <div class="font-bold text-gray-900">
+            <div id="video-title" class="font-bold text-gray-900">
               {{ videoMetadata ? videoMetadata.title : "Title" }}
             </div>
-            <div>
+            <div id="video-description">
               {{ videoMetadata ? videoMetadata.description : "Description" }}
             </div>
 
-            <!-- Video -->
             <div
+              id="video-wrapper"
               class="relative overflow-hidden rounded-lg bg-black aspect-video shadow-inner"
             >
-              <video #videoPlayer controls class="h-full w-full object-contain">
-                <source [src]="videoMp4Data" type="video/mp4" />
+              <video
+                id="video-player"
+                #videoPlayer
+                controls
+                class="h-full w-full object-contain"
+              >
+                <source
+                  id="video-source-mp4"
+                  [src]="videoMp4Data"
+                  type="video/mp4"
+                />
               </video>
             </div>
 
-            <!-- Controls -->
-            <div class="mt-1.5 grid grid-cols-1 gap-1">
-              <div class="text-center font-bold">
+            <div id="controls-grid" class="mt-1.5 grid grid-cols-1 gap-1">
+              <div id="current-transcript-index" class="text-center font-bold">
                 Current {{ activeTranscriptLineIdx + 1 }}
               </div>
               <button
+                id="btn-toggle-play"
                 (click)="togglePlay()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
               >
                 <i
+                  id="icon-toggle-play"
                   class="fa-solid"
                   [ngClass]="isPlaying ? 'fa-stop' : 'fa-play'"
                 ></i>
@@ -90,6 +108,7 @@ import { OnDestroy, HostListener } from "@angular/core";
               </button>
 
               <button
+                id="btn-toggle-record"
                 (click)="startRecord()"
                 class="flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-sm font-medium transition active:scale-[0.98]"
                 [ngClass]="
@@ -98,46 +117,67 @@ import { OnDestroy, HostListener } from "@angular/core";
                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                 "
               >
-                <button>
-                  <i class="fa-solid" [ngClass]="recordButtonIcon"></i>
+                <button id="btn-record-inner">
+                  <i
+                    id="icon-record"
+                    class="fa-solid"
+                    [ngClass]="recordButtonIcon"
+                  ></i>
                   {{ recordButtonText }}
                 </button>
               </button>
 
               <button
+                id="btn-skip-line"
                 (click)="skipTranscriptLine()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 <ng-container
+                  id="skip-container"
                   *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
-                  ><i class="fa-solid fa-forward-step"></i> Skip Undo
-                  skip</ng-container
+                  ><i id="icon-skip-undo" class="fa-solid fa-forward-step"></i>
+                  Skip Undo skip</ng-container
                 >
                 <ng-template #skipLabel
-                  ><i class="fa-solid fa-forward-step"></i> Skip</ng-template
+                  ><i id="icon-skip" class="fa-solid fa-forward-step"></i>
+                  Skip</ng-template
                 >
               </button>
 
               <button
+                id="btn-record-history"
                 (click)="openRecordHistory()"
                 class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                <i class="fa-solid fa-clock-rotate-left"></i> Record History
+                <i
+                  id="icon-record-history"
+                  class="fa-solid fa-clock-rotate-left"
+                ></i>
+                Record History
               </button>
             </div>
 
-            <!-- Audio preview -->
             <div
+              id="audio-preview-container"
               class="mt-1.5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5"
             >
-              <div class="flex flex-col gap-0 shrink-0">
-                <span class="text-xs font-semibold text-gray-700"
+              <div
+                id="audio-label-wrapper"
+                class="flex flex-col gap-0 shrink-0"
+              >
+                <span
+                  id="audio-label-mine"
+                  class="text-xs font-semibold text-gray-700"
                   >Mine</span
                 >
               </div>
 
-              <div class="flex flex-1 items-center justify-end gap-1.5 ml-4">
+              <div
+                id="audio-controls-wrapper"
+                class="flex flex-1 items-center justify-end gap-1.5 ml-4"
+              >
                 <audio
+                  id="audio-player-mine"
                   *ngIf="mineWavAudio"
                   [src]="mineWavAudio"
                   [loop]="setting.loop === 1"
@@ -146,13 +186,14 @@ import { OnDestroy, HostListener } from "@angular/core";
                 ></audio>
 
                 <button
+                  id="btn-load-my-record"
                   *ngIf="!mineWavAudio"
                   (click)="loadMyRecord()"
                   class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
                   title="Load Audio"
                 >
-                  <span class="text-xs font-bold">
-                    <i class="fa-solid fa-play"></i>
+                  <span id="btn-load-my-record-text" class="text-xs font-bold">
+                    <i id="icon-load-record" class="fa-solid fa-play"></i>
                   </span>
                 </button>
               </div>
@@ -160,36 +201,41 @@ import { OnDestroy, HostListener } from "@angular/core";
           </div>
         </div>
 
-        <!-- Drag divider -->
         <div
+          id="drag-divider"
           (mousedown)="onDividerMouseDown($event)"
           class="flex-none w-1.5 cursor-col-resize flex items-center justify-center group select-none"
         >
           <div
+            id="drag-divider-line"
             class="w-px h-full bg-gray-200 group-hover:bg-blue-400 transition-colors duration-150"
           ></div>
         </div>
 
-        <!-- Right panel -->
-        <div class="flex-1 overflow-hidden min-w-0 p-1.5">
+        <div id="right-panel" class="flex-1 overflow-hidden min-w-0 p-1.5">
           <div
+            id="right-panel-card"
             class="h-full rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm flex flex-col"
           >
-            <!-- Right header -->
             <div
+              id="right-panel-header"
               class="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-1.5 mb-1.5"
             >
-              <div>
-                <h2 class="text-base font-bold text-gray-900">
+              <div id="right-header-text">
+                <h2
+                  id="right-panel-title"
+                  class="text-base font-bold text-gray-900"
+                >
                   Transcription Track (Current
                   {{ this.activeTranscriptLineIdx + 1 }} in total
                   {{ this.transcriptLines?.length }})
                 </h2>
-                <p class="text-xs text-gray-500">
+                <p id="right-panel-subtitle" class="text-xs text-gray-500">
                   Review, skip, or select blocks to sync record targets
                 </p>
               </div>
               <button
+                id="btn-jump-unrecorded"
                 [ngClass]="{
                   'cursor-not-allowed': shouldNotMoveActiveTranscriptLine(),
                   'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
@@ -201,13 +247,13 @@ import { OnDestroy, HostListener } from "@angular/core";
               </button>
             </div>
 
-            <!-- Transcript list -->
             <div
+              id="transcript-list-container"
               #transcriptContainer
               class="flex-1 overflow-y-auto min-h-0 space-y-1 pr-0.5"
             >
               <div
-                [attr.data-id]="transcript_line.id"
+                id="transcript-row-item-{{ transcript_line.id }}"
                 *ngFor="let transcript_line of transcriptLines; let i = index"
                 (click)="selectTranscriptLine(transcript_line)"
                 class="group relative rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
@@ -218,30 +264,45 @@ import { OnDestroy, HostListener } from "@angular/core";
                   'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
                 }"
               >
-                <div class="flex items-start justify-between gap-2">
-                  <div class="space-y-1 flex-1 min-w-0">
+                <div
+                  id="transcript-item-layout"
+                  class="flex items-start justify-between gap-2"
+                >
+                  <div
+                    id="transcript-content-column"
+                    class="space-y-1 flex-1 min-w-0"
+                  >
                     <div
+                      id="transcript-text-display"
                       class="font-semibold text-sm text-gray-900 leading-snug"
                     >
                       {{ i + 1 }}: {{ transcript_line.text }}
                     </div>
 
                     <div
+                      id="transcript-translation-block"
                       class="gap-x-2 gap-y-0.5 text-xs border-t border-gray-100 pt-1"
                     >
-                      <div class="flex items-start gap-1 text-gray-600">
+                      <div
+                        id="translation-vi-wrapper"
+                        class="flex items-start gap-1 text-gray-600"
+                      >
                         <span
+                          id="translation-vi-prefix"
                           class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
                           >VI:</span
                         >
-                        <span class="italic text-gray-700">{{
-                          transcript_line.viText || "—"
-                        }}</span>
+                        <span
+                          id="translation-vi-text"
+                          class="italic text-gray-700"
+                          >{{ transcript_line.viText || "—" }}</span
+                        >
                       </div>
                     </div>
 
-                    <div class="pt-0.5">
+                    <div id="transcript-status-block" class="pt-0.5">
                       <div
+                        id="status-recorded-badge"
                         *ngIf="
                           this.getLastRecord(transcript_line) &&
                           this.getLastRecord(transcript_line)?.id
@@ -249,15 +310,20 @@ import { OnDestroy, HostListener } from "@angular/core";
                         class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-100"
                       >
                         <span
+                          id="status-recorded-dot"
                           class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
                         ></span>
-                        <span>Heard:</span>
-                        <span class="font-semibold text-gray-900"
+                        <span id="status-recorded-label">Heard:</span>
+                        <span
+                          id="status-recorded-text"
+                          class="font-semibold text-gray-900"
                           >"{{
                             this.getLastRecord(transcript_line)?.sttText || "-"
                           }}"</span
                         >
-                        <span class="text-emerald-600 font-mono"
+                        <span
+                          id="status-recorded-score"
+                          class="text-emerald-600 font-mono"
                           >(Score:
                           {{
                             this.getLastRecord(transcript_line)?.score
@@ -266,28 +332,27 @@ import { OnDestroy, HostListener } from "@angular/core";
                       </div>
 
                       <div
+                        id="status-unrecorded-badge"
                         *ngIf="!this.getLastRecord(transcript_line)"
                         class="inline-flex items-center gap-1 rounded bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-400 border border-gray-200"
                       >
                         <span
+                          id="status-unrecorded-dot"
                           class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"
                         ></span>
-                        <span>Not recorded yet</span>
+                        <span id="status-unrecorded-label"
+                          >Not recorded yet</span
+                        >
                       </div>
                     </div>
                   </div>
 
                   <div
+                    id="transcript-metadata-column"
                     class="flex flex-col items-end justify-between self-stretch shrink-0 gap-1"
                   >
-                    <!-- <span
-                      *ngIf="transcript_line.id === 1"
-                      class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700"
-                      title="Completed"
-                      >✓</span
-                    >
-                    <div *ngIf="transcript_line.id !== 1" class="h-5"></div> -->
                     <span
+                      id="transcript-time-badge"
                       class="whitespace-nowrap font-mono text-xs font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded"
                     >
                       {{ transcript_line.start }} - {{ transcript_line.end }}
@@ -297,6 +362,7 @@ import { OnDestroy, HostListener } from "@angular/core";
               </div>
 
               <div
+                id="transcript-list-ellipsis"
                 class="py-2 text-center text-gray-300 tracking-widest font-bold text-xs"
               >
                 •••
