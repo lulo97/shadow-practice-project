@@ -50,7 +50,7 @@ import { OnDestroy, HostListener } from "@angular/core";
       <div #resizeContainer class="flex-1 flex overflow-hidden min-h-0">
         <!-- Left panel -->
         <div
-          [style.width]="setting.leftWidthPercent + '%'"
+          [style.width]="setting.videoWidthSize + '%'"
           class="flex-none overflow-y-auto flex flex-col gap-1.5 p-1.5 min-w-0"
         >
           <div
@@ -130,19 +130,19 @@ import { OnDestroy, HostListener } from "@angular/core";
             <div
               class="mt-1.5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5"
             >
-              <div class="flex flex-col gap-0">
+              <div class="flex flex-col gap-0 shrink-0">
                 <span class="text-xs font-semibold text-gray-700"
-                  >Mine record</span
+                  >Mine</span
                 >
               </div>
 
-              <div class="flex items-center gap-1.5">
+              <div class="flex flex-1 items-center justify-end gap-1.5 ml-4">
                 <audio
                   *ngIf="mineWavAudio"
                   [src]="mineWavAudio"
                   [loop]="setting.loop === 1"
                   controls
-                  class="h-8"
+                  class="h-8 w-full"
                 ></audio>
 
                 <button
@@ -337,7 +337,7 @@ export class RecordingComponent implements OnDestroy {
   @ViewChild("resizeContainer") resizeContainer!: ElementRef<HTMLDivElement>;
 
   setting = {
-    leftWidthPercent: 35,
+    videoWidthSize: 35,
     loop: 0,
   };
 
@@ -349,7 +349,7 @@ export class RecordingComponent implements OnDestroy {
   onDividerMouseDown(event: MouseEvent): void {
     this.isDragging = true;
     this.dragStartX = event.clientX;
-    this.dragStartPercent = this.setting.leftWidthPercent;
+    this.dragStartPercent = this.setting.videoWidthSize;
     event.preventDefault();
   }
 
@@ -365,7 +365,7 @@ export class RecordingComponent implements OnDestroy {
       Math.max(20, this.dragStartPercent + deltaPercent),
     );
 
-    this.setting.leftWidthPercent = newLeftWidthPercent;
+    this.setting.videoWidthSize = newLeftWidthPercent;
     this.setLeftWidthPercentDatabaseDebounce(newLeftWidthPercent);
   }
 
@@ -373,11 +373,11 @@ export class RecordingComponent implements OnDestroy {
   onMouseUp(): void {
     if (!this.isDragging) return;
     this.isDragging = false;
-    this.onResizeDone(this.setting.leftWidthPercent);
+    this.onResizeDone(this.setting.videoWidthSize);
   }
 
-  onResizeDone(leftWidthPercent: number): void {
-    console.log("Resize done, left panel %:", leftWidthPercent);
+  onResizeDone(videoWidthSize: number): void {
+    console.log("Resize done, left panel %:", videoWidthSize);
   }
 
   async setLeftWidthPercentDatabaseDebounce(percent: number) {
@@ -714,8 +714,7 @@ export class RecordingComponent implements OnDestroy {
       return;
     }
 
-    this.setting =
-      result.data ?? this.setting;
+    this.setting = result.data ?? this.setting;
   }
 
   openSettings(): void {
