@@ -1,46 +1,62 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-// 1. Define the DB file name
+// ============================================================
+// SWITCH: Database backend
+// Uncomment exactly ONE of the three blocks below.
+// ============================================================
+
+// --- Option A: SQLite (file-based, auto-deleted on start) ---
 const string DbFileName = "app_debug.db";
-
-// 2. Delete the old file if it exists so you always start fresh
 if (File.Exists(DbFileName))
 {
-    try
-    {
-        File.Delete(DbFileName);
-    }
-    catch (IOException ex)
-    {
-        Console.WriteLine($"Could not delete old DB file: {ex.Message}");
-    }
+    try { File.Delete(DbFileName); }
+    catch (IOException ex) { Console.WriteLine($"Could not delete old DB file: {ex.Message}"); }
 }
+
+// --- Option B: PostgreSQL ---
+// const string PgConnectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
+
+// --- Option C: InMemory ---
+//Can't use sql with this (this is dead code exist for fun only)
+
+// ============================================================
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
 
-//Can't use sql with this (this is dead code exist for fun only)
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseInMemoryDatabase("MyDb"));
+// ============================================================
+// SWITCH: Register DbContext match your choice above
+// ============================================================
 
-//Error: microsoft.data.sqlite.sqliteexception (0x80004005): sqlite error 5: 'unable to delete/modify user-function due to active statements'.
-//Switch to file and delete after use
+// Option A: SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={DbFileName}"));
 
-//Switch to PostgSQL
-//var connectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
+// Option B: PostgreSQL
 //builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseNpgsql(connectionString));
+//    options.UseNpgsql(PgConnectionString));
+
+// Option C: InMemory
+//Error: microsoft.data.sqlite.sqliteexception (0x80004005): sqlite error 5: 'unable to delete/modify user-function due to active statements'.
+//Switch to file and delete after use
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseInMemoryDatabase("MyDb"));
+
+// ============================================================
+// SWITCH: Repository implementation match your DB choice
+// ============================================================
+
+// Option A/C: SQLite or InMemory
+builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
+
+// Option B: PostgreSQL
+//builder.Services.AddScoped<IVideoRepository, PostgresVideoRepository>();
+
+// ============================================================
 
 builder.Services.AddCors(options =>
 {
@@ -63,15 +79,14 @@ builder.Services.AddTransient<IAsrService, FakeAsrService>();
 builder.Services.AddScoped<WhisperCpp>();
 builder.Services.AddScoped<Parakeet>();
 builder.Services.AddScoped<ISTTFactory, STTFactory>();
-builder.Services.AddHostedService<ExternalServerStarter>(); 
+builder.Services.AddHostedService<ExternalServerStarter>();
 builder.Services.AddScoped<VideoJobUtils>();
 builder.Services.AddScoped<ILLM, LlamaCpp>();
 builder.Services.AddSingleton<SseService>();
 
-//Sqlite database for test
-//builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
-
-builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
+// ============================================================
+// SWITCH: Storage backend
+// ============================================================
 
 //For blob test
 builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
@@ -84,6 +99,8 @@ builder.Services.AddSingleton<IRecordFileWriter, RecordDatabaseStorage>();
 //builder.Services.AddSingleton<IVideoFileWriter, VideoLocalFileStorage>();
 //builder.Services.AddSingleton<IRecordFileReader, RecordLocalFileReader>();
 //builder.Services.AddSingleton<IRecordFileWriter, RecordLocalFileStorage>();
+
+// ============================================================
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -120,9 +137,7 @@ app.MapGet("/health", () => new
 });
 app.UseStaticFiles();
 app.UseSwagger();
-
 app.UseSwaggerUI();
-
 app.MapControllers();
 
 app.Run();
