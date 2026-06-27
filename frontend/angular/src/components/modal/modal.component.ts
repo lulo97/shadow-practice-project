@@ -93,6 +93,7 @@ import { ModalService } from "./modal.service";
             {{ modal.config().title }}
           </h2>
           <button
+            id="close-modal"
             style="background:none; border:none; cursor:pointer; color:#6b7280; font-size:16px; padding:4px"
             (click)="modal.close()"
           >

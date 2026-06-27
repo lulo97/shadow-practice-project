@@ -333,7 +333,10 @@ import { OnDestroy, HostListener } from "@angular/core";
 
                       <div
                         id="status-unrecorded-badge"
-                        *ngIf="!this.getLastRecord(transcript_line)"
+                        *ngIf="
+                          !this.getLastRecord(transcript_line) &&
+                          !transcript_line?.skip
+                        "
                         class="inline-flex items-center gap-1 rounded bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-400 border border-gray-200"
                       >
                         <span
@@ -342,6 +345,23 @@ import { OnDestroy, HostListener } from "@angular/core";
                         ></span>
                         <span id="status-unrecorded-label"
                           >Not recorded yet</span
+                        >
+                      </div>
+
+                      <div
+                        id="status-skipped-badge"
+                        *ngIf="
+                          !this.getLastRecord(transcript_line) &&
+                          transcript_line?.skip
+                        "
+                        class="inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-600 border border-blue-600"
+                      >
+                        <span
+                          id="status-skipped-dot"
+                          class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
+                        ></span>
+                        <span id="status-skipped-label"
+                          >Skipped</span
                         >
                       </div>
                     </div>
@@ -598,7 +618,7 @@ export class RecordingComponent implements OnDestroy {
     if (!this.transcriptLines) return;
 
     const unrecorded_idx = this.transcriptLines.findIndex(
-      (s) => s.records.length === 0,
+      (s) => s.records.length === 0 && s.skip == 0,
     );
     const unrecorded = this.transcriptLines[unrecorded_idx];
 

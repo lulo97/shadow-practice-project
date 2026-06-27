@@ -34,6 +34,16 @@ find id="btn-toggle-record" and click, wait 1s and click again to stop record, a
 
 click in id="btn-record-history", 
 
+wait id="table-container" to appear and wait id="record-row-0" to appear and click id="close-modal"
+
+click id="btn-load-my-record" and find <audio id="audio-player-mine"> to play and wait it to finish
+
+click id="btn-jump-unrecorded" and click id="btn-skip-line"
+
+click id="btn-jump-unrecorded"
+
+click id="btn-translation" 
+
 
 
 

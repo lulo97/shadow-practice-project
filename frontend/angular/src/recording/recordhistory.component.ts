@@ -11,40 +11,64 @@ import { Record } from "./transcriptline.interface";
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div class="w-[80vw] h-[60vh] overflow-x-auto rounded-lg border border-gray-200">
-      <table class="w-full text-left text-sm text-gray-600">
+    <div
+      id="table-container"
+      class="w-[80vw] h-[60vh] overflow-x-auto rounded-lg border border-gray-200"
+    >
+      <table id="records-table" class="w-full text-left text-sm text-gray-600">
         <thead
+          id="table-header"
           class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-700 border-b border-gray-200"
         >
-          <tr>
-            <th class="px-4 py-3 w-16">No.</th>
-            <th class="px-4 py-3">Created at</th>
-            <th class="px-4 py-3">Heard text</th>
-            <th class="px-4 py-3">Score</th>
-            <th class="px-4 py-3">STT Model Key</th>
+          <tr id="header-row">
+            <th id="th-index" class="px-4 py-3 w-16">No.</th>
+            <th id="th-created-at" class="px-4 py-3">Created at</th>
+            <th id="th-heard-text" class="px-4 py-3">Heard text</th>
+            <th id="th-score" class="px-4 py-3">Score</th>
+            <th id="th-model-key" class="px-4 py-3">STT Model Key</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-200 bg-white">
+        <tbody id="table-body" class="divide-y divide-gray-200 bg-white">
           @if (records && records.length > 0) {
             @for (record of records; track record; let i = $index) {
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3 font-medium text-gray-900">{{ i + 1 }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
+              <tr
+                id="record-row-{{ i }}"
+                class="hover:bg-gray-50 transition-colors"
+              >
+                <td
+                  id="td-index-{{ i }}"
+                  class="px-4 py-3 font-medium text-gray-900"
+                >
+                  {{ i + 1 }}
+                </td>
+                <td
+                  id="td-created-at-{{ i }}"
+                  class="px-4 py-3 whitespace-nowrap"
+                >
                   {{ record.createdAt | date: "short" }}
                 </td>
-                <td class="px-4 py-3 max-w-xs truncate">
+                <td
+                  id="td-heard-text-{{ i }}"
+                  class="px-4 py-3 max-w-xs truncate"
+                >
                   {{ record.sttText || "-" }}
                 </td>
-                <td class="px-4 py-3">{{ record.score }}</td>
-                <td class="px-4 py-3 font-mono text-xs text-gray-500">
+                <td id="td-score-{{ i }}" class="px-4 py-3">
+                  {{ record.score }}
+                </td>
+                <td
+                  id="td-model-key-{{ i }}"
+                  class="px-4 py-3 font-mono text-xs text-gray-500"
+                >
                   {{ record.sttProviderKey }}
                 </td>
               </tr>
             }
           } @else {
-            <tr>
+            <tr id="empty-state-row">
               <td
+                id="td-empty-message"
                 colspan="5"
                 class="px-4 py-8 text-center text-gray-400 italic"
               >
