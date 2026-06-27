@@ -131,43 +131,28 @@ import { OnDestroy, HostListener } from "@angular/core";
               class="mt-1.5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5"
             >
               <div class="flex flex-col gap-0">
-                <span
-                  class="text-xs font-semibold uppercase tracking-wide text-gray-400"
-                  >Audio Preview</span
-                >
                 <span class="text-xs font-semibold text-gray-700"
                   >Mine record</span
                 >
               </div>
 
               <div class="flex items-center gap-1.5">
-                <span
-                  *ngIf="mineWavAudio"
-                  class="font-mono text-xs font-medium text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded"
-                >
-                  {{ formatTime(currentAudioTime) }} /
-                  {{ formatTime(totalAudioDuration) }}
-                </span>
-
                 <audio
                   *ngIf="mineWavAudio"
-                  #mineAudioPlayer
                   [src]="mineWavAudio"
-                  (timeupdate)="onAudioTimeUpdate()"
-                  (loadedmetadata)="onAudioLoaded()"
-                  (ended)="onAudioEnded()"
+                  [loop]="setting.loop === 1"
+                  controls
+                  class="h-8"
                 ></audio>
 
                 <button
-                  (click)="togglePlayMyRecord()"
+                  *ngIf="!mineWavAudio"
+                  (click)="loadMyRecord()"
                   class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow transition hover:bg-blue-700 hover:scale-105 active:scale-95"
-                  [title]="isAudioPlaying ? 'Pause Audio' : 'Play Audio'"
+                  title="Load Audio"
                 >
                   <span class="text-xs font-bold">
-                    <i
-                      class="fa-solid"
-                      [ngClass]="isAudioPlaying ? 'fa-pause' : 'fa-play'"
-                    ></i>
+                    <i class="fa-solid fa-play"></i>
                   </span>
                 </button>
               </div>
@@ -353,7 +338,6 @@ export class RecordingComponent implements OnDestroy {
 
   setting = {
     leftWidthPercent: 35,
-    volume: 70,
     loop: 0,
   };
 
@@ -426,13 +410,6 @@ export class RecordingComponent implements OnDestroy {
   isPlaying = false;
   private _pauseAtEndTime: () => void = () => {};
 
-  setVolume(): void {
-    // We add a check for 'this.setting' to prevent errors if the DB hasn't responded yet
-    if (this.videoPlayer?.nativeElement && this.setting) {
-      this.videoPlayer.nativeElement.volume = this.setting.volume / 100;
-    }
-  }
-
   async fetchVideoMetadata() {
     const result = await callApi({
       endpoint: `api/videos/metadata/${this.videoId}`,
@@ -462,7 +439,6 @@ export class RecordingComponent implements OnDestroy {
     setTimeout(() => {
       if (this.videoPlayer) {
         this.videoPlayer.nativeElement.load();
-        this.setVolume();
       }
     });
   }
@@ -549,9 +525,6 @@ export class RecordingComponent implements OnDestroy {
 
     this.activeTranscriptLineIdx = idx;
     this.mineWavAudio = null;
-    this.isAudioPlaying = false;
-    this.currentAudioTime = 0;
-    this.totalAudioDuration = 0;
     console.log("Selected sentence", transcript_line.id);
   }
 
@@ -698,38 +671,9 @@ export class RecordingComponent implements OnDestroy {
 
   // ==================== FEATURE: MY AUDIO PLAYBACK ====================
 
-  @ViewChild("mineAudioPlayer") mineAudioPlayer!: ElementRef<HTMLAudioElement>;
+  mineWavAudio: string | null = null;
 
-  mineWavAudio = null;
-  isAudioPlaying = false;
-  currentAudioTime = 0;
-  totalAudioDuration = 0;
-
-  formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = Math.floor(seconds % 60)
-      .toString()
-      .padStart(2, "0");
-    return `${m}:${s}`;
-  }
-
-  onAudioTimeUpdate(): void {
-    this.currentAudioTime =
-      this.mineAudioPlayer?.nativeElement.currentTime ?? 0;
-  }
-
-  onAudioLoaded(): void {
-    this.totalAudioDuration = this.mineAudioPlayer?.nativeElement.duration ?? 0;
-  }
-
-  onAudioEnded(): void {
-    this.isAudioPlaying = false;
-    this.currentAudioTime = 0;
-  }
-
-  async togglePlayMyRecord(): Promise<void> {
+  async loadMyRecord(): Promise<void> {
     if (!this.activeTranscriptLine) {
       messageUtils("activeTranscriptLine null");
       return;
@@ -741,42 +685,19 @@ export class RecordingComponent implements OnDestroy {
       return;
     }
 
-    const audio = this.mineAudioPlayer?.nativeElement;
-    if (!audio) return;
+    if (this.mineWavAudio) return; // already loaded
 
-    // If already playing, just pause and stop
-    if (this.isAudioPlaying) {
-      audio.pause();
-      this.isAudioPlaying = false;
+    const result = await callApi({
+      endpoint: `api/records/file/${record_id}/`,
+      method: "GET",
+    });
+
+    if (!result.success) {
+      messageUtils(result.message);
       return;
     }
 
-    // Only fetch & reload the source if it's not already loaded
-    if (!this.mineWavAudio) {
-      const result = await callApi({
-        endpoint: `api/records/file/${record_id}/`,
-        method: "GET",
-      });
-      if (!result.success) {
-        messageUtils(result.message);
-        return;
-      }
-      this.mineWavAudio = result.data.url;
-      this.currentAudioTime = 0;
-      this.totalAudioDuration = 0;
-
-      // Let Angular bind the new src, then play
-      setTimeout(() => {
-        audio.load();
-        audio.play();
-        this.isAudioPlaying = true;
-      });
-      return;
-    }
-
-    // Source already loaded — just play from current position
-    audio.play();
-    this.isAudioPlaying = true;
+    this.mineWavAudio = result.data.url;
   }
 
   // ==================== FEATURE: SETTINGS ====================
@@ -793,10 +714,8 @@ export class RecordingComponent implements OnDestroy {
       return;
     }
 
-    this.setting.leftWidthPercent =
-      result.data.videoWidthSize ?? this.setting.leftWidthPercent;
-
-    this.setVolume();
+    this.setting =
+      result.data ?? this.setting;
   }
 
   openSettings(): void {

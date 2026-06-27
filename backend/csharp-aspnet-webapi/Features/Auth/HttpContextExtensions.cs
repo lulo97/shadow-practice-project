@@ -59,7 +59,6 @@ public static class HttpContextExtensions
             {
                 UserId = user!.Id,
                 SttProviderKey = "WHISPER_CPP",
-                Volume = 70,
                 Loop = 0,
                 VideoWidthSize = 50
             };

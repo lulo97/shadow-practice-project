@@ -13,7 +13,6 @@ public class UserSetting
     [Required]
     public string SttProviderKey { get; set; }
 
-    public int Volume { get; set; }
 
     // Using int as requested (0 = off, 1 = on)
     public int Loop { get; set; }

@@ -37,7 +37,6 @@ public class UserSettingsController : ControllerBase
             {
                 UserId = user.Id,
                 SttProviderKey = "WHISPER_CPP",
-                Volume = 70,
                 Loop = 0,
                 VideoWidthSize = 50
             });
@@ -71,7 +70,6 @@ public class UserSettingsController : ControllerBase
         else
         {
             existingSettings.SttProviderKey = settings.SttProviderKey;
-            existingSettings.Volume = settings.Volume;
             existingSettings.Loop = settings.Loop;
             existingSettings.VideoWidthSize = settings.VideoWidthSize;
         }
@@ -110,7 +108,6 @@ public class UserSettingsController : ControllerBase
             {
                 UserId = user.Id,
                 SttProviderKey = "WHISPER_CPP",
-                Volume = 70,
                 Loop = 0,
                 VideoWidthSize = 50
             };
@@ -199,9 +196,6 @@ public class UserSettingsController : ControllerBase
 
         if (!ds.SttProviders.Contains(settings.SttProviderKey))
             errors.Add($"Invalid STT Provider.");
-
-        if (settings.Volume < 0 || settings.Volume > 100)
-            errors.Add("Volume must be between 0 and 100.");
 
         if (!ds.LoopOptions.Contains(settings.Loop))
             errors.Add("Loop must be 0 or 1.");

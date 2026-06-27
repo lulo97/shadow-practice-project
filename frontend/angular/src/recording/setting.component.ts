@@ -31,25 +31,6 @@ interface SettingDatasource {
         </select>
       </div>
 
-      <!-- Volume -->
-      <div
-        class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
-      >
-        <label class="font-bold text-gray-700">Volume</label>
-        <div class="flex items-center gap-3">
-          <input
-            type="range"
-            [(ngModel)]="setting.volume"
-            min="0"
-            max="100"
-            class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-          />
-          <span class="text-sm font-medium text-gray-600 min-w-[3rem]"
-            >{{ setting.volume }}%</span
-          >
-        </div>
-      </div>
-
       <!-- Loop -->
       <div
         class="grid grid-cols-2 gap-4 items-center py-3 border-b border-gray-200"
