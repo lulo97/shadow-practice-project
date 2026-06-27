@@ -140,10 +140,10 @@ import { Subscription } from "rxjs";
 
         <div
           *ngFor="let video of videos"
-          [id]="'video-' + video.title.replace(' ', '-')"
+          [id]="'video-' + video.id"
         >
           <div
-            [id]="'video-card-' + video.title.replace(' ', '-')"
+            [id]="'video-card-' + video.id"
             class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
           >
             <div
@@ -152,15 +152,15 @@ import { Subscription } from "rxjs";
             >
               <ng-template #loadingThumb>
                 <div
-                  id="loading-thumb-container-{{ video.title }}"
+                  id="loading-thumb-container-{{ video.id }}"
                   class="flex flex-col items-center justify-center gap-2 text-gray-400"
                 >
                   <i
-                    id="loading-thumb-spinner-{{ video.title }}"
+                    id="loading-thumb-spinner-{{ video.id }}"
                     class="fa-solid fa-spinner fa-spin text-xl"
                   ></i>
                   <span
-                    id="loading-thumb-text-{{ video.title }}"
+                    id="loading-thumb-text-{{ video.id }}"
                     class="text-[11px]"
                     >Loading...</span
                   >
@@ -169,7 +169,7 @@ import { Subscription } from "rxjs";
 
               <ng-container *ngIf="video.thumbnail; else loadingThumb">
                 <img
-                  [id]="'img-thumb-' + video.title"
+                  [id]="'img-thumb-' + video.id"
                   (click)="toRecording(video.id)"
                   [src]="video.thumbnail"
                   class="w-full h-full object-cover cursor-pointer rounded-lg"
@@ -178,16 +178,16 @@ import { Subscription } from "rxjs";
             </div>
 
             <div
-              [id]="'details-container-' + video.title"
+              [id]="'details-container-' + video.id"
               class="flex-1 min-w-0 flex flex-col gap-1"
             >
               <div
-                [id]="'header-wrapper-' + video.title"
+                [id]="'header-wrapper-' + video.id"
                 class="flex items-center gap-2 flex-wrap"
               >
                 <h3
                   class="text-[14px] font-medium text-gray-900 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
-                  id="title-{{ video.title }}"
+                  id="video-title-id-{{ video.id }}"
                   (click)="toRecording(video.id)"
                 >
                   {{ video.title ? video.title : "Title" }}
@@ -196,10 +196,10 @@ import { Subscription } from "rxjs";
                 <span
                   *ngIf="video.status == 'UNFINISHED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
-                  id="status-unfinished-{{ video.title }}"
+                  id="status-unfinished-{{ video.id }}"
                 >
                   <i
-                    [id]="'status-unfinished-icon-' + video.title"
+                    [id]="'status-unfinished-icon-' + video.id"
                     class="fa-regular fa-clock text-[12px]"
                   ></i>
                   Unfinished
@@ -208,10 +208,10 @@ import { Subscription } from "rxjs";
                 <span
                   *ngIf="video.status === 'FINISHED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-green-600"
-                  id="status-finished-{{ video.title }}"
+                  id="status-finished-{{ video.id }}"
                 >
                   <i
-                    [id]="'status-finished-icon-' + video.title"
+                    [id]="'status-finished-icon-' + video.id"
                     class="fa-regular fa-circle-check text-[12px]"
                   ></i>
                   Finished
@@ -223,7 +223,7 @@ import { Subscription } from "rxjs";
                   id="status-not-started-{{ video.title }}"
                 >
                   <i
-                    [id]="'status-not-started-icon-' + video.title"
+                    [id]="'status-not-started-icon-' + video.id"
                     class="fa-regular fa-circle text-[12px]"
                   ></i>
                   Not started
@@ -233,21 +233,21 @@ import { Subscription } from "rxjs";
               <div
                 *ngIf="video.status !== 'NOT_STARTED'"
                 class="flex items-center gap-2"
-                id="progress-{{ video.title }}"
+                id="progress-{{ video.id }}"
               >
                 <div
-                  [id]="'progress-bar-bg-' + video.title"
+                  [id]="'progress-bar-bg-' + video.id"
                   class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
                 >
                   <div
-                    [id]="'progress-bar-fill-' + video.title"
+                    [id]="'progress-bar-fill-' + video.id"
                     class="h-full bg-blue-600 rounded-full"
                     [style.width.%]="video.processPercent"
                   ></div>
                 </div>
 
                 <span
-                  [id]="'progress-text-' + video.title"
+                  [id]="'progress-text-' + video.id"
                   class="text-[12px] text-gray-500 min-w-[28px] text-right"
                 >
                   {{ video.processPercent }}%
@@ -257,21 +257,21 @@ import { Subscription } from "rxjs";
               <div
                 *ngIf="video.status === 'NOT_STARTED'"
                 class="flex items-center gap-2"
-                id="progress-not-started-{{ video.title }}"
+                id="progress-not-started-{{ video.id }}"
               >
                 <div
-                  [id]="'progress-bar-ns-bg-' + video.title"
+                  [id]="'progress-bar-ns-bg-' + video.id"
                   class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
                 >
                   <div
-                    [id]="'progress-bar-ns-fill-' + video.title"
+                    [id]="'progress-bar-ns-fill-' + video.id"
                     class="h-full bg-blue-600 rounded-full"
                     [style.width.%]="0"
                   ></div>
                 </div>
 
                 <span
-                  [id]="'progress-ns-text-' + video.title"
+                  [id]="'progress-ns-text-' + video.id"
                   class="text-[12px] text-gray-500 min-w-[28px] text-right"
                 >
                   0%
@@ -280,15 +280,15 @@ import { Subscription } from "rxjs";
 
               <div
                 *ngIf="1"
-                [id]="'last-practiced-container-' + video.title"
+                [id]="'last-practiced-container-' + video.id"
                 class="flex items-center gap-1 text-[12px] text-gray-400"
               >
                 <i
-                  [id]="'last-practiced-icon-' + video.title"
+                  [id]="'last-practiced-icon-' + video.id"
                   class="fa-regular fa-user-circle text-[11px]"
                 ></i>
                 Last practiced:
-                <span [id]="'last-practiced-date-' + video.title">{{
+                <span [id]="'last-practiced-date-' + video.id">{{
                   video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy"
                 }}</span>
               </div>
@@ -298,12 +298,12 @@ import { Subscription } from "rxjs";
               (click)="
                 openVideoProcessModal(video.jobId); $event.stopPropagation()
               "
-              id="video-progress-{{ video.title }}"
+              id="video-progress-{{ video.id }}"
               class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
               aria-label="More options"
             >
               <i
-                [id]="'video-progress-icon-' + video.title"
+                [id]="'video-progress-icon-' + video.id"
                 class="fa-solid fa-ellipsis-vertical text-base"
               ></i>
             </button>
