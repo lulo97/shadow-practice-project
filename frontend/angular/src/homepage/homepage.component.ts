@@ -16,26 +16,24 @@ import { Subscription } from "rxjs";
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `<div id="main-container" class="flex min-h-screen bg-gray-50">
-    <!-- Sidebar -->
     <nav
       id="sidebar"
       class="w-52 min-w-[208px] bg-white border-r border-gray-200 flex flex-col justify-between py-5"
     >
-      <div class="flex flex-col flex-1">
-        <!-- Logo -->
+      <div id="sidebar-menu-wrapper" class="flex flex-col flex-1">
         <div
           id="project-title"
           class="flex items-center gap-2.5 px-4 pb-5 font-medium text-gray-900 text-[15px]"
         >
           <div
+            id="logo-icon-wrapper"
             class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"
           >
-            <i class="fa-solid fa-play text-sm"></i>
+            <i id="logo-icon" class="fa-solid fa-play text-sm"></i>
           </div>
           Shadowing Project
         </div>
 
-        <!-- Nav links -->
         <div id="nav-links" class="flex flex-col px-2 gap-0.5">
           <button
             [class]="
@@ -46,7 +44,11 @@ import { Subscription } from "rxjs";
             id="nav-my-videos"
             (click)="setCurrentTab('MY_VIDEOS')"
           >
-            <i class="fa-regular fa-folder text-base"></i> My Videos
+            <i
+              id="nav-my-videos-icon"
+              class="fa-regular fa-folder text-base"
+            ></i>
+            My Videos
           </button>
 
           <button
@@ -58,39 +60,39 @@ import { Subscription } from "rxjs";
             id="nav-system-videos"
             (click)="setCurrentTab('SYSTEM_VIDEOS')"
           >
-            <i class="fas fa-tv text-base"></i>
+            <i id="nav-system-videos-icon" class="fas fa-tv text-base"></i>
             System Videos
           </button>
         </div>
       </div>
 
-      <div>
-        <hr class="border-gray-200 mx-2 mb-2" />
+      <div id="sidebar-footer-wrapper">
+        <hr id="sidebar-divider" class="border-gray-200 mx-2 mb-2" />
         <div id="footer-actions" class="flex flex-col px-2 gap-0.5">
           <span
             id="profile-link"
             class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
           >
-            <i class="fa-regular fa-user text-base"></i> Profile
+            <i id="profile-icon" class="fa-regular fa-user text-base"></i>
+            Profile
           </span>
           <span
             (click)="logOut()"
             id="logout-link"
             class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
           >
-            <i class="fas fa-right-from-bracket text-base"></i>
+            <i id="logout-icon" class="fas fa-right-from-bracket text-base"></i>
             Logout
           </span>
         </div>
       </div>
     </nav>
 
-    <!-- Main content -->
     <main id="content-area" class="flex-1 p-6 flex flex-col gap-4">
-      <!-- Search bar -->
       <div id="search-bar-wrapper" class="flex items-center gap-2.5">
-        <div class="relative flex-1">
+        <div id="search-input-container" class="relative flex-1">
           <i
+            id="search-icon"
             class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
           ></i>
 
@@ -108,17 +110,17 @@ import { Subscription } from "rxjs";
           id="filter-btn"
           class="h-9 px-3 border border-gray-300 rounded-lg bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-1.5 text-[13.5px]"
         >
-          <i class="fa-solid fa-sliders text-sm"></i>
+          <i id="filter-icon" class="fa-solid fa-sliders text-sm"></i>
         </button>
       </div>
 
-      <!-- Action bar -->
       <div id="action-bar" class="flex items-center justify-between">
         <button
           (click)="openModalAddVideo()"
+          id="add-video-btn"
           class="h-9 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-[13.5px] font-medium rounded-lg flex items-center gap-1.5 transition-all"
         >
-          <i class="fa-solid fa-plus text-sm"></i> Add Video
+          <i id="add-video-icon" class="fa-solid fa-plus text-sm"></i> Add Video
         </button>
         <button
           id="jump-unfinished-btn"
@@ -128,9 +130,11 @@ import { Subscription } from "rxjs";
         </button>
       </div>
 
-      <!-- Videos list -->
       <section id="videos-list">
-        <h2 class="text-[14px] font-medium text-gray-900 mb-3">
+        <h2
+          id="videos-list-heading"
+          class="text-[14px] font-medium text-gray-900 mb-3"
+        >
           {{ currentTab == "MY_VIDEOS" ? "My Videos" : "System Videos" }}
         </h2>
 
@@ -139,24 +143,33 @@ import { Subscription } from "rxjs";
           [id]="'video-' + video.title.replace(' ', '-')"
         >
           <div
+            [id]="'video-card-' + video.title.replace(' ', '-')"
             class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
           >
-            <!-- Thumbnail -->
             <div
               class="relative h-[100px] aspect-video rounded-lg bg-gray-900 flex items-center justify-center transition-transform duration-300 hover:scale-105 hover:z-10"
               id="thumb-{{ video.title }}"
             >
               <ng-template #loadingThumb>
                 <div
+                  id="loading-thumb-container-{{ video.title }}"
                   class="flex flex-col items-center justify-center gap-2 text-gray-400"
                 >
-                  <i class="fa-solid fa-spinner fa-spin text-xl"></i>
-                  <span class="text-[11px]">Loading...</span>
+                  <i
+                    id="loading-thumb-spinner-{{ video.title }}"
+                    class="fa-solid fa-spinner fa-spin text-xl"
+                  ></i>
+                  <span
+                    id="loading-thumb-text-{{ video.title }}"
+                    class="text-[11px]"
+                    >Loading...</span
+                  >
                 </div>
               </ng-template>
 
               <ng-container *ngIf="video.thumbnail; else loadingThumb">
                 <img
+                  [id]="'img-thumb-' + video.title"
                   (click)="toRecording(video.id)"
                   [src]="video.thumbnail"
                   class="w-full h-full object-cover cursor-pointer rounded-lg"
@@ -164,9 +177,14 @@ import { Subscription } from "rxjs";
               </ng-container>
             </div>
 
-            <!-- Details -->
-            <div class="flex-1 min-w-0 flex flex-col gap-1">
-              <div class="flex items-center gap-2 flex-wrap">
+            <div
+              [id]="'details-container-' + video.title"
+              class="flex-1 min-w-0 flex flex-col gap-1"
+            >
+              <div
+                [id]="'header-wrapper-' + video.title"
+                class="flex items-center gap-2 flex-wrap"
+              >
                 <h3
                   class="text-[14px] font-medium text-gray-900 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
                   id="title-{{ video.title }}"
@@ -175,102 +193,123 @@ import { Subscription } from "rxjs";
                   {{ video.title ? video.title : "Title" }}
                 </h3>
 
-                <!-- Status: unfinished -->
                 <span
                   *ngIf="video.status == 'UNFINISHED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
-                  id="status-{{ video.title }}"
+                  id="status-unfinished-{{ video.title }}"
                 >
-                  <i class="fa-regular fa-clock text-[12px]"></i> Unfinished
+                  <i
+                    [id]="'status-unfinished-icon-' + video.title"
+                    class="fa-regular fa-clock text-[12px]"
+                  ></i>
+                  Unfinished
                 </span>
 
-                <!-- Status: finished -->
                 <span
                   *ngIf="video.status === 'FINISHED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-green-600"
-                  id="status-{{ video.title }}"
+                  id="status-finished-{{ video.title }}"
                 >
-                  <i class="fa-regular fa-circle-check text-[12px]"></i>
+                  <i
+                    [id]="'status-finished-icon-' + video.title"
+                    class="fa-regular fa-circle-check text-[12px]"
+                  ></i>
                   Finished
                 </span>
 
-                <!-- Status: not started -->
                 <span
                   *ngIf="video.status === 'NOT_STARTED'"
                   class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
-                  id="status-{{ video.title }}"
+                  id="status-not-started-{{ video.title }}"
                 >
-                  <i class="fa-regular fa-circle text-[12px]"></i> Not started
+                  <i
+                    [id]="'status-not-started-icon-' + video.title"
+                    class="fa-regular fa-circle text-[12px]"
+                  ></i>
+                  Not started
                 </span>
               </div>
 
-              <!-- Progress bar (shown when has progress) -->
               <div
                 *ngIf="video.status !== 'NOT_STARTED'"
                 class="flex items-center gap-2"
                 id="progress-{{ video.title }}"
               >
                 <div
+                  [id]="'progress-bar-bg-' + video.title"
                   class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
                 >
                   <div
+                    [id]="'progress-bar-fill-' + video.title"
                     class="h-full bg-blue-600 rounded-full"
                     [style.width.%]="video.processPercent"
                   ></div>
                 </div>
 
-                <span class="text-[12px] text-gray-500 min-w-[28px] text-right">
+                <span
+                  [id]="'progress-text-' + video.title"
+                  class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                >
                   {{ video.processPercent }}%
                 </span>
               </div>
 
-              <!-- 0% bar for not started -->
               <div
                 *ngIf="video.status === 'NOT_STARTED'"
                 class="flex items-center gap-2"
-                id="progress-{{ video.title }}"
+                id="progress-not-started-{{ video.title }}"
               >
                 <div
+                  [id]="'progress-bar-ns-bg-' + video.title"
                   class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
                 >
                   <div
+                    [id]="'progress-bar-ns-fill-' + video.title"
                     class="h-full bg-blue-600 rounded-full"
                     [style.width.%]="0"
                   ></div>
                 </div>
 
-                <span class="text-[12px] text-gray-500 min-w-[28px] text-right">
+                <span
+                  [id]="'progress-ns-text-' + video.title"
+                  class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                >
                   0%
                 </span>
               </div>
 
-              <!-- Last practiced -->
               <div
                 *ngIf="1"
+                [id]="'last-practiced-container-' + video.title"
                 class="flex items-center gap-1 text-[12px] text-gray-400"
               >
-                <i class="fa-regular fa-user-circle text-[11px]"></i>
+                <i
+                  [id]="'last-practiced-icon-' + video.title"
+                  class="fa-regular fa-user-circle text-[11px]"
+                ></i>
                 Last practiced:
-                <span>{{
+                <span [id]="'last-practiced-date-' + video.title">{{
                   video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy"
                 }}</span>
               </div>
             </div>
 
-            <!-- More button -->
             <button
               (click)="
                 openVideoProcessModal(video.jobId); $event.stopPropagation()
               "
-              id="video-progress"
+              id="video-progress-{{ video.title }}"
               class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
               aria-label="More options"
             >
-              <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+              <i
+                [id]="'video-progress-icon-' + video.title"
+                class="fa-solid fa-ellipsis-vertical text-base"
+              ></i>
             </button>
           </div>
         </div>
-        <p class="text-[12px] text-gray-400 mt-1">
+        <p id="videos-count-summary" class="text-[12px] text-gray-400 mt-1">
           Showing 1–{{ videos.length }} of {{ videos.length }} videos
         </p>
       </section>
