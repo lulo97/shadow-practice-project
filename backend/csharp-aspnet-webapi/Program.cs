@@ -59,7 +59,7 @@ builder.Services.AddScoped<Parakeet>();
 builder.Services.AddScoped<ISTTFactory, STTFactory>();
 builder.Services.AddHostedService<ExternalServerStarter>(); 
 builder.Services.AddScoped<VideoJobUtils>();
-builder.Services.AddScoped<ILLM, FakeLlm>();
+builder.Services.AddScoped<ILLM, LlamaCpp>();
 builder.Services.AddSingleton<SseService>();
 
 builder.Services.AddControllers()

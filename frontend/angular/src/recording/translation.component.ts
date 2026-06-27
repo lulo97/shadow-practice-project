@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, NgZone } from "@angular/core";
 import { callApi } from "../utils/apiUtils";
 import { messageUtils } from "../utils/messageUtils";
 import { FormsModule } from "@angular/forms";
@@ -6,28 +6,32 @@ import { ModalService } from "../components/modal/modal.service";
 import { TranscriptLine } from "./transcriptline.interface";
 import { CommonModule } from "@angular/common";
 import { expectedPrefixSymbol } from "./utils";
+import { SseService } from "../sse/sseservice.component";
+import { Subscription } from "rxjs";
 
 @Component({
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div id="main-container" class="w-[80vw] h-[80vh]">
-      <div id="layout-wrapper" class="flex gap-2 items-stretch">
-        <div id="left-layout" class="w-1/2 h-full">
-          <div id="left-header" class="flex justify-between mb-2 h-[5vh]">
-            <div id="tab-english" class="font-bold">English transcript</div>
-            <button
-              id="tab-copy-prompt"
-              (click)="copyPrompt()"
-              class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors"
-            >
-              Copy + Prompt
-            </button>
+    <div id="main-container" class="w-[80vw] h-[80vh] flex flex-col">
+      <div id="layout-wrapper" class="flex gap-2 flex-1 min-h-0">
+        <!-- Left Panel -->
+        <div id="left-layout" class="w-1/2 flex flex-col min-h-0">
+          <div
+            id="left-header"
+            class="flex justify-between items-start mb-2 shrink-0"
+          >
+            <div>
+              <div id="tab-english" class="font-bold">English transcript</div>
+              <div class="text-sm text-gray-500 italic">
+                Paste to ChatGPT by copy prompt
+              </div>
+            </div>
           </div>
 
           <div
             id="panel-english"
-            class="flex-1 border border-gray-300 p-2 h-[65vh] overflow-y-auto"
+            class="flex-1 border border-gray-300 p-2 overflow-y-auto min-h-0"
           >
             <div
               id="transcript-loop"
@@ -44,21 +48,41 @@ import { expectedPrefixSymbol } from "./utils";
           </div>
         </div>
 
-        <div id="right-layout" class="w-1/2 h-full flex flex-col">
-          <div id="tab-vietnamese" class="mb-2 font-medium h-[5vh]">
-            Vietnamese transcript
+        <!-- Right Panel -->
+        <div id="right-layout" class="w-1/2 flex flex-col min-h-0">
+          <div class="mb-2 shrink-0">
+            <div id="tab-vietnamese" class="font-medium">
+              Vietnamese transcript
+            </div>
+            <div class="text-sm text-gray-500 italic">
+              Edit vietnamese translation freely and click saved!
+            </div>
           </div>
 
           <textarea
             id="vietnamese-transcript-textarea"
             [(ngModel)]="vietnameseText"
             placeholder="Paste Vietnamese translation here..."
-            class="w-full h-[65vh] border border-gray-300 p-2 resize-none text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            class="flex-1 w-full border border-gray-300 p-2 resize-none text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-h-0"
           ></textarea>
         </div>
       </div>
 
-      <div id="translation-footer" class="flex gap-2 justify-end mt-4">
+      <!-- Footer -->
+      <div
+        id="translation-footer"
+        class="flex gap-2 justify-end items-center mt-3 shrink-0"
+      >
+        <div class="flex-1 text-gray-500 italic text-sm">
+          {{ this.autoTranslationInfo }}
+        </div>
+        <button
+          id="tab-copy-prompt"
+          (click)="copyPrompt()"
+          class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors shrink-0"
+        >
+          Copy + Prompt
+        </button>
         <button
           [id]="
             isAutoTranslate
@@ -68,9 +92,13 @@ import { expectedPrefixSymbol } from "./utils";
           (click)="autoTranslate()"
           class="px-3.5 py-1.5 border border-gray-300 bg-white cursor-pointer text-sm hover:bg-gray-50 transition-colors"
         >
-          <i *ngIf="isAutoTranslate" class="fa-solid fa-spinner fa-spin"></i>
+          <i
+            *ngIf="isAutoTranslate"
+            class="fa-solid fa-spinner fa-spin mr-1"
+          ></i>
           Auto translation
         </button>
+
         <button
           id="btn-save"
           (click)="save()"
@@ -85,13 +113,35 @@ import { expectedPrefixSymbol } from "./utils";
 export class TranslationComponent {
   private modal = inject(ModalService);
 
-  transcriptLines: TranscriptLine[] = [];
+  autoTranslationInfo = "";
 
+  transcriptLines: TranscriptLine[] = [];
+  private sub!: Subscription;
+  constructor(
+    private sse: SseService,
+    private zone: NgZone,
+  ) {}
   ngOnInit() {
     this.reset();
     this.modal.ready();
-  }
+    this.autoTranslationInfo = "";
+    this.sub = this.sse.onMessage().subscribe((data) => {
+      this.zone.run(() => {
+        const message = JSON.parse(data).message;
+        const data_sse = JSON.parse(data).data;
 
+        if (message === "UPDATE_TRANSLATION") {
+          this.autoTranslationInfo = `Progress: translate ${data_sse} lines...`;
+        }
+        if (message == "UPDATE_TRANSLATION_LINE_BY_LINE") {
+          this.autoTranslationInfo = `Progress line by line: translate ${data_sse} lines...`;
+        }
+      });
+    });
+  }
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
   videoId: number = this.modal.config().data?.videoId;
 
   vietnameseText = "";
@@ -109,6 +159,7 @@ export class TranslationComponent {
 
   async autoTranslate() {
     this.isAutoTranslate = true;
+    this.autoTranslationInfo = "Thinking...";
 
     const result = await callApi({
       endpoint: `api/transcripts/llm/${this.videoId}`,
