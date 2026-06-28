@@ -14,93 +14,45 @@ import { ModalService } from "./modal.service";
   selector: "app-modal",
   standalone: true,
   imports: [CommonModule, NgComponentOutlet],
-  styles: [
-    `
-      .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        transition: opacity 200ms ease;
-        opacity: 0;
-      }
-      .modal-panel {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -48%);
-        background: white;
-        border-radius: 8px;
-        z-index: 1000;
-        padding: 24px;
-        min-width: 320px;
-        transition:
-          opacity 200ms ease,
-          transform 200ms ease;
-        opacity: 0;
-      }
-
-      /* entering/open: animate in */
-      :host-context(.modal-entering) .modal-backdrop,
-      :host-context(.modal-open) .modal-backdrop {
-        opacity: 1;
-      }
-
-      :host-context(.modal-entering) .modal-panel,
-      :host-context(.modal-open) .modal-panel {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-      }
-
-      /* leaving: fade out */
-      :host-context(.modal-leaving) .modal-backdrop {
-        opacity: 0;
-      }
-      :host-context(.modal-leaving) .modal-panel {
-        opacity: 0;
-        transform: translate(-50%, -48%);
-      }
-
-      .modal-sm {
-        max-width: 360px;
-      }
-      .modal-md {
-        max-width: 520px;
-      }
-      .modal-lg {
-        max-width: 720px;
-      }
-    `,
-  ],
   template: `
     @if (modal.isOpen()) {
       <div
-        class="modal-backdrop"
+        class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[999] transition-opacity duration-200 ease-out"
         (click)="modal.close()"
         [style.pointer-events]="modal.isReady() ? 'auto' : 'none'"
-        [style.opacity]="modal.isReady() ? '' : '0'"
+        [class.opacity-100]="modal.isReady()"
+        [class.opacity-0]="!modal.isReady()"
       ></div>
+
       <div
-        class="modal-panel"
-        [class]="sizeClass"
-        [style.opacity]="modal.isReady() ? '' : '0'"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 bg-[#F4F3EF] border-4 border-black shadow-[12px_12px_0px_0px_#000] font-mono text-[#1A1A1A] z-[1000] transition-all duration-200 ease-out"
+        [ngClass]="[
+          sizeClass,
+          modal.isReady()
+            ? '-translate-y-1/2 opacity-100'
+            : '-translate-y-[48%] opacity-0',
+        ]"
         [style.pointer-events]="modal.isReady() ? 'auto' : 'none'"
       >
         <div
-          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px"
+          class="p-4 bg-[#1A1A1A] text-white border-b-4 border-black flex items-center justify-between"
         >
-          <h2 style="font-size:18px; font-weight:500; color:#111; margin:0">
-            {{ modal.config().title }}
+          <h2
+            class="text-sm font-black tracking-wider uppercase m-0 flex items-center gap-2"
+          >
+            <span class="text-[#FFDE4D]">//</span>
+            {{ modal.config().title || "SYSTEM_LOG" }}
           </h2>
           <button
             id="close-modal"
-            style="background:none; border:none; cursor:pointer; color:#6b7280; font-size:16px; padding:4px"
+            class="bg-[#FF4E4E] text-white w-6 h-6 flex items-center justify-center font-black border-2 border-black shadow-[2px_2px_0px_0px_#FFF] hover:bg-[#e03a3a] transition-all cursor-pointer"
             (click)="modal.close()"
           >
-            ✕
+            &times;
           </button>
         </div>
-        <div>
+
+        <div class="p-6 font-bold text-sm bg-white">
           @if (modal.config().component; as component) {
             <ng-container *ngComponentOutlet="component"></ng-container>
           }
