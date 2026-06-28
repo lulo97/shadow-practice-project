@@ -805,4 +805,4 @@ Returns descriptive metadata for a video without the binary data.
 
 # Frontend UI Layout Design
 
-![Alt text](documents\ui-ver4.drawio.svg)
+![Alt text](documents/ui-ver4.drawio.svg)
