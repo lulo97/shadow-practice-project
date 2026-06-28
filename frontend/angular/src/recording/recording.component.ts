@@ -18,34 +18,38 @@ import { OnDestroy, HostListener } from "@angular/core";
   template: `
     <div
       id="main-container"
-      class="h-screen bg-gray-50 text-gray-800 antialiased overflow-hidden flex flex-col"
+      class="h-screen bg-[#F4F3EF] text-[#1A1A1A] font-mono antialiased overflow-hidden flex flex-col relative"
     >
       <div
+        class="absolute inset-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none z-0"
+      ></div>
+
+      <div
         id="header-bar"
-        class="flex-none flex items-center justify-between border-b bg-white px-3 py-1.5 shadow-sm"
+        class="relative z-10 flex-none flex items-center justify-between border-b-4 border-black bg-white px-4 py-3 shadow-[0_2px_0px_0px_#000]"
       >
         <button
           id="btn-back"
           (click)="goBack()"
-          class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+          class="px-4 py-1.5 font-black text-sm uppercase tracking-wider bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer flex items-center gap-2"
         >
-          <i id="icon-back" class="fa-solid fa-arrow-left"></i> Back
+          <i id="icon-back" class="fa-solid fa-arrow-left"></i> BACK_
         </button>
 
-        <div id="header-actions" class="flex items-center gap-1.5">
+        <div id="header-actions" class="flex items-center gap-3">
           <button
             id="btn-translation"
             (click)="openTranslationModal()"
-            class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+            class="px-4 py-1.5 font-black text-sm uppercase tracking-wider bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-gray-50 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all cursor-pointer flex items-center gap-2"
           >
-            <i id="icon-translation" class="fa-solid fa-plus"></i> Translation
+            <i id="icon-translation" class="fa-solid fa-plus"></i> TRANSLATION
           </button>
           <button
             id="btn-settings"
             (click)="openSettingModal()"
-            class="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+            class="px-4 py-1.5 font-black text-sm uppercase tracking-wider bg-[#FFDE4D] border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all cursor-pointer flex items-center gap-2"
           >
-            <i id="icon-settings" class="fa-solid fa-gear"></i> Settings
+            <i id="icon-settings" class="fa-solid fa-gear"></i> SETTINGS
           </button>
         </div>
       </div>
@@ -53,27 +57,39 @@ import { OnDestroy, HostListener } from "@angular/core";
       <div
         id="body-container"
         #resizeContainer
-        class="flex-1 flex overflow-hidden min-h-0"
+        class="relative z-10 flex-1 flex overflow-hidden min-h-0"
       >
         <div
           id="left-panel"
           [style.width]="setting.videoWidthSize + '%'"
-          class="flex-none overflow-y-auto flex flex-col gap-1.5 p-1.5 min-w-0"
+          class="flex-none overflow-y-auto flex flex-col gap-3 p-3 min-w-0"
         >
           <div
             id="left-panel-card"
-            class="rounded-xl bg-white p-1.5 shadow-sm border border-gray-200 h-full flex flex-col justify-center"
+            class="bg-white border-4 border-black shadow-[6px_6px_0px_0px_#000] h-full flex flex-col justify-center p-4"
           >
-            <div id="video-title" class="font-bold text-gray-900">
-              {{ videoMetadata ? videoMetadata.title : "Title" }}
-            </div>
-            <div id="video-description" class="line-clamp-3">
-              {{ videoMetadata ? videoMetadata.description : "Description" }}
+            <div class="mb-3">
+              <span
+                class="text-[10px] font-black text-gray-400 block tracking-widest"
+                >// TARGET_MEDIA_NODE</span
+              >
+              <div
+                id="video-title"
+                class="font-black text-xl uppercase tracking-tight text-gray-900 truncate"
+              >
+                {{ videoMetadata ? videoMetadata.title : "Title" }}
+              </div>
+              <div
+                id="video-description"
+                class="line-clamp-2 text-xs font-bold text-gray-600 mt-1 leading-relaxed"
+              >
+                {{ videoMetadata ? videoMetadata.description : "Description" }}
+              </div>
             </div>
 
             <div
               id="video-wrapper"
-              class="relative overflow-hidden rounded-lg bg-black aspect-video shadow-inner"
+              class="relative overflow-hidden border-2 border-black bg-black aspect-video shadow-[inset_4px_4px_10px_rgba(0,0,0,0.8)]"
             >
               <video
                 id="video-player"
@@ -89,35 +105,45 @@ import { OnDestroy, HostListener } from "@angular/core";
               </video>
             </div>
 
-            <div id="controls-grid" class="mt-1.5 grid grid-cols-1 gap-1">
-              <div id="current-transcript-index" class="text-center font-bold">
-                Current {{ activeTranscriptLineIdx + 1 }}
+            <div id="controls-grid" class="mt-3 grid grid-cols-1 gap-2">
+              <div
+                id="current-transcript-index"
+                class="text-center font-black text-xs uppercase bg-black text-white py-1 border border-black tracking-widest"
+              >
+                NODE_INDEX: {{ activeTranscriptLineIdx + 1 }}
               </div>
+
               <button
                 id="btn-toggle-play"
                 (click)="togglePlay()"
-                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
+                class="flex items-center justify-center gap-2 px-4 py-2 font-black uppercase tracking-wider bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-gray-50 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer text-sm"
               >
                 <i
                   id="icon-toggle-play"
                   class="fa-solid"
-                  [ngClass]="isPlaying ? 'fa-stop' : 'fa-play'"
+                  [ngClass]="
+                    isPlaying
+                      ? 'fa-stop text-[#FF4E4E]'
+                      : 'fa-play text-[#2FD673]'
+                  "
                 ></i>
-
-                {{ isPlaying ? "Stop" : "Play" }}
+                {{ isPlaying ? "STOP_STREAM" : "PLAY_STREAM" }}
               </button>
 
               <button
                 id="btn-toggle-record"
                 (click)="startRecord()"
-                class="flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-sm font-medium transition active:scale-[0.98]"
+                class="flex items-center justify-center gap-2 px-4 py-2 font-black uppercase tracking-wider border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all cursor-pointer text-sm"
                 [ngClass]="
                   (audioService.isRecording$ | async)
-                    ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-[#FF4E4E] text-white animate-pulse'
+                    : 'bg-[#2FD673] text-black hover:bg-[#25b861]'
                 "
               >
-                <button id="btn-record-inner">
+                <button
+                  id="btn-record-inner"
+                  class="bg-transparent border-0 p-0 m-0 font-black flex items-center gap-2 cursor-pointer uppercase tracking-wider text-inherit"
+                >
                   <i
                     id="icon-record"
                     class="fa-solid"
@@ -130,58 +156,62 @@ import { OnDestroy, HostListener } from "@angular/core";
               <button
                 id="btn-skip-line"
                 (click)="skipTranscriptLine()"
-                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                class="flex items-center justify-center gap-2 px-4 py-2 font-black uppercase tracking-wider bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-gray-50 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all cursor-pointer text-sm"
               >
                 <ng-container
                   id="skip-container"
                   *ngIf="activeTranscriptLine?.skip == 1; else skipLabel"
-                  ><i id="icon-skip-undo" class="fa-solid fa-forward-step"></i>
-                  Skip Undo skip</ng-container
                 >
-                <ng-template #skipLabel
-                  ><i id="icon-skip" class="fa-solid fa-forward-step"></i>
-                  Skip</ng-template
-                >
+                  <i
+                    id="icon-skip-undo"
+                    class="fa-solid fa-forward-step text-[#FF8A00]"
+                  ></i>
+                  UNDO_SKIP
+                </ng-container>
+                <ng-template #skipLabel>
+                  <i id="icon-skip" class="fa-solid fa-forward-step"></i>
+                  SKIP_LINE
+                </ng-template>
               </button>
 
               <button
                 id="btn-record-history"
                 (click)="openRecordHistory()"
-                class="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                class="flex items-center justify-center gap-2 px-4 py-2 font-black uppercase tracking-wider bg-[#00E5FF] border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all cursor-pointer text-sm"
               >
                 <i
                   id="icon-record-history"
                   class="fa-solid fa-clock-rotate-left"
                 ></i>
-                Record History
+                LOG_HISTORY
               </button>
             </div>
 
             <div
               id="audio-preview-container"
-              class="mt-1.5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5"
+              class="mt-3 flex items-center justify-between border-2 border-black bg-[#F4F3EF] p-2 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]"
             >
               <div
                 id="audio-label-wrapper"
-                class="flex flex-col gap-0 shrink-0"
+                class="flex flex-col gap-0 shrink-0 border-r-2 border-black pr-2 mr-2"
               >
                 <span
                   id="audio-label-mine"
-                  class="text-xs font-semibold text-gray-700"
-                  >Mine</span
+                  class="text-xs font-black uppercase tracking-wider text-black"
+                  >MINE_</span
                 >
               </div>
 
               <div
                 id="audio-controls-wrapper"
-                class="flex flex-1 items-center justify-end gap-1.5 ml-4"
+                class="flex flex-1 items-center justify-end gap-1.5"
               >
                 <audio
                   id="audio-player-mine"
                   [src]="mineWavAudio || ''"
                   [loop]="setting.loop === 1"
                   controls
-                  class="h-8 w-full"
+                  class="h-8 w-full accent-black"
                 ></audio>
               </div>
             </div>
@@ -191,130 +221,142 @@ import { OnDestroy, HostListener } from "@angular/core";
         <div
           id="drag-divider"
           (mousedown)="onDividerMouseDown($event)"
-          class="flex-none w-1.5 cursor-col-resize flex items-center justify-center group select-none"
+          class="flex-none w-2 cursor-col-resize flex items-center justify-center group select-none relative z-20"
         >
           <div
             id="drag-divider-line"
-            class="w-px h-full bg-gray-200 group-hover:bg-blue-400 transition-colors duration-150"
+            class="w-1 h-full bg-black group-hover:bg-[#FFDE4D] transition-colors duration-150 border-x border-gray-300"
           ></div>
         </div>
 
-        <div id="right-panel" class="flex-1 overflow-hidden min-w-0 p-1.5">
+        <div id="right-panel" class="flex-1 overflow-hidden min-w-0 p-3">
           <div
             id="right-panel-card"
-            class="h-full rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm flex flex-col"
+            class="h-full border-4 border-black bg-white shadow-[6px_6px_0px_0px_#000] flex flex-col p-4"
           >
             <div
               id="right-panel-header"
-              class="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-1.5 mb-1.5"
+              class="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-black pb-3 mb-3 bg-[#00E5FF]/5 -mx-4 -mt-4 p-4"
             >
               <div id="right-header-text">
                 <h2
                   id="right-panel-title"
-                  class="text-base font-bold text-gray-900"
+                  class="text-base font-black uppercase tracking-tight text-gray-900 flex items-center gap-2"
                 >
-                  Transcription Track (Current
-                  {{ this.activeTranscriptLineIdx + 1 }} in total
+                  <span class="px-2 py-0.5 bg-black text-white text-xs"
+                    >TRACK_</span
+                  >
+                  Transcription Track ({{ this.activeTranscriptLineIdx + 1 }} /
                   {{ this.transcriptLines?.length }})
                 </h2>
-                <p id="right-panel-subtitle" class="text-xs text-gray-500">
-                  Review, skip, or select blocks to sync record targets
+                <p
+                  id="right-panel-subtitle"
+                  class="text-[11px] font-bold text-gray-500 mt-0.5"
+                >
+                  // REVIEW, SKIP, OR SELECT BLOCKS TO SYNC RECORD TARGETS
                 </p>
               </div>
               <button
                 id="btn-jump-unrecorded"
                 [ngClass]="{
-                  'cursor-not-allowed': shouldNotMoveActiveTranscriptLine(),
-                  'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
+                  'opacity-50 cursor-not-allowed shadow-none translate-x-[2px] translate-y-[2px]':
+                    shouldNotMoveActiveTranscriptLine(),
+                  'cursor-pointer hover:bg-blue-100 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000]':
+                    !shouldNotMoveActiveTranscriptLine(),
                 }"
                 (click)="jumpToUnrecorded()"
-                class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                class="inline-flex items-center justify-center border-2 border-black bg-blue-50 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-blue-900 transition-all"
               >
-                Jump to unrecorded
+                JUMP_TO_UNRECORDED
               </button>
             </div>
 
             <div
               id="transcript-list-container"
               #transcriptContainer
-              class="flex-1 overflow-y-auto min-h-0 space-y-1 pr-0.5"
+              class="flex-1 overflow-y-auto min-h-0 space-y-3 pr-1"
             >
               <div
                 id="transcript-row-item-{{ transcript_line.id }}"
                 *ngFor="let transcript_line of transcriptLines; let i = index"
                 (click)="selectTranscriptLine(transcript_line)"
-                class="group relative rounded-lg border p-2 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
+                class="group relative border-2 border-black p-3 transition-all duration-150"
                 [ngClass]="{
-                  'bg-blue-50': activeTranscriptLine?.id === transcript_line.id,
-                  'bg-white': activeTranscriptLine?.id !== transcript_line.id,
-                  'cursor-not-allowed': shouldNotMoveActiveTranscriptLine(),
+                  'bg-[#FFDE4D]/20 shadow-[4px_4px_0px_0px_#000] border-l-8 border-l-black':
+                    activeTranscriptLine?.id === transcript_line.id,
+                  'bg-white hover:bg-gray-50 hover:shadow-[3px_3px_0px_0px_#000]':
+                    activeTranscriptLine?.id !== transcript_line.id,
+                  'opacity-60 cursor-not-allowed':
+                    shouldNotMoveActiveTranscriptLine(),
                   'cursor-pointer': !shouldNotMoveActiveTranscriptLine(),
                 }"
               >
                 <div
                   id="transcript-item-layout"
-                  class="flex items-start justify-between gap-2"
+                  class="flex items-start justify-between gap-3"
                 >
                   <div
                     id="transcript-content-column"
-                    class="space-y-1 flex-1 min-w-0"
+                    class="space-y-2 flex-1 min-w-0"
                   >
                     <div
                       id="transcript-text-display"
-                      class="font-semibold text-sm text-gray-900 leading-snug"
+                      class="font-black text-sm text-gray-900 leading-snug tracking-tight"
                     >
-                      {{ i + 1 }}: {{ transcript_line.text }}
+                      [{{ i + 1 }}] // {{ transcript_line.text }}
                     </div>
 
                     <div
                       id="transcript-translation-block"
-                      class="gap-x-2 gap-y-0.5 text-xs border-t border-gray-100 pt-1"
+                      class="text-xs border-t-2 border-dashed border-gray-200 pt-2"
                     >
                       <div
                         id="translation-vi-wrapper"
-                        class="flex items-start gap-1 text-gray-600"
+                        class="flex items-start gap-1.5"
                       >
                         <span
                           id="translation-vi-prefix"
-                          class="font-bold uppercase tracking-wide text-gray-400 shrink-0"
-                          >VI:</span
+                          class="font-black uppercase tracking-widest text-gray-400 shrink-0"
+                          >VI_</span
                         >
                         <span
                           id="translation-vi-text"
-                          class="italic text-gray-700"
+                          class="font-bold italic text-gray-700"
                           >{{ transcript_line.viText || "—" }}</span
                         >
                       </div>
                     </div>
 
-                    <div id="transcript-status-block" class="pt-0.5">
+                    <div id="transcript-status-block" class="pt-1">
                       <div
                         id="status-recorded-badge"
                         *ngIf="
                           this.getLastRecord(transcript_line) &&
                           this.getLastRecord(transcript_line)?.id
                         "
-                        class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-100"
+                        class="inline-flex items-center gap-1.5 border-2 border-black bg-[#2FD673] px-2 py-0.5 text-xs font-black text-black shadow-[2px_2px_0px_0px_#000]"
                       >
                         <span
                           id="status-recorded-dot"
-                          class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                          class="w-2 h-2 rounded-none bg-black shrink-0"
                         ></span>
-                        <span id="status-recorded-label">Heard:</span>
+                        <span
+                          id="status-recorded-label"
+                          class="uppercase tracking-wider"
+                          >HEARD:</span
+                        >
                         <span
                           id="status-recorded-text"
-                          class="font-semibold text-gray-900"
+                          class="font-bold text-gray-900"
                           >"{{
                             this.getLastRecord(transcript_line)?.sttText || "-"
                           }}"</span
                         >
                         <span
                           id="status-recorded-score"
-                          class="text-emerald-600 font-mono"
-                          >(Score:
-                          {{
-                            this.getLastRecord(transcript_line)?.score
-                          }})</span
+                          class="bg-black text-[#2FD673] px-1 text-[10px] font-mono"
+                          >SCORE:
+                          {{ this.getLastRecord(transcript_line)?.score }}</span
                         >
                       </div>
 
@@ -324,14 +366,16 @@ import { OnDestroy, HostListener } from "@angular/core";
                           !this.getLastRecord(transcript_line) &&
                           !transcript_line?.skip
                         "
-                        class="inline-flex items-center gap-1 rounded bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-400 border border-gray-200"
+                        class="inline-flex items-center gap-1.5 border border-gray-400 bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-500"
                       >
                         <span
                           id="status-unrecorded-dot"
-                          class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"
+                          class="w-1.5 h-1.5 rounded-none bg-gray-400 shrink-0"
                         ></span>
-                        <span id="status-unrecorded-label"
-                          >Not recorded yet</span
+                        <span
+                          id="status-unrecorded-label"
+                          class="uppercase tracking-wider"
+                          >UNRECORDED</span
                         >
                       </div>
 
@@ -341,13 +385,17 @@ import { OnDestroy, HostListener } from "@angular/core";
                           !this.getLastRecord(transcript_line) &&
                           transcript_line?.skip
                         "
-                        class="inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-600 border border-blue-600"
+                        class="inline-flex items-center gap-1.5 border-2 border-black bg-[#FF8A00] px-2 py-0.5 text-xs font-black text-white shadow-[2px_2px_0px_0px_#000]"
                       >
                         <span
                           id="status-skipped-dot"
-                          class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
+                          class="w-2 h-2 rounded-none bg-white shrink-0"
                         ></span>
-                        <span id="status-skipped-label">Skipped</span>
+                        <span
+                          id="status-skipped-label"
+                          class="uppercase tracking-wider"
+                          >SKIPPED_NODE</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -358,7 +406,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                   >
                     <span
                       id="transcript-time-badge"
-                      class="whitespace-nowrap font-mono text-xs font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded"
+                      class="whitespace-nowrap font-mono text-[10px] font-black text-black bg-[#F4F3EF] border border-black px-1.5 py-0.5 shadow-[1px_1px_0px_0px_#000]"
                     >
                       {{ transcript_line.start }} - {{ transcript_line.end }}
                     </span>
@@ -368,9 +416,9 @@ import { OnDestroy, HostListener } from "@angular/core";
 
               <div
                 id="transcript-list-ellipsis"
-                class="py-2 text-center text-gray-300 tracking-widest font-bold text-xs"
+                class="py-4 text-center text-gray-400 tracking-widest font-black text-sm"
               >
-                •••
+                // EOF_MATRIX_STREAM //
               </div>
             </div>
           </div>
@@ -379,6 +427,7 @@ import { OnDestroy, HostListener } from "@angular/core";
     </div>
   `,
 })
+
 export class RecordingComponent implements OnDestroy {
   // ==================== INFRASTRUCTURE ====================
 
@@ -610,7 +659,7 @@ export class RecordingComponent implements OnDestroy {
       this.activeTranscriptLineIdx = unrecorded_idx;
       setTimeout(() => {
         document
-          .querySelector(`[data-id="${unrecorded.id}"]`)
+          .querySelector(`[id="transcript-row-item-${unrecorded.id}"]`)
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
       console.log("Jumped to unrecorded sentence", unrecorded.id);
