@@ -28,4 +28,8 @@ public class Users {
     @CreationTimestamp
     @Column(name="created_at", nullable = false)
     private LocalDateTime created_at;
+
+    public Long getId() {
+        return id;
+    }
 }
