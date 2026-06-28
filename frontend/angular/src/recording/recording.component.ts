@@ -209,7 +209,6 @@ import { OnDestroy, HostListener } from "@angular/core";
                 <audio
                   id="audio-player-mine"
                   [src]="mineWavAudio || ''"
-                  [loop]="setting.loop === 1"
                   controls
                   class="h-8 w-full accent-black"
                 ></audio>
@@ -427,7 +426,6 @@ import { OnDestroy, HostListener } from "@angular/core";
     </div>
   `,
 })
-
 export class RecordingComponent implements OnDestroy {
   // ==================== INFRASTRUCTURE ====================
 
@@ -584,10 +582,17 @@ export class RecordingComponent implements OnDestroy {
 
     this._pauseAtEndTime = () => {
       if (video.currentTime >= this.activeTranscriptLine!!.end) {
-        video.pause();
-        video.currentTime = this.activeTranscriptLine!!.start;
-        this.isPlaying = false;
-        video.removeEventListener("timeupdate", this._pauseAtEndTime);
+        if (this.setting.loop === 1) {
+          // Infinite loop: restart interval
+          video.currentTime = this.activeTranscriptLine!!.start;
+          video.play();
+        } else {
+          // No loop: stop
+          video.pause();
+          video.currentTime = this.activeTranscriptLine!!.start;
+          this.isPlaying = false;
+          video.removeEventListener("timeupdate", this._pauseAtEndTime);
+        }
       }
     };
 

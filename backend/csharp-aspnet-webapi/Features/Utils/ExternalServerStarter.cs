@@ -11,7 +11,7 @@ public class ExternalServerStarter : BackgroundService
         _servers = new List<ServerConfig>
         {
             new ServerConfig { Name = "WHISPER_CPP", IsOn = true, Port = 8080, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Features\Utils\stt.bat" },
-            new ServerConfig { Name = "LLM", IsOn = !_isTest, Port = 8081, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Features\Utils\llm.bat" },
+            new ServerConfig { Name = "LLM", IsOn = true, Port = 8081, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\backend\csharp-aspnet-webapi\Features\Utils\llm.bat" },
             new ServerConfig { Name = "PARAKEET", IsOn = true, Port = 8082, BatPath = @"C:\Users\ADMIN\Desktop\shadow-practice-project\services\stt\parakeet\run.bat" },
         };
     }

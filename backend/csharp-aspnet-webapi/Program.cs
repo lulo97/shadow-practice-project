@@ -30,9 +30,9 @@ if (is_test)
     builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
 
     //Services
-    builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
+    builder.Services.AddScoped<IYtDlp, YtDlpCli>();
     builder.Services.AddTransient<IAsrService, FakeAsrService>();
-    builder.Services.AddScoped<ILLM, FakeLlm>();
+    builder.Services.AddScoped<ILLM, LlamaCpp>();
     builder.Services.AddScoped<IProfileDataService, ProfileDataServiceSqlite>();
 
     //Reader Writer
