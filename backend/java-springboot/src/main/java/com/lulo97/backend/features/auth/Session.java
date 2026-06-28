@@ -12,20 +12,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="users")
-public class Users {
+@Table(name="session")
+public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
 
-    @Column(name="username", nullable = false)
-    private String username;
+    @Column(name="user_id", nullable = false)
+    private String user_id;
 
-    @Column(name="password_hashed", nullable = false)
-    private String password_hashed;
+    @Column(name="token", nullable = false)
+    private String token;
 
+    
     @CreationTimestamp
     @Column(name="created_at", nullable = false)
     private LocalDateTime created_at;
+
+    @Column(name="expires_at", nullable = false)
+    private LocalDateTime expires_at;
 }
