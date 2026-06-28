@@ -15,85 +15,97 @@ import { Subscription } from "rxjs";
   selector: "app-shadowing-homepage",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `<div id="main-container" class="flex h-screen bg-gray-50 overflow-hidden">
+  template: ` <div
+    id="main-container"
+    class="relative z-10 flex h-screen bg-[#F4F3EF] text-[#1A1A1A] font-mono overflow-hidden"
+  >
+    <div
+      class="fixed inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"
+    ></div>
+
     <nav
       id="sidebar"
-      class="w-52 min-w-[208px] bg-white border-r border-gray-200 flex flex-col justify-between py-5"
+      class="relative z-10 w-64 min-w-[256px] bg-[#1A1A1A] text-white border-r-4 border-black flex flex-col justify-between py-6"
     >
       <div id="sidebar-menu-wrapper" class="flex flex-col flex-1">
         <div
           id="project-title"
-          class="flex items-center gap-2.5 px-4 pb-5 font-medium text-gray-900 text-[15px]"
+          class="flex items-center gap-2.5 px-4 pb-6 font-black tracking-tighter"
         >
           <div
             id="logo-icon-wrapper"
-            class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"
+            class="w-8 h-8 bg-[#FF4E4E] border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-center text-black"
           >
-            <i id="logo-icon" class="fa-solid fa-play text-sm"></i>
+            <i id="logo-icon" class="fa-solid fa-play text-xs"></i>
           </div>
-          Shadowing Project
+          <span class="text-md uppercase tracking-tight text-[#FFDE4D]"
+            >Shadowing_Proj //</span
+          >
         </div>
 
-        <div id="nav-links" class="flex flex-col px-2 gap-0.5">
+        <div id="nav-links" class="flex flex-col px-3 gap-2">
           <button
             [class]="
               currentTab === 'MY_VIDEOS'
-                ? 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-blue-600 bg-blue-50 w-full text-left'
-                : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
+                ? 'flex items-center gap-2.5 px-4 py-2.5 border-2 border-black bg-[#FFDE4D] text-black font-black uppercase text-xs shadow-[3px_3px_0px_0px_#000] w-full text-left cursor-pointer transition-all'
+                : 'flex items-center gap-2.5 px-4 py-2.5 font-bold uppercase text-xs text-[#A3A3A3] hover:text-[#FFDE4D] hover:bg-[#2A2A2A] w-full text-left cursor-pointer transition-all'
             "
             id="nav-my-videos"
             (click)="setCurrentTab('MY_VIDEOS')"
           >
-            <i
-              id="nav-my-videos-icon"
-              class="fa-regular fa-folder text-base"
-            ></i>
-            My Videos
+            <i id="nav-my-videos-icon" class="fa-regular fa-folder text-sm"></i>
+            >> MY_VIDEOS
           </button>
 
           <button
             [class]="
               currentTab === 'SYSTEM_VIDEOS'
-                ? 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-blue-600 bg-blue-50 w-full text-left'
-                : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 w-full text-left transition-colors'
+                ? 'flex items-center gap-2.5 px-4 py-2.5 border-2 border-black bg-[#FFDE4D] text-black font-black uppercase text-xs shadow-[3px_3px_0px_0px_#000] w-full text-left cursor-pointer transition-all'
+                : 'flex items-center gap-2.5 px-4 py-2.5 font-bold uppercase text-xs text-[#A3A3A3] hover:text-[#FFDE4D] hover:bg-[#2A2A2A] w-full text-left cursor-pointer transition-all'
             "
             id="nav-system-videos"
             (click)="setCurrentTab('SYSTEM_VIDEOS')"
           >
-            <i id="nav-system-videos-icon" class="fas fa-tv text-base"></i>
-            System Videos
+            <i id="nav-system-videos-icon" class="fas fa-tv text-sm"></i>
+            >> SYSTEM_VIDEOS
           </button>
         </div>
       </div>
 
       <div id="sidebar-footer-wrapper">
-        <hr id="sidebar-divider" class="border-gray-200 mx-2 mb-2" />
-        <div id="footer-actions" class="flex flex-col px-2 gap-0.5">
+        <hr id="sidebar-divider" class="border-[#333] mx-3 mb-4" />
+        <div id="footer-actions" class="flex flex-col px-3 gap-1">
           <span
             id="profile-link"
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
+            class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold uppercase text-[#A3A3A3] hover:text-[#00E5FF] hover:bg-[#2A2A2A] cursor-pointer transition-colors"
           >
-            <i id="profile-icon" class="fa-regular fa-user text-base"></i>
-            Profile
+            <i id="profile-icon" class="fa-regular fa-user text-sm"></i>
+            User_Profile
           </span>
           <span
             (click)="logOut()"
             id="logout-link"
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer transition-colors"
+            class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold uppercase text-[#A3A3A3] hover:text-[#FF4E4E] hover:bg-[#2A2A2A] cursor-pointer transition-colors"
           >
-            <i id="logout-icon" class="fas fa-right-from-bracket text-base"></i>
-            Logout
+            <i id="logout-icon" class="fas fa-right-from-bracket text-sm"></i>
+            Term_Logout
           </span>
+        </div>
+        <div class="px-7 pt-4 text-[10px] text-[#666] uppercase tracking-wider">
+          ENV: PROD_STAGE // MAIN_CORE
         </div>
       </div>
     </nav>
 
-   <main id="content-area" class="flex-1 min-h-0 p-6 flex flex-col gap-4 overflow-hidden">
-      <div id="search-bar-wrapper" class="flex items-center gap-2.5">
+    <main
+      id="content-area"
+      class="relative z-10 flex-1 min-h-0 p-8 flex flex-col gap-6 overflow-hidden"
+    >
+      <div id="search-bar-wrapper" class="flex items-center gap-4">
         <div id="search-input-container" class="relative flex-1">
           <i
             id="search-icon"
-            class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+            class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-black text-sm"
           ></i>
 
           <input
@@ -101,66 +113,74 @@ import { Subscription } from "rxjs";
             (ngModelChange)="fetchVideosDebounce()"
             id="video-search"
             type="text"
-            placeholder="Search by title..."
-            class="w-full h-9 pl-9 pr-3 border border-gray-300 rounded-lg text-[13.5px] bg-white text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            placeholder="Registry search by title..."
+            class="w-full h-12 pl-11 pr-4 border-2 border-black bg-white focus:bg-[#FFDE4D]/10 font-black uppercase text-xs placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#FFDE4D] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05)] transition-all"
           />
         </div>
         <button
           (click)="openFilterModal()"
           id="filter-btn"
-          class="h-9 px-3 border border-gray-300 rounded-lg bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-1.5 text-[13.5px]"
+          class="h-12 px-4 border-2 border-black bg-white hover:bg-neutral-50 shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] transition-all flex items-center justify-center text-black cursor-pointer"
         >
           <i id="filter-icon" class="fa-solid fa-sliders text-sm"></i>
         </button>
       </div>
 
-      <div id="action-bar" class="flex items-center justify-between">
+      <div id="action-bar" class="flex items-center gap-4">
         <button
           (click)="openModalAddVideo()"
           id="add-video-btn"
-          class="h-9 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-[13.5px] font-medium rounded-lg flex items-center gap-1.5 transition-all"
+          class="h-12 px-6 bg-[#FFDE4D] border-2 border-black shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none font-black uppercase text-xs tracking-wider flex items-center gap-2 transition-all cursor-pointer"
         >
-          <i id="add-video-icon" class="fa-solid fa-plus text-sm"></i> Add Video
+          <i id="add-video-icon" class="fa-solid fa-plus text-sm"></i>
+          Add_Video_Stream
         </button>
         <button
           (click)="jumpToUnfinished()"
           id="jump-unfinished-btn"
-          class="h-9 px-4 border border-blue-600 text-blue-600 text-[13.5px] rounded-lg hover:bg-blue-50 transition-colors"
+          class="h-12 px-6 border-2 border-black bg-white text-black shadow-[4px_4px_0px_0px_#000] hover:bg-neutral-50 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] font-black uppercase text-xs transition-all cursor-pointer"
         >
-          Jump to Unfinished
+          Jump_To_Unfinished
         </button>
       </div>
 
-      <section id="videos-list" class="flex-1 min-h-0 overflow-y-auto">
-        <h2
-          id="videos-list-heading"
-          class="text-[14px] font-medium text-gray-900 mb-3"
+      <section id="videos-list" class="flex-1 min-h-0 overflow-y-auto pr-2">
+        <div
+          class="inline-block bg-black text-white px-3 py-1 text-[11px] font-black border-2 border-black uppercase tracking-widest mb-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
         >
-          {{ currentTab == "MY_VIDEOS" ? "My Videos" : "System Videos" }}
-        </h2>
+          {{
+            currentTab == "MY_VIDEOS"
+              ? "INDEX // MY_VIDEOS"
+              : "INDEX // SYSTEM_VIDEOS"
+          }}
+        </div>
 
-        <div *ngFor="let video of videos" [id]="'video-' + video.id">
+        <div
+          *ngFor="let video of videos"
+          [id]="'video-' + video.id"
+          class="mb-4"
+        >
           <div
             [id]="'video-card-' + video.id"
-            class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
+            class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border-4 border-black bg-white shadow-[6px_6px_0px_0px_#000] hover:shadow-[8px_8px_0px_0px_#000] transition-all"
           >
             <div
-              class="relative h-[100px] aspect-video rounded-lg bg-gray-900 flex items-center justify-center transition-transform duration-300 hover:scale-105 hover:z-10"
+              class="relative h-[90px] aspect-video border-2 border-black bg-black flex items-center justify-center overflow-hidden shrink-0"
               id="thumb-{{ video.title }}"
             >
               <ng-template #loadingThumb>
                 <div
                   id="loading-thumb-container-{{ video.id }}"
-                  class="flex flex-col items-center justify-center gap-2 text-gray-400"
+                  class="flex flex-col items-center justify-center gap-1.5 text-[#A3A3A3]"
                 >
                   <i
                     id="loading-thumb-spinner-{{ video.id }}"
-                    class="fa-solid fa-spinner fa-spin text-xl"
+                    class="fa-solid fa-spinner fa-spin text-md text-[#FFDE4D]"
                   ></i>
                   <span
                     id="loading-thumb-text-{{ video.id }}"
-                    class="text-[11px]"
-                    >Loading...</span
+                    class="text-[10px] font-bold tracking-tight"
+                    >PARSING...</span
                   >
                 </div>
               </ng-template>
@@ -170,83 +190,71 @@ import { Subscription } from "rxjs";
                   [id]="'img-thumb-' + video.id"
                   (click)="toRecording(video.id)"
                   [src]="video.thumbnail"
-                  class="w-full h-full object-cover cursor-pointer rounded-lg"
+                  class="w-full h-full object-cover cursor-pointer grayscale hover:grayscale-0 transition-all"
                 />
               </ng-container>
             </div>
 
             <div
               [id]="'details-container-' + video.id"
-              class="flex-1 min-w-0 flex flex-col gap-1"
+              class="flex-1 min-w-0 flex flex-col gap-2"
             >
               <div
                 [id]="'header-wrapper-' + video.id"
-                class="flex items-center gap-2 flex-wrap"
+                class="flex items-center gap-3 flex-wrap"
               >
                 <h3
-                  class="text-[14px] font-medium text-gray-900 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
+                  class="text-[15px] font-black uppercase text-black cursor-pointer hover:underline tracking-tight"
                   id="video-title-id-{{ video.id }}"
                   (click)="toRecording(video.id)"
                 >
-                  {{ video.title ? video.title : "Title" }}
+                  {{ video.title ? video.title : "Unassigned_Title.raw" }}
                 </h3>
 
                 <span
                   *ngIf="video.status == 'UNFINISHED'"
-                  class="flex items-center gap-1 text-[12px] font-medium text-amber-600"
+                  class="px-2 py-0.5 font-black text-[10px] uppercase bg-[#FF8A00] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
                   id="status-unfinished-{{ video.id }}"
                 >
-                  <i
-                    [id]="'status-unfinished-icon-' + video.id"
-                    class="fa-regular fa-clock text-[12px]"
-                  ></i>
                   Unfinished
                 </span>
 
                 <span
                   *ngIf="video.status === 'FINISHED'"
-                  class="flex items-center gap-1 text-[12px] font-medium text-green-600"
+                  class="px-2 py-0.5 font-black text-[10px] uppercase bg-[#2FD673] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
                   id="status-finished-{{ video.id }}"
                 >
-                  <i
-                    [id]="'status-finished-icon-' + video.id"
-                    class="fa-regular fa-circle-check text-[12px]"
-                  ></i>
                   Finished
                 </span>
 
                 <span
                   *ngIf="video.status === 'NOT_STARTED'"
-                  class="flex items-center gap-1 text-[12px] font-medium text-gray-400"
+                  class="px-2 py-0.5 font-bold text-[10px] uppercase bg-black text-white border border-black"
                   id="status-not-started-{{ video.title }}"
                 >
-                  <i
-                    [id]="'status-not-started-icon-' + video.id"
-                    class="fa-regular fa-circle text-[12px]"
-                  ></i>
-                  Not started
+                  Not_Started
                 </span>
               </div>
 
               <div
                 *ngIf="video.status !== 'NOT_STARTED'"
-                class="flex items-center gap-2"
+                class="flex items-center gap-3"
                 id="progress-{{ video.id }}"
               >
                 <div
                   [id]="'progress-bar-bg-' + video.id"
-                  class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+                  class="flex-1 h-3 bg-[#F4F3EF] border-2 border-black overflow-hidden"
                 >
                   <div
                     [id]="'progress-bar-fill-' + video.id"
-                    class="h-full bg-blue-600 rounded-full"
+                    class="h-full bg-[#00E5FF] border-r-2 border-black"
                     [style.width.%]="video.processPercent"
                   ></div>
                 </div>
 
                 <span
                   [id]="'progress-text-' + video.id"
-                  class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                  class="text-[11px] font-black text-black min-w-[32px] text-right bg-[#00E5FF] px-1 border border-black"
                 >
                   {{ video.processPercent }}%
                 </span>
@@ -254,23 +262,23 @@ import { Subscription } from "rxjs";
 
               <div
                 *ngIf="video.status === 'NOT_STARTED'"
-                class="flex items-center gap-2"
+                class="flex items-center gap-3"
                 id="progress-not-started-{{ video.id }}"
               >
                 <div
                   [id]="'progress-bar-ns-bg-' + video.id"
-                  class="flex-1 h-[5px] bg-gray-100 rounded-full border border-gray-200 overflow-hidden"
+                  class="flex-1 h-3 bg-[#F4F3EF] border-2 border-black overflow-hidden"
                 >
                   <div
                     [id]="'progress-bar-ns-fill-' + video.id"
-                    class="h-full bg-blue-600 rounded-full"
+                    class="h-full bg-neutral-400"
                     [style.width.%]="0"
                   ></div>
                 </div>
 
                 <span
                   [id]="'progress-ns-text-' + video.id"
-                  class="text-[12px] text-gray-500 min-w-[28px] text-right"
+                  class="text-[11px] font-bold text-neutral-400 min-w-[32px] text-right"
                 >
                   0%
                 </span>
@@ -279,16 +287,18 @@ import { Subscription } from "rxjs";
               <div
                 *ngIf="1"
                 [id]="'last-practiced-container-' + video.id"
-                class="flex items-center gap-1 text-[12px] text-gray-400"
+                class="flex items-center gap-1 text-[11px] font-bold text-neutral-500 uppercase"
               >
                 <i
                   [id]="'last-practiced-icon-' + video.id"
                   class="fa-regular fa-user-circle text-[11px]"
                 ></i>
-                Last practiced:
-                <span [id]="'last-practiced-date-' + video.id">{{
-                  video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy"
-                }}</span>
+                Sync_Stamp:
+                <span
+                  [id]="'last-practiced-date-' + video.id"
+                  class="text-black font-black"
+                  >{{ video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy" }}</span
+                >
               </div>
             </div>
 
@@ -297,18 +307,23 @@ import { Subscription } from "rxjs";
                 openVideoProcessModal(video.jobId); $event.stopPropagation()
               "
               id="video-progress-{{ video.id }}"
-              class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors border-none bg-transparent"
+              class="w-10 h-10 flex items-center justify-center border-2 border-black bg-white hover:bg-[#FF4E4E] hover:text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
               aria-label="More options"
             >
               <i
                 [id]="'video-progress-icon-' + video.id"
-                class="fa-solid fa-ellipsis-vertical text-base"
+                class="fa-solid fa-ellipsis-vertical text-md"
               ></i>
             </button>
           </div>
         </div>
-        <p id="videos-count-summary" class="text-[12px] text-gray-400 mt-1">
-          Showing 1–{{ videos.length }} of {{ videos.length }} videos
+
+        <p
+          id="videos-count-summary"
+          class="inline-block p-2 bg-white border-2 border-black font-bold text-[11px] text-black uppercase mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+        >
+          LOG_METRIC: Showing 1–{{ videos.length }} of
+          {{ videos.length }} matrices loaded
         </p>
       </section>
     </main>
