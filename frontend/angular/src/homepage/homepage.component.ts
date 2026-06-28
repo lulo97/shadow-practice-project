@@ -513,8 +513,8 @@ export class HomepageComponent {
           this.searchData.toDate = toDate;
           this.fetchVideos();
         },
-        fromDate: this.searchData.fromDate,
-        toDate: this.searchData.toDate,
+        getFromDate: () => this.searchData.fromDate, // live read
+        getToDate: () => this.searchData.toDate, // live read
       },
     });
   }
@@ -523,11 +523,8 @@ export class HomepageComponent {
     this.modal.open({
       title: "Profile Data Modal",
       component: ProfileDataComponent,
-      onClose: async () => {
-      },
-      data: {
-       
-      },
+      onClose: async () => {},
+      data: {},
     });
   }
 

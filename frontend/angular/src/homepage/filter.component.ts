@@ -62,11 +62,25 @@ import { ModalService } from "../components/modal/modal.service";
 export class FilterComponent {
   modal = inject(ModalService);
 
-  fromDate: string = this.modal.config().data.fromDate;
-  toDate: string = this.modal.config().data.toDate;
+  fromDate: string = "";
+  toDate: string = "";
+
   ngOnInit() {
+    const rawFrom = this.modal.config().data.getFromDate();
+    const rawTo = this.modal.config().data.getToDate();
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+
+    this.fromDate = rawFrom ? rawFrom.split("T")[0] : fmt(today);
+    this.toDate = rawTo ? rawTo.split("T")[0] : fmt(tomorrow);
+
     this.modal.ready();
   }
+
   applyFilters() {
     // Append times to the ISO date string
     const formattedFrom = this.fromDate ? `${this.fromDate}T00:00:00` : null;
