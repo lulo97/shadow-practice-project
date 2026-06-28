@@ -57,7 +57,7 @@ public class SqliteVideoRepository : IVideoRepository
                 v.description AS Description,
                 MAX(j.id) AS JobId,
 
-                CASE 
+                CASE
                     WHEN COUNT(tl.id) = 0 THEN 'NOT_STARTED'
                     WHEN COUNT(r.transcript_line_id) = 0 THEN 'NOT_STARTED'
                     WHEN COUNT(DISTINCT r.transcript_line_id) < COUNT(DISTINCT tl.id) THEN 'UNFINISHED'

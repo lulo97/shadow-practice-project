@@ -15,7 +15,7 @@ import { Subscription } from "rxjs";
   selector: "app-shadowing-homepage",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `<div id="main-container" class="flex min-h-screen bg-gray-50">
+  template: `<div id="main-container" class="flex h-screen bg-gray-50 overflow-hidden">
     <nav
       id="sidebar"
       class="w-52 min-w-[208px] bg-white border-r border-gray-200 flex flex-col justify-between py-5"
@@ -88,7 +88,7 @@ import { Subscription } from "rxjs";
       </div>
     </nav>
 
-    <main id="content-area" class="flex-1 p-6 flex flex-col gap-4">
+   <main id="content-area" class="flex-1 min-h-0 p-6 flex flex-col gap-4 overflow-hidden">
       <div id="search-bar-wrapper" class="flex items-center gap-2.5">
         <div id="search-input-container" class="relative flex-1">
           <i
@@ -123,6 +123,7 @@ import { Subscription } from "rxjs";
           <i id="add-video-icon" class="fa-solid fa-plus text-sm"></i> Add Video
         </button>
         <button
+          (click)="jumpToUnfinished()"
           id="jump-unfinished-btn"
           class="h-9 px-4 border border-blue-600 text-blue-600 text-[13.5px] rounded-lg hover:bg-blue-50 transition-colors"
         >
@@ -130,7 +131,7 @@ import { Subscription } from "rxjs";
         </button>
       </div>
 
-      <section id="videos-list">
+      <section id="videos-list" class="flex-1 min-h-0 overflow-y-auto">
         <h2
           id="videos-list-heading"
           class="text-[14px] font-medium text-gray-900 mb-3"
@@ -138,10 +139,7 @@ import { Subscription } from "rxjs";
           {{ currentTab == "MY_VIDEOS" ? "My Videos" : "System Videos" }}
         </h2>
 
-        <div
-          *ngFor="let video of videos"
-          [id]="'video-' + video.id"
-        >
+        <div *ngFor="let video of videos" [id]="'video-' + video.id">
           <div
             [id]="'video-card-' + video.id"
             class="flex items-center gap-3.5 p-3.5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all mb-2.5"
@@ -496,5 +494,16 @@ export class HomepageComponent {
     } else {
       window.location.href = "/login";
     }
+  }
+
+  jumpToUnfinished() {
+    const latestUnfinished = this.videos.find(
+      (ele) => ele.status !== "FINISHED",
+    );
+
+    if (!latestUnfinished) return;
+
+    const el = document.getElementById(`video-${latestUnfinished.id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
