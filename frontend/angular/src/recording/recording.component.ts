@@ -756,7 +756,7 @@ export class RecordingComponent implements OnDestroy {
 
     const record_id = this.getLastRecord(this.activeTranscriptLine)?.id;
     if (!record_id) {
-      messageUtils("Not recorded yet!");
+      //messageUtils("Not recorded yet!");
       return;
     }
 

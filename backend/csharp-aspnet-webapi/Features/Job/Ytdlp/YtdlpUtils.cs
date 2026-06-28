@@ -4,14 +4,15 @@ public static class YtdlpUtils
 {
     public static List<TranscriptLineFormat> ParseTranscript(string vttContent)
     {
+        // Normalize all line endings to \n first
+        vttContent = vttContent.Replace("\r\n", "\n").Replace("\r", "\n");
+
         var result = new List<TranscriptLineFormat>();
 
-        // Match timestamp lines + the text block that follows
         var blockPattern = new Regex(
             @"(\d{2}:\d{2}:\d{2}\.\d+)\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d+)[^\n]*\n([\s\S]*?)(?=\n\n|\z)",
             RegexOptions.Multiline);
 
-        // Strip HTML/VTT tags like <00:00:01.234><c>, </c>, <b>, etc.
         var tagPattern = new Regex(@"<[^>]+>");
 
         foreach (Match match in blockPattern.Matches(vttContent))

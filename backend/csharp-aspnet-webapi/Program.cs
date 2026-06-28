@@ -118,13 +118,17 @@ using (var scope = app.Services.CreateScope())
 
     // Creates the tables if they don't exist
     context.Database.EnsureCreated();
-
+    
+    //Seed here
     if (!context.Users.Any())
     {
-        context.Users.Add(new User { Id = 1, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
-        context.Users.Add(new User { Id = -1, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
+        context.Users.Add(new User { Id = Utils.TEST_USER_ID, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
+        context.Users.Add(new User { Id = Utils.ADMIN_ID, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
         context.SaveChanges();
     }
+
+    await SeedSystemVideos.RunAsync(scope, true);
+    await SeedSystemVideos.RunAsync(scope, false);
 }
 
 app.UseCors("AllowLocalhost3001");
