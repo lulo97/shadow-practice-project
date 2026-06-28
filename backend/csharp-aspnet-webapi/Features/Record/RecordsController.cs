@@ -67,7 +67,7 @@ public class RecordsController : ControllerBase
             VideoId = dto.VideoId,
             TranscriptLineId = dto.TranscriptLineId,
             SttText = sttText,
-            UserId = user_setting.Id,
+            UserId = user_setting.UserId,
             //FilePath = null,
             //BlobData = bytes, //For test
             Score = SttUtils.GetScore(transcript_line.Text, sttText),

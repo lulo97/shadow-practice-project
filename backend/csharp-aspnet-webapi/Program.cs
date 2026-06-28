@@ -33,6 +33,7 @@ if (is_test)
     builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
     builder.Services.AddTransient<IAsrService, FakeAsrService>();
     builder.Services.AddScoped<ILLM, FakeLlm>();
+    builder.Services.AddScoped<IProfileDataService, ProfileDataServiceSqlite>();
 
     //Reader Writer
     builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
@@ -55,6 +56,7 @@ if (is_test)
     builder.Services.AddScoped<IYtDlp, YtDlpCli>();
     builder.Services.AddTransient<IAsrService, FakeAsrService>();
     builder.Services.AddScoped<ILLM, LlamaCpp>();
+    builder.Services.AddScoped<IProfileDataService, ProfileDataServicePostgres>();
 
     //Reader Writer
     builder.Services.AddSingleton<IVideoFileReader, VideoLocalFileReader>();

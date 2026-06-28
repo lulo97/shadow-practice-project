@@ -18,6 +18,7 @@ public class VideosController : ControllerBase
         _videoRepository = videoRepository;
     }
 
+    [HttpGet]
     public async Task<IActionResult> GetList(
     [FromQuery] string? title,
     [FromQuery] DateTime? fromDate,

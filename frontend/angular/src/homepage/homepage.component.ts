@@ -10,6 +10,7 @@ import { FormsModule } from "@angular/forms";
 import { FilterComponent } from "./filter.component";
 import { SseService } from "../sse/sseservice.component";
 import { Subscription } from "rxjs";
+import { ProfileDataComponent } from "./profiledata.component";
 
 @Component({
   selector: "app-shadowing-homepage",
@@ -76,6 +77,7 @@ import { Subscription } from "rxjs";
         <hr id="sidebar-divider" class="border-[#333] mx-3 mb-4" />
         <div id="footer-actions" class="flex flex-col px-3 gap-1">
           <span
+            (click)="openProfileDataModal()"
             id="profile-link"
             class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold uppercase text-[#A3A3A3] hover:text-[#00E5FF] hover:bg-[#2A2A2A] cursor-pointer transition-colors"
           >
@@ -513,6 +515,18 @@ export class HomepageComponent {
         },
         fromDate: this.searchData.fromDate,
         toDate: this.searchData.toDate,
+      },
+    });
+  }
+
+  openProfileDataModal() {
+    this.modal.open({
+      title: "Profile Data Modal",
+      component: ProfileDataComponent,
+      onClose: async () => {
+      },
+      data: {
+       
       },
     });
   }
