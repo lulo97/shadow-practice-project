@@ -57,12 +57,21 @@ public class PostgresVideoRepository : IVideoRepository
         
                 CASE 
                     WHEN COUNT(tl.id) = 0 THEN 'NOT_STARTED'
-                    WHEN COUNT(r.transcript_line_id) = 0 THEN 'NOT_STARTED'
-                    WHEN COUNT(DISTINCT r.transcript_line_id) < COUNT(DISTINCT tl.id) THEN 'UNFINISHED'
+                    WHEN COUNT(DISTINCT CASE WHEN tl.skip = 0 THEN r.transcript_line_id END) = 0
+                            AND COUNT(DISTINCT CASE WHEN tl.skip = 1 THEN tl.id END) = 0 THEN 'NOT_STARTED'
+                    WHEN (
+                        COUNT(DISTINCT CASE WHEN tl.skip = 0 THEN r.transcript_line_id END) +
+                        COUNT(DISTINCT CASE WHEN tl.skip = 1 THEN tl.id END)
+                    ) < COUNT(DISTINCT tl.id) THEN 'UNFINISHED'
                     ELSE 'FINISHED'
                 END AS ""Status"",
 
-                (COUNT(DISTINCT r.transcript_line_id) * 100 / NULLIF(COUNT(DISTINCT tl.id), 0))::integer AS ""ProcessPercent"",
+                (
+                    (
+                        COUNT(DISTINCT CASE WHEN tl.skip = 0 THEN r.transcript_line_id END) +
+                        COUNT(DISTINCT CASE WHEN tl.skip = 1 THEN tl.id END)
+                    ) * 100 / NULLIF(COUNT(DISTINCT tl.id), 0)
+                )::integer AS ""ProcessPercent"",
 
                 MAX(r.created_at) AS ""LastPracticed""
 
@@ -72,7 +81,9 @@ public class PostgresVideoRepository : IVideoRepository
             LEFT JOIN record r ON tl.id = r.transcript_line_id
             {whereClause}
             GROUP BY 
-                v.id, v.title, v.youtube_id, v.user_id, v.created_at, v.description;
+                v.id, v.title, v.youtube_id, v.user_id, v.created_at, v.description
+            ORDER BY v.created_at desc
+            ;
         ";
 
         return await _context.Database

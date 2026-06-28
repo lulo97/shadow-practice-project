@@ -67,10 +67,20 @@ public class TranscriptsController : ControllerBase
     public async Task<IActionResult> Skip(int transcript_line_id)
     {
         var transcriptLine = await _context.TranscriptLines.FindAsync(transcript_line_id);
+
         if (transcriptLine == null) return NotFound();
 
+        var is_recorded = _context.Records.FirstOrDefault(x => x.TranscriptLineId == transcript_line_id) != null;
+
+        if (is_recorded)
+        {
+            return BadRequest(new { message = "Recorded line can't be skip" });
+        }
+
         transcriptLine.Skip = transcriptLine.Skip == 0 ? 1 : 0;
+
         await _context.SaveChangesAsync();
+
         return Ok(transcriptLine);
     }
 

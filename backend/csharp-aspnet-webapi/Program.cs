@@ -1,98 +1,109 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
-// ============================================================
-// SWITCH: Database backend
-// Uncomment exactly ONE of the three blocks below.
-// ============================================================
-
-// --- Option A: SQLite (file-based, auto-deleted on start) ---
-const string DbFileName = "app_debug.db";
-if (File.Exists(DbFileName))
-{
-    try { File.Delete(DbFileName); }
-    catch (IOException ex) { Console.WriteLine($"Could not delete old DB file: {ex.Message}"); }
-}
-
-// --- Option B: PostgreSQL ---
-// const string PgConnectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
-
-// --- Option C: InMemory ---
-//Can't use sql with this (this is dead code exist for fun only)
-
-// ============================================================
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ============================================================
-// SWITCH: Register DbContext match your choice above
-// ============================================================
+var is_test = true;
 
-// Option A: SQLite
-builder.Services.AddDbContext<AppDbContext>(options =>
+var FRONTEND_PORT = 3001;
+
+if (is_test)
+{
+    Console.WriteLine("App state = TEST");
+
+    //Database
+    const string DbFileName = "app_debug.db";
+    if (File.Exists(DbFileName))
+    {
+        try { File.Delete(DbFileName); }
+        catch (IOException ex) { Console.WriteLine($"Could not delete old DB file: {ex.Message}"); }
+    }
+
+    builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={DbFileName}"));
 
-// Option B: PostgreSQL
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseNpgsql(PgConnectionString));
+    //Video
+    builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
 
-// Option C: InMemory
+    //Services
+    builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
+    builder.Services.AddTransient<IAsrService, FakeAsrService>();
+    builder.Services.AddScoped<ILLM, FakeLlm>();
+
+    //Reader Writer
+    builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
+    builder.Services.AddSingleton<IVideoFileWriter, VideoDatabaseStorage>();
+    builder.Services.AddSingleton<IRecordFileReader, RecordDatabaseReader>();
+    builder.Services.AddSingleton<IRecordFileWriter, RecordDatabaseStorage>();
+} else
+{
+    Console.WriteLine("App state = PRODUCTION");
+
+    //Database
+    const string PgConnectionString = "Host=localhost;Port=5432;Database=shadow;Username=postgres;Password=123";
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(PgConnectionString));
+
+    //Video
+    builder.Services.AddScoped<IVideoRepository, PostgresVideoRepository>();
+
+    //Services
+    builder.Services.AddScoped<IYtDlp, YtDlpCli>();
+    builder.Services.AddTransient<IAsrService, FakeAsrService>();
+    builder.Services.AddScoped<ILLM, LlamaCpp>();
+
+    //Reader Writer
+    builder.Services.AddSingleton<IVideoFileReader, VideoLocalFileReader>();
+    builder.Services.AddSingleton<IVideoFileWriter, VideoLocalFileStorage>();
+    builder.Services.AddSingleton<IRecordFileReader, RecordLocalFileReader>();
+    builder.Services.AddSingleton<IRecordFileWriter, RecordLocalFileStorage>();
+}
+
+builder.Services.AddScoped<WhisperCpp>();
+builder.Services.AddScoped<Parakeet>();
+builder.Services.AddScoped<ISTTFactory, STTFactory>();
+builder.Services.AddHostedService<ExternalServerStarter>(provider =>
+    new ExternalServerStarter(is_test));
+builder.Services.AddScoped<VideoJobUtils>();
+builder.Services.AddSingleton<SseService>();
+builder.Services.AddHostedService<JobProcessorService>();
+
+// --- InMemory Database ---
+//Can't use sql with this (this is dead code exist for fun only)
+
+//InMemory
 //Error: microsoft.data.sqlite.sqliteexception (0x80004005): sqlite error 5: 'unable to delete/modify user-function due to active statements'.
 //Switch to file and delete after use
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //    options.UseInMemoryDatabase("MyDb"));
 
-// ============================================================
-// SWITCH: Repository implementation match your DB choice
-// ============================================================
-
-// Option A/C: SQLite or InMemory
-builder.Services.AddScoped<IVideoRepository, SqliteVideoRepository>();
-
-// Option B: PostgreSQL
-//builder.Services.AddScoped<IVideoRepository, PostgresVideoRepository>();
-
-// ============================================================
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost3001",
+    options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3001")
-                    .AllowCredentials() //allow to send cookie from browser to server
+            policy.WithOrigins($"http://localhost:{FRONTEND_PORT}")
+                   .AllowCredentials() //allow to send cookie from browser to server
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
 });
 
 // Register the background service
-builder.Services.AddHostedService<JobProcessorService>();
 
 //Testing
-builder.Services.AddScoped<IYtDlp, FakeYtDlp>();
-builder.Services.AddTransient<IAsrService, FakeAsrService>();
-builder.Services.AddScoped<WhisperCpp>();
-builder.Services.AddScoped<Parakeet>();
-builder.Services.AddScoped<ISTTFactory, STTFactory>();
-builder.Services.AddHostedService<ExternalServerStarter>();
-builder.Services.AddScoped<VideoJobUtils>();
-builder.Services.AddScoped<ILLM, LlamaCpp>();
-builder.Services.AddSingleton<SseService>();
+
 
 // ============================================================
 // SWITCH: Storage backend
 // ============================================================
 
 //For blob test
-builder.Services.AddSingleton<IVideoFileReader, VideoDatabaseReader>();
-builder.Services.AddSingleton<IVideoFileWriter, VideoDatabaseStorage>();
-builder.Services.AddSingleton<IRecordFileReader, RecordDatabaseReader>();
-builder.Services.AddSingleton<IRecordFileWriter, RecordDatabaseStorage>();
+
 
 //For actual production
 //builder.Services.AddSingleton<IVideoFileReader, VideoLocalFileReader>();
@@ -112,26 +123,29 @@ builder.Services.AddControllers()
 var app = builder.Build();
 
 // Explicitly seed the database
-using (var scope = app.Services.CreateScope())
+if (is_test)
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // Creates the tables if they don't exist
-    context.Database.EnsureCreated();
-    
-    //Seed here
-    if (!context.Users.Any())
+    using (var scope = app.Services.CreateScope())
     {
-        context.Users.Add(new User { Id = Utils.TEST_USER_ID, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
-        context.Users.Add(new User { Id = Utils.ADMIN_ID, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
-        context.SaveChanges();
-    }
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    await SeedSystemVideos.RunAsync(scope, true);
-    await SeedSystemVideos.RunAsync(scope, false);
+        // Creates the tables if they don't exist
+        context.Database.EnsureCreated();
+
+        //Seed here
+        if (!context.Users.Any())
+        {
+            context.Users.Add(new User { Id = Utils.TEST_USER_ID, Username = "alice", PasswordHashed = "4i5x,p^K96a5" });
+            context.Users.Add(new User { Id = Utils.ADMIN_ID, Username = "admin", PasswordHashed = "4i5x,p^K96a5" });
+            context.SaveChanges();
+        }
+
+        await SeedSystemVideos.RunAsync(scope, true);
+        await SeedSystemVideos.RunAsync(scope, false);
+    }
 }
 
-app.UseCors("AllowLocalhost3001");
+app.UseCors("AllowFrontend");
 
 app.MapGet("/", () => "Hello World!");
 
@@ -139,9 +153,13 @@ app.MapGet("/health", () => new
 {
     message = "ok"
 });
+
 app.UseStaticFiles();
+
 app.UseSwagger();
+
 app.UseSwaggerUI();
+
 app.MapControllers();
 
 app.Run();

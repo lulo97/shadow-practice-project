@@ -17,6 +17,18 @@ public class RecordsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Record>> CreateRecord([FromForm] CreateRecordDto dto)
     {
+        var transcript_line = await _context.TranscriptLines.FirstOrDefaultAsync(x => x.Id == dto.TranscriptLineId);
+
+        if (transcript_line == null)
+        {
+            return NotFound(new { message = "TranscriptLineId" });
+        }
+
+        if (transcript_line.Skip == 1)
+        {
+            return BadRequest(new { message = "Skipped line can't be record" });
+        }
+
         using var stream = dto.File.OpenReadStream();
 
         using var memoryStream = new MemoryStream();
@@ -49,13 +61,6 @@ public class RecordsController : ControllerBase
         var stt = _sttFactory.GetSTT(user_setting);
 
         var sttText = await stt.RunAsync(bytes);
-
-        var transcript_line = await _context.TranscriptLines.FirstOrDefaultAsync(x => x.Id == dto.TranscriptLineId);
-
-        if (transcript_line == null)
-        {
-            return NotFound(new { message = "TranscriptLineId" });
-        }
 
         var record = new Record
         {

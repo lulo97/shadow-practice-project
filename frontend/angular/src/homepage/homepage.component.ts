@@ -285,20 +285,40 @@ import { Subscription } from "rxjs";
               </div>
 
               <div
-                *ngIf="1"
-                [id]="'last-practiced-container-' + video.id"
-                class="flex items-center gap-1 text-[11px] font-bold text-neutral-500 uppercase"
+                class="flex justify-between items-center text-[11px] font-bold text-neutral-500 uppercase"
               >
-                <i
-                  [id]="'last-practiced-icon-' + video.id"
-                  class="fa-regular fa-user-circle text-[11px]"
-                ></i>
-                Sync_Stamp:
-                <span
-                  [id]="'last-practiced-date-' + video.id"
-                  class="text-black font-black"
-                  >{{ video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy" }}</span
+                <div
+                  [id]="'last-practiced-container-' + video.id"
+                  class="flex items-center gap-1"
                 >
+                  <i
+                    [id]="'last-practiced-icon-' + video.id"
+                    class="fa-regular fa-user-circle"
+                  ></i>
+                  <span>Sync_Stamp:</span>
+
+                  <ng-container *ngIf="video.lastPracticed; else noPractice">
+                    <span
+                      [id]="'last-practiced-date-' + video.id"
+                      class="text-black font-black"
+                    >
+                      {{ video.lastPracticed | date: "HH:mm:ss dd/MM/yyyy" }}
+                    </span>
+                  </ng-container>
+
+                  <ng-template #noPractice>
+                    <span
+                      [id]="'empty-last-practiced-date-' + video.id"
+                      class="text-black font-black"
+                    >
+                      -
+                    </span>
+                  </ng-template>
+                </div>
+
+                <span class="text-neutral-500">
+                  {{ video.createdAt | date: "HH:mm:ss dd/MM/yyyy" }}
+                </span>
               </div>
             </div>
 
