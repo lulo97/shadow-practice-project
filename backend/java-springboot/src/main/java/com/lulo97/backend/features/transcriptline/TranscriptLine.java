@@ -8,111 +8,66 @@ import java.time.LocalDateTime;
 @Table(name = "transcript_line")
 public class TranscriptLine {
 
-    private Long id;
-    private Long videoId;
-    private Integer lineIndex;
-    private String text = "";
-    private String viText;
-    private double start;
-    private double end;
-    private Integer skip = 0;
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    @GeneratedValue(strategy = GenerationType.SEQUENCE) //Other GenerationType type make sqlite column id with no column type error
+    @Column(name = "id", columnDefinition = "INTEGER")
+    private Long id;
 
     @NotNull
     @Column(name = "video_id", nullable = false)
-    public Long getVideoId() {
-        return videoId;
-    }
-
-    public void setVideoId(Long videoId) {
-        this.videoId = videoId;
-    }
-
+    private Long videoId;
 
     @NotNull
     @Column(name = "line_index", nullable = false)
-    public Integer getLineIndex() {
-        return lineIndex;
-    }
-
-    public void setLineIndex(Integer lineIndex) {
-        this.lineIndex = lineIndex;
-    }
-
+    private Integer lineIndex;
 
     @NotNull
     @Column(name = "text", nullable = false)
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
+    private String text = "";
 
     @Column(name = "vi_text")
-    public String getViText() {
-        return viText;
-    }
-
-    public void setViText(String viText) {
-        this.viText = viText;
-    }
-
+    private String viText;
 
     @NotNull
     @Column(name = "start", nullable = false)
-    public double getStart() {
-        return start;
-    }
-
-    public void setStart(double start) {
-        this.start = start;
-    }
-
+    private double start;
 
     @NotNull
     @Column(name = "end", nullable = false)
-    public double getEnd() {
-        return end;
-    }
-
-    public void setEnd(double end) {
-        this.end = end;
-    }
-
+    private double end;
 
     @NotNull
     @Column(name = "skip", nullable = false)
-    public Integer getSkip() {
-        return skip;
-    }
-
-    public void setSkip(Integer skip) {
-        this.skip = skip;
-    }
-
+    private Integer skip = 0;
 
     @Column(name = "created_at")
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    // plain getters/setters, no annotations
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getVideoId() { return videoId; }
+    public void setVideoId(Long videoId) { this.videoId = videoId; }
+
+    public Integer getLineIndex() { return lineIndex; }
+    public void setLineIndex(Integer lineIndex) { this.lineIndex = lineIndex; }
+
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+
+    public String getViText() { return viText; }
+    public void setViText(String viText) { this.viText = viText; }
+
+    public double getStart() { return start; }
+    public void setStart(double start) { this.start = start; }
+
+    public double getEnd() { return end; }
+    public void setEnd(double end) { this.end = end; }
+
+    public Integer getSkip() { return skip; }
+    public void setSkip(Integer skip) { this.skip = skip; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
