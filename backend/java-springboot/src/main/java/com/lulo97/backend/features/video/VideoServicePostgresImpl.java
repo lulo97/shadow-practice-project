@@ -14,17 +14,20 @@ import jakarta.persistence.PersistenceException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "postgres", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = true)
 public class VideoServicePostgresImpl implements VideoService {
 
     private final EntityManager entityManager;
+    private final VideoRepository videoRepository;
 
-    public VideoServicePostgresImpl(EntityManager entityManager) {
+    public VideoServicePostgresImpl(EntityManager entityManager, VideoRepository videoRepository) {
         System.out.println("VideoServicePostgresImpl run");
         this.entityManager = entityManager;
+        this.videoRepository = videoRepository;
     }
 
     @Override
@@ -172,5 +175,10 @@ public class VideoServicePostgresImpl implements VideoService {
             return Result.fail(
                     "Unexpected error: " + e.getMessage());
         }
+    }
+
+    @Override
+    public Optional<Video> findById(Long id) {
+        return this.videoRepository.findById(id);
     }
 }

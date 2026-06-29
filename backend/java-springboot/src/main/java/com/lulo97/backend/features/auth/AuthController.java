@@ -39,7 +39,7 @@ public class AuthController {
     public ResponseEntity<?> me(HttpServletRequest request) {
         Result<Users> result = AuthComponentHelper.getCurrentUser(request);
 
-        if (!result.isSuccess()) {
+        if (!result.getSuccess()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", result.getError()));
         }
 

@@ -148,4 +148,13 @@ public class Video {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public Video(Long user_id, String title, String description, String youtube_id) {
+        this.user_id = user_id;
+        this.title = title;
+        this.description = description;
+        this.youtube_id = youtube_id;
+    }
+
+    public Video() {};
 }

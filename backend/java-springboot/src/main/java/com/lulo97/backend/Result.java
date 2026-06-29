@@ -19,7 +19,7 @@ public class Result<T> {
         return new Result<>(false, error, null);
     }
 
-    public boolean isSuccess() {
+    public boolean getSuccess() {
         return success;
     }
 

@@ -1,6 +1,8 @@
 package com.lulo97.backend.features.video;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,17 +15,24 @@ import jakarta.persistence.Query;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "sqlite", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "test", matchIfMissing = true)
 public class VideoServiceSqliteImpl implements VideoService {
 
     private final EntityManager entityManager;
+    private final VideoRepository videoRepository;
 
-    public VideoServiceSqliteImpl(EntityManager entityManager) {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public VideoServiceSqliteImpl(EntityManager entityManager, VideoRepository videoRepository) {
         System.out.println("VideoServiceSqliteImpl run");
         this.entityManager = entityManager;
+        this.videoRepository = videoRepository;
     }
 
     @Override
@@ -67,14 +76,14 @@ public class VideoServiceSqliteImpl implements VideoService {
 
         String sql = """
                 SELECT
-                    v.id AS Id,
-                    v.title AS Title,
-                    v.youtube_id AS YoutubeId,
-                    v.user_id AS UserId,
-                    v.created_at AS CreatedAt,
-                    v.description AS Description,
+                    v.id AS id,
+                    v.title AS title,
+                    v.youtube_id AS youtubeId,
+                    v.user_id AS userId,
+                    v.created_at AS createdAt,
+                    v.description AS description,
 
-                    MAX(j.id) AS JobId,
+                    MAX(j.id) AS jobId,
 
                     CASE
                         WHEN COUNT(tl.id) = 0 THEN 'NOT_STARTED'
@@ -114,7 +123,7 @@ public class VideoServiceSqliteImpl implements VideoService {
 
                         ELSE 'FINISHED'
 
-                    END AS Status,
+                    END AS status,
 
 
                     CAST(
@@ -136,10 +145,10 @@ public class VideoServiceSqliteImpl implements VideoService {
                         /
                         NULLIF(COUNT(DISTINCT tl.id),0)
 
-                    AS INTEGER) AS ProcessPercent,
+                    AS INTEGER) AS processPercent,
 
 
-                    MAX(r.created_at) AS LastPracticed
+                    MAX(r.created_at) AS lastPracticed
 
 
                 FROM video v
@@ -180,8 +189,15 @@ public class VideoServiceSqliteImpl implements VideoService {
                     params.get(i));
         }
 
-        List<?> result = query.getResultList();
+        //List<?> result = query.getResultList();
+
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, params.toArray());
 
         return Result.ok(result);
+    }
+
+    @Override
+    public Optional<Video> findById(Long id) {
+        return this.videoRepository.findById(id);
     }
 }

@@ -2,20 +2,19 @@ package com.lulo97.backend.features.transcriptline;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transcript_line")
 public class TranscriptLine {
 
-    private Integer id;
-    private Integer videoId;
+    private Long id;
+    private Long videoId;
     private Integer lineIndex;
     private String text = "";
     private String viText;
-    private BigDecimal start;
-    private BigDecimal end;
+    private double start;
+    private double end;
     private Integer skip = 0;
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -23,22 +22,22 @@ public class TranscriptLine {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
 
     @NotNull
     @Column(name = "video_id", nullable = false)
-    public Integer getVideoId() {
+    public Long getVideoId() {
         return videoId;
     }
 
-    public void setVideoId(Integer videoId) {
+    public void setVideoId(Long videoId) {
         this.videoId = videoId;
     }
 
@@ -76,23 +75,23 @@ public class TranscriptLine {
 
 
     @NotNull
-    @Column(name = "start", nullable = false, precision = 10, scale = 3)
-    public BigDecimal getStart() {
+    @Column(name = "start", nullable = false)
+    public double getStart() {
         return start;
     }
 
-    public void setStart(BigDecimal start) {
+    public void setStart(double start) {
         this.start = start;
     }
 
 
     @NotNull
-    @Column(name = "end", nullable = false, precision = 10, scale = 3)
-    public BigDecimal getEnd() {
+    @Column(name = "end", nullable = false)
+    public double getEnd() {
         return end;
     }
 
-    public void setEnd(BigDecimal end) {
+    public void setEnd(double end) {
         this.end = end;
     }
 

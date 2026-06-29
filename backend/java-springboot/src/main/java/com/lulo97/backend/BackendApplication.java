@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.ContextClosedEvent;
 
 @SpringBootApplication
 public class BackendApplication {
@@ -23,4 +26,15 @@ public class BackendApplication {
 		SpringApplication.run(BackendApplication.class, args);
 	}
 
+	@Bean
+	public ApplicationListener<ContextClosedEvent> cleanupDb() {
+		return event -> {
+			try {
+				Files.deleteIfExists(Path.of("app.db"));
+				System.out.println("Database file deleted on shutdown.");
+			} catch (IOException e) {
+				System.err.println("Failed to delete database file: " + e.getMessage());
+			}
+		};
+	}
 }
