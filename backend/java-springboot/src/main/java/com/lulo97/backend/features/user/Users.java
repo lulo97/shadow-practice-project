@@ -1,4 +1,4 @@
-package com.lulo97.backend.features.auth;
+package com.lulo97.backend.features.user;
 
 import java.time.LocalDateTime;
 
@@ -23,13 +23,29 @@ public class Users {
     private String username;
 
     @Column(name="password_hashed", nullable = false)
-    private String password_hashed;
+    private String password_hasshed;
 
     @CreationTimestamp
     @Column(name="created_at", nullable = false)
     private LocalDateTime created_at;
 
+    public void setUsername(String _username) {
+        username = _username;
+    }
+
+    public void setPassword(String _password_hasshed) {
+        password_hasshed = _password_hasshed;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return created_at;
     }
 }

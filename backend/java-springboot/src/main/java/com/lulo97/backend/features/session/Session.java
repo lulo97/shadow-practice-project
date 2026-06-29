@@ -1,4 +1,4 @@
-package com.lulo97.backend.features.auth;
+package com.lulo97.backend.features.session;
 
 import java.time.LocalDateTime;
 
@@ -20,16 +20,25 @@ public class Session {
     private Long id;
 
     @Column(name="user_id", nullable = false)
-    private String user_id;
+    private Long user_id;          // Long, not String
 
     @Column(name="token", nullable = false)
     private String token;
 
-    
     @CreationTimestamp
     @Column(name="created_at", nullable = false)
     private LocalDateTime created_at;
 
     @Column(name="expires_at", nullable = false)
     private LocalDateTime expires_at;
+
+    public Long getId() { return id; }
+    public Long getUserId() { return user_id; }
+    public String getToken() { return token; }
+    public LocalDateTime getCreatedAt() { return created_at; }
+    public LocalDateTime getExpiresAt() { return expires_at; }
+
+    public void setUserId(Long user_id) { this.user_id = user_id; }
+    public void setToken(String token) { this.token = token; }
+    public void setExpiresAt(LocalDateTime expires_at) { this.expires_at = expires_at; }
 }
