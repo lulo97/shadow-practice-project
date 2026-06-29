@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lulo97.backend.Result;
+import com.lulo97.backend.Utils;
 import com.lulo97.backend.features.session.SessionService;
 import com.lulo97.backend.features.user.UserService;
 import com.lulo97.backend.features.user.Users;
@@ -28,7 +29,6 @@ public class AuthController {
 
     private final UserService userService;
     private final SessionService sessionService;
-    private String session_token = "session_token";
 
     public AuthController(UserService userService, SessionService sessionService) {
         this.userService = userService;
@@ -37,23 +37,7 @@ public class AuthController {
 
     @GetMapping("me")
     public ResponseEntity<?> me(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        String token = null;
-
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                var cookie_name = cookie.getName();
-                if (cookie_name.equals(session_token)) {
-                    token = cookie.getValue();
-                }
-            }
-        }
-
-        if (token == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Token is null"));
-        }
-
-        Result<Users> result = this.userService.findByToken(token);
+        Result<Users> result = AuthComponentHelper.getCurrentUser(request);
 
         if (!result.isSuccess()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", result.getError()));
@@ -123,7 +107,7 @@ public class AuthController {
 
         this.sessionService.create(user.getId(), token);
 
-        ResponseCookie cookie = ResponseCookie.from(session_token, token)
+        ResponseCookie cookie = ResponseCookie.from(Utils.SESSION_TOKEN, token)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")

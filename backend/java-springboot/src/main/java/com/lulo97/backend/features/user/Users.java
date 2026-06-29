@@ -52,4 +52,13 @@ public class Users {
     public LocalDateTime getCreatedAt() {
         return created_at;
     }
+
+    public Users(String username, String password_hasshed) {
+        this.username = username;
+        this.password_hasshed = password_hasshed;
+    }
+
+    public Users() {
+
+    }
 }
