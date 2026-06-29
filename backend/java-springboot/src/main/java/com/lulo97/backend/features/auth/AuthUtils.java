@@ -6,7 +6,7 @@ public final class AuthUtils {
     }
 
     public static boolean compareHash(String password, String password_hashed) {
-        return password == password_hashed;
+        return password.equals(password_hashed); //String is not primitive
     }
 
     public static String getToken() {

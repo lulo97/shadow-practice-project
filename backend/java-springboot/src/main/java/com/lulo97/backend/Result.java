@@ -19,5 +19,15 @@ public class Result<T> {
         return new Result<>(false, error, null);
     }
 
-    // getters
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public T getData() {
+        return data;
+    }
 }

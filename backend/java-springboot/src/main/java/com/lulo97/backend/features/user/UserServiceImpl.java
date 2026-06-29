@@ -5,6 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.lulo97.backend.Result;
+import com.lulo97.backend.features.session.SessionRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,9 +17,11 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repo;
+    private final SessionRepository repoSession;
 
-    public UserServiceImpl(UserRepository repo) {
+    public UserServiceImpl(UserRepository repo, SessionRepository repoSession) {
         this.repo = repo;
+        this.repoSession = repoSession;
     }
 
     @Override
@@ -51,8 +57,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<Users> findByToken(String token) {
-        return repo.findByToken(token);
+    public Result<Users> findByToken(String token) {
+        var row = this.repoSession.findByToken(token);
+
+        if (row.isEmpty()) return Result.fail("Token not exist");
+
+        var session = row.get();
+
+        if (session.getExpiresAt().isBefore(LocalDateTime.now())) return Result.fail("Token expired");
+
+        var user = this.repo.findById(session.getUserId());
+
+        if (user.isEmpty()) return Result.fail("User not exist");
+
+        return Result.ok(user.get());
     }
 
     @Override

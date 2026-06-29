@@ -21,11 +21,12 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public Result<String> create(Long user_id, String token) {
-        if (this.repo.existsValidToken(user_id, token)) {
+        if (this.existsValidToken(user_id, token)) {
             return Result.fail("Session already exist!");
         }
 
         var new_row = new Session();
+        new_row.setUserId(user_id);
         new_row.setToken(token);
         new_row.setExpiresAt(LocalDateTime.now().plusDays(EXPIRES_DAYS));
         this.repo.save(new_row);
@@ -46,6 +47,20 @@ public class SessionServiceImpl implements SessionService {
         this.repo.delete(row);
 
         return Result.ok("");
+    }
+
+    public Boolean existsValidToken(Long user_id, String token) {
+        var row = this.repo.findByTokenAndUserId(user_id, token);
+
+        if (row.isEmpty())
+            return false;
+
+        var session = row.get();
+
+        if (session.getExpiresAt().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+        return true;
     }
 
 }

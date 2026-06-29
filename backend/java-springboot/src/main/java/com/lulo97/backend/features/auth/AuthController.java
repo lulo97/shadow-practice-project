@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lulo97.backend.Result;
 import com.lulo97.backend.features.session.SessionService;
 import com.lulo97.backend.features.user.UserService;
 import com.lulo97.backend.features.user.Users;
@@ -20,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,7 +42,8 @@ public class AuthController {
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName() == session_token) {
+                var cookie_name = cookie.getName();
+                if (cookie_name.equals(session_token)) {
                     token = cookie.getValue();
                 }
             }
@@ -52,13 +53,13 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", "Token is null"));
         }
 
-        Optional<Users> result_user = this.userService.findByToken(token);
+        Result<Users> result = this.userService.findByToken(token);
 
-        if (result_user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+        if (!result.isSuccess()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", result.getError()));
         }
 
-        Users user = result_user.get();
+        Users user = result.getData();
 
         return ResponseEntity.ok(Map.of(
                 "id", user.getId(),
