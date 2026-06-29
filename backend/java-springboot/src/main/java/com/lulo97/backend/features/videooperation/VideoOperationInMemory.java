@@ -55,7 +55,7 @@ public class VideoOperationInMemory implements VideoOperation {
 
         var video = video_result.get();
 
-        video.setAudio_blob_data(bytes);
+        video.setBlob_data(bytes);
 
         videoRepository.save(video);
 

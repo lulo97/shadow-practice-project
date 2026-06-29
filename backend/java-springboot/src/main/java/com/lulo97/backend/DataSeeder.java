@@ -49,7 +49,7 @@ public class DataSeeder {
                 System.out.println("Add admin and alice");
             }
 
-            this.RunSeedVideo(true);
+            //this.RunSeedVideo(true);
             this.RunSeedVideo(false);
         };
     }
@@ -141,6 +141,8 @@ public class DataSeeder {
             }
 
             this.transcriptLineRepository.saveAll(entities);
+
+            break;
         }
     }
 }

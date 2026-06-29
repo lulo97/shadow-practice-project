@@ -5,9 +5,12 @@ import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -70,6 +73,56 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", result.getError()));
         }
 
-        return ResponseEntity.ok(result.getData());
+        var thumbnail = result.getData();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .contentLength(thumbnail.length)
+                .body(thumbnail);
+
+    }
+
+    @GetMapping("video_data/{video_id}")
+    public ResponseEntity<?> getVideoData(@PathVariable Long video_id) {
+        var video = this.videoService.findById(video_id);
+
+        if (video.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Video not exist"));
+        }
+
+        var result = this.videoOperation.ReadVideo(video.get());
+
+        if (!result.getSuccess()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", result.getError()));
+        }
+
+        var bytes = result.getData();
+
+        if (bytes == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Video data is null"));
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("video/mp4"))
+                .contentLength(bytes.length)
+                .body(bytes);
+    }
+
+    @GetMapping("metadata/{video_id}")
+    public ResponseEntity<?> getMetadata(@PathVariable Long video_id) {
+        var video = this.videoService.findById(video_id);
+
+        if (video.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Video not exist"));
+        }
+
+        var result = Map.of(
+                "id", video.get().getId(),
+                "title", video.get().getTitle(),
+                "createdAt", video.get().getCreated_at(),
+                "description", video.get().getDescription(),
+                "youtubeId", video.get().getYoutube_id());
+
+        return ResponseEntity.ok(result);
     }
 }
