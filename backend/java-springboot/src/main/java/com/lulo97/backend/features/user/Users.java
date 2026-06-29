@@ -12,21 +12,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id")
     private Long id;
 
-    @Column(name="username", nullable = false)
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name="password_hashed", nullable = false)
+    @Column(name = "password_hashed", nullable = false)
     private String password_hasshed;
 
     @CreationTimestamp
-    @Column(name="created_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime created_at;
 
     public void setUsername(String _username) {
@@ -43,6 +43,10 @@ public class Users {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getHashedPassword() {
+        return password_hasshed;
     }
 
     public LocalDateTime getCreatedAt() {

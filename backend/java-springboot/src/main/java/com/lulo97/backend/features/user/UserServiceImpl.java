@@ -17,34 +17,30 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository repo) {
         this.repo = repo;
     }
-    
-    private UserDTO toDTO(Users u) {
-        return new UserDTO(u.getId(), u.getUsername(), u.getCreatedAt());
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Users> findAll() {
+        return repo.findAll().stream().toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDTO> findAll() {
-        return repo.findAll().stream().map(this::toDTO).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public UserDTO findById(Long id) {
+    public Users findById(Long id) {
         return repo.findById(id)
-                .map(this::toDTO)
+
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
     }
 
     @Override
-    public UserDTO create(String username, String rawPassword) {
+    public Users create(String username, String rawPassword) {
         if (repo.existsByUsername(username))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken: " + username);
 
         Users user = new Users();
         user.setUsername(username);
         user.setPassword(rawPassword); // hash this before calling setPassword in real life
-        return toDTO(repo.save(user));
+        return repo.save(user);
     }
 
     @Override
@@ -55,7 +51,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserDTO> findByToken(String token) {
-        return repo.findByToken(token).map(this::toDTO);
+    public Optional<Users> findByToken(String token) {
+        return repo.findByToken(token);
+    }
+
+    @Override
+    public Optional<Users> findByUsername(String username) {
+        return repo.findByUsername(username);
     }
 }
