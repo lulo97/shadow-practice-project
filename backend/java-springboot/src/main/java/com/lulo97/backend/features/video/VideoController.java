@@ -18,7 +18,7 @@ import com.lulo97.backend.features.user.Users;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/video")
+@RequestMapping("/api/videos")
 public class VideoController {
 
     private final VideoService videoService;

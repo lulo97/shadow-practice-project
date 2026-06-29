@@ -40,38 +40,33 @@ public class VideoServicePostgresImpl implements VideoService {
             List<String> conditions = new ArrayList<>();
             List<Object> params = new ArrayList<>();
 
-            int index = 1;
-
             if (title != null && !title.isBlank()) {
                 conditions.add(
-                        "LOWER(v.title) LIKE LOWER(:" + index + ")");
+                        "LOWER(v.title) LIKE LOWER(?)");
 
                 params.add("%" + title + "%");
-                index++;
             }
 
             if (fromDate != null) {
                 conditions.add(
-                        "v.created_at >= :" + index);
+                        "v.created_at >= ?");
 
                 params.add(fromDate);
-                index++;
             }
 
             if (toDate != null) {
                 conditions.add(
-                        "v.created_at <= :" + index);
+                        "v.created_at <= ?");
 
                 params.add(toDate);
-                index++;
             }
 
             if ("SYSTEM_VIDEOS".equals(videoType)) {
-                conditions.add("u.username = :" + index);
+                conditions.add("u.username = ?");
                 params.add(
                         Utils.ADMIN_USERNAME);
             } else {
-                conditions.add("u.id = :" + index);
+                conditions.add("u.id = ?");
 
                 params.add(
                         user_id);
@@ -155,8 +150,7 @@ public class VideoServicePostgresImpl implements VideoService {
                             """;
 
             Query query = entityManager.createNativeQuery(
-                    sql,
-                    "VideoHomepageDtoMapping");
+                    sql);
 
             for (int i = 0; i < params.size(); i++) {
                 query.setParameter(
