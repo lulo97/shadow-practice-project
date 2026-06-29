@@ -1,6 +1,7 @@
 package com.lulo97.backend.features.auth;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,10 @@ import com.lulo97.backend.features.user.Users;
 import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpHeaders;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -94,7 +98,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody SignUpDto dto) {
+    public ResponseEntity<?> login(@RequestBody SignUpDto dto, HttpServletResponse response) {
         if (dto.username == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Username null"));
         }
@@ -117,6 +121,16 @@ public class AuthController {
         var token = AuthUtils.getToken();
 
         this.sessionService.create(user.getId(), token);
+
+        ResponseCookie cookie = ResponseCookie.from(session_token, token)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofHours(1))
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok("");
     }

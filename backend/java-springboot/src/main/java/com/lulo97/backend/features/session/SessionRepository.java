@@ -7,14 +7,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface SessionRepository extends JpaRepository<Session, Long> {
-    @Query(value = """
+        @Query("""
                 SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END
                 FROM Session s
-                WHERE s.user.id = :user_id
-                  AND s.token = :token
-                  AND s.expiresAt > CURRENT_TIMESTAMP
-            """, nativeQuery = true)
-    boolean existsValidToken(
-            @Param("user_id") Long userId,
-            @Param("token") String token);
+                WHERE s.user_id = :user_id
+                AND s.token = :token
+                AND s.expires_at > CURRENT_TIMESTAMP
+        """)
+        boolean existsValidToken(
+                @Param("user_id") Long userId,
+                @Param("token") String token);
 }
