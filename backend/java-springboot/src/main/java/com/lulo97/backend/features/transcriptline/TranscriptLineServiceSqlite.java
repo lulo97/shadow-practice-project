@@ -2,7 +2,7 @@ package com.lulo97.backend.features.transcriptline;
 
 import java.util.List;
 import java.util.Objects;
-
+import java.util.Optional;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,11 +18,13 @@ import jakarta.persistence.EntityManager;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "test", matchIfMissing = true)
 public class TranscriptLineServiceSqlite implements TranscriptLineService {
 
+    private final TranscriptLineRepository transcriptLineRepository;
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper = new ObjectMapper();;
 
-    public TranscriptLineServiceSqlite(EntityManager entityManager) {
+    public TranscriptLineServiceSqlite(EntityManager entityManager, TranscriptLineRepository transcriptLineRepository) {
         this.entityManager = entityManager;
+        this.transcriptLineRepository = transcriptLineRepository;
     }
 
     @Override
@@ -89,5 +91,10 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    @Override
+    public Optional<TranscriptLine> findById(Long transcriptLineId) {
+        return this.transcriptLineRepository.findById(transcriptLineId);
     }
 }

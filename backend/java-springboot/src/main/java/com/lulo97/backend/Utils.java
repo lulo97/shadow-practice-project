@@ -14,11 +14,12 @@ public final class Utils {
     public static String TEST_USERNAME = "alice-java";
     public static String SESSION_TOKEN = "session_token";
     public static String LOCAL_FILE_PATH = "Files";
+    public static String WHISPER_CPP = "WHISPER_CPP";
+    public static String PARAKEET = "PARAKEET";
 
     public static List<TranscriptLineFormat> ParseTranscript(String vttContent) {
         // Normalize all line endings to \n first
-        vttContent = vttContent.replace("\r\n", "\n")
-                .replace("\r", "\n");
+        vttContent = vttContent.replace("\r\n", "\n").replace("\r", "\n");
 
         List<TranscriptLineFormat> result = new ArrayList<>();
 
@@ -31,20 +32,15 @@ public final class Utils {
         Matcher matcher = blockPattern.matcher(vttContent);
 
         while (matcher.find()) {
-            String text = tagPattern.matcher(matcher.group(3))
-                    .replaceAll("")
-                    .replace("\r", " ")
-                    .replace("\n", " ")
-                    .trim();
+            String text = tagPattern.matcher(matcher.group(3)).replaceAll("").replace("\r", " ")
+                    .replace("\n", " ").trim();
 
             if (text.isEmpty()) {
                 continue;
             }
 
-            result.add(new TranscriptLineFormat(
-                    ParseTimestamp(matcher.group(1)),
-                    ParseTimestamp(matcher.group(2)),
-                    text));
+            result.add(new TranscriptLineFormat(ParseTimestamp(matcher.group(1)),
+                    ParseTimestamp(matcher.group(2)), text));
         }
 
         return result;
@@ -87,16 +83,14 @@ public final class Utils {
             return Result.fail("URL is not a valid absolute URI.");
         }
 
-        if (uri.getScheme() == null ||
-                (!uri.getScheme().equalsIgnoreCase("http") &&
-                        !uri.getScheme().equalsIgnoreCase("https"))) {
+        if (uri.getScheme() == null || (!uri.getScheme().equalsIgnoreCase("http")
+                && !uri.getScheme().equalsIgnoreCase("https"))) {
             return Result.fail("URL is not a valid absolute URI.");
         }
 
         // 3. Validate Domain
         String host = uri.getHost();
-        if (host == null ||
-                (!host.equals("www.youtube.com") && !host.equals("youtube.com"))) {
+        if (host == null || (!host.equals("www.youtube.com") && !host.equals("youtube.com"))) {
             return Result.fail("Domain must be youtube.com or www.youtube.com.");
         }
 
@@ -127,9 +121,7 @@ public final class Utils {
                 String[] pair = param.split("=", 2);
 
                 if (pair.length == 2 && pair[0].equals("v")) {
-                    return URLDecoder.decode(
-                            pair[1],
-                            StandardCharsets.UTF_8);
+                    return URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
                 }
             }
 

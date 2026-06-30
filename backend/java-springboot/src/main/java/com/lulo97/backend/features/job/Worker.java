@@ -18,6 +18,10 @@ public class Worker {
         this.jobVideoUtils = jobVideoUtils;
     }
 
+    Job getNewestJob(Long job_id) {
+        return this.jobService.findById(job_id).get();
+    }
+
     @Scheduled(fixedRate = 3000)
     public void work() throws Exception {
         System.out.println("Worker tick:" + LocalDateTime.now());
@@ -28,9 +32,13 @@ public class Worker {
         System.out.println("New job found:" + new_job.get().getId());
         try {
             jobVideoUtils.Run(new_job.get());
-            new_job.get().setStatus(JobStatus.DONE);
+            var current_job = getNewestJob(new_job.get().getId());
+            current_job.setStatus(JobStatus.DONE);
+            this.jobService.save(current_job);
         } catch (Exception e) {
-            new_job.get().setStatus(JobStatus.FAILED);
+            var current_job = getNewestJob(new_job.get().getId());
+            current_job.setStatus(JobStatus.FAILED);
+            this.jobService.save(current_job);
             throw new Exception(e);
         }
     }

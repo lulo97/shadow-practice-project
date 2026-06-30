@@ -32,7 +32,8 @@ public class JobVideoUtils {
         JobVideoUtils(VideoService videoService, YtdlpService ytDlpService,
                         VideoOperation videoOperation, VideoRepository videoRepository,
                         JobStepService jobStepService,
-                        TranscriptLineRepository transcriptLineRepository, JobService jobService, SseService sseService) {
+                        TranscriptLineRepository transcriptLineRepository, JobService jobService,
+                        SseService sseService) {
                 this.videoService = videoService;
                 this.ytDlpService = ytDlpService;
                 this.videoOperation = videoOperation;
@@ -157,11 +158,11 @@ public class JobVideoUtils {
                 // var thumbnail_saved = this.videoOperation.ReadThumbnail(getNewestVideo(videoId));
 
                 // if (!thumbnail_saved.getSuccess() || thumbnail_saved.getData() == null
-                //                 || thumbnail_saved.getData().length == 0) {
-                //         var error = thumbnail_saved.getError() == null ? thumbnail_saved.getError()
-                //                         : "Something wrong here";
-                //         failJobStep(thumbnail_job_step, error);
-                //         throw new Exception(error);
+                // || thumbnail_saved.getData().length == 0) {
+                // var error = thumbnail_saved.getError() == null ? thumbnail_saved.getError()
+                // : "Something wrong here";
+                // failJobStep(thumbnail_job_step, error);
+                // throw new Exception(error);
                 // }
 
                 System.out.println("Thumbnail saved, size = " + thumbnail_result.getData().length);
@@ -233,12 +234,12 @@ public class JobVideoUtils {
                         System.out.println("English subtitle exists, size = "
                                         + transcript_result.getData().size());
 
-                        doneJobStep(videp_mp4_job_step, "English subtitle exist");
+                        doneJobStep(transcript_job_step, "English subtitle exist");
                 } else {
 
                         System.out.println("English subtitle missing");
 
-                        doneJobStep(videp_mp4_job_step,
+                        doneJobStep(transcript_job_step,
                                         "English subtitle not exist, download audio and do ASR next");
                 }
 
@@ -278,6 +279,6 @@ public class JobVideoUtils {
 
                 System.out.printf("Job finished successfully id=%s%n", job.getId());
 
-                this.sseService.sendToUser("{ \"message\" : \"RESET_HOMEPAGE\" }" , job.getUserId());
+                this.sseService.sendToUser("{ \"message\" : \"RESET_HOMEPAGE\" }", job.getUserId());
         }
 }

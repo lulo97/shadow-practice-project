@@ -16,19 +16,19 @@ public class Record {
     @Id
     @NoLockId
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @NotNull
     @Column(name = "video_id", nullable = false)
-    private Integer videoId;
+    private Long videoId;
 
     @NotNull
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @NotNull
     @Column(name = "transcript_line_id", nullable = false)
-    private Integer transcriptLineId;
+    private Long transcriptLineId;
 
     @Column(name = "file_path")
     private String filePath;
@@ -52,33 +52,83 @@ public class Record {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // plain getters/setters, no annotations
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Integer getVideoId() { return videoId; }
-    public void setVideoId(Integer videoId) { this.videoId = videoId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public Long getVideoId() {
+        return videoId;
+    }
 
-    public Integer getTranscriptLineId() { return transcriptLineId; }
-    public void setTranscriptLineId(Integer transcriptLineId) { this.transcriptLineId = transcriptLineId; }
+    public void setVideoId(Long videoId) {
+        this.videoId = videoId;
+    }
 
-    public String getFilePath() { return filePath; }
-    public void setFilePath(String filePath) { this.filePath = filePath; }
+    public Long getUserId() {
+        return userId;
+    }
 
-    public byte[] getBlobData() { return blobData; }
-    public void setBlobData(byte[] blobData) { this.blobData = blobData; }
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
-    public Integer getScore() { return score; }
-    public void setScore(Integer score) { this.score = score; }
+    public Long getTranscriptLineId() {
+        return transcriptLineId;
+    }
 
-    public String getSttText() { return sttText; }
-    public void setSttText(String sttText) { this.sttText = sttText; }
+    public void setTranscriptLineId(Long transcriptLineId) {
+        this.transcriptLineId = transcriptLineId;
+    }
 
-    public String getSttProviderKey() { return sttProviderKey; }
-    public void setSttProviderKey(String sttProviderKey) { this.sttProviderKey = sttProviderKey; }
+    public String getFilePath() {
+        return filePath;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public byte[] getBlobData() {
+        return blobData;
+    }
+
+    public void setBlobData(byte[] blobData) {
+        this.blobData = blobData;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public String getSttText() {
+        return sttText;
+    }
+
+    public void setSttText(String sttText) {
+        this.sttText = sttText;
+    }
+
+    public String getSttProviderKey() {
+        return sttProviderKey;
+    }
+
+    public void setSttProviderKey(String sttProviderKey) {
+        this.sttProviderKey = sttProviderKey;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

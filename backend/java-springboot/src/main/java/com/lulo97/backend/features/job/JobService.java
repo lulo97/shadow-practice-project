@@ -28,4 +28,8 @@ public class JobService {
         return job;
     }
 
+    public Optional<Job> findById(Long job_id) {
+        return this.jobRepository.findById(job_id);
+    }
+
 }

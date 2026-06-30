@@ -20,22 +20,44 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lulo97.backend.Result;
 import com.lulo97.backend.Utils;
 import com.lulo97.backend.features.auth.AuthComponentHelper;
+import com.lulo97.backend.features.job.jobstep.JobStepService;
 import com.lulo97.backend.features.user.Users;
 import com.lulo97.backend.features.video.Video;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/job")
 public class JobController {
     private final VideoService videoService;
     private final JobService jobService;
+    private final JobStepService jobStepService;
 
-    JobController(VideoService videoService, JobService jobService) {
+    JobController(VideoService videoService, JobService jobService, JobStepService jobStepService) {
         this.videoService = videoService;
         this.jobService = jobService;
+        this.jobStepService = jobStepService;
     }
+
+    @GetMapping("video-detail/{job_id}")
+    public ResponseEntity<?> getJobVideoDetail(@PathVariable Long job_id) {
+        var job_optinal = this.jobService.findById(job_id);
+
+        if (job_optinal.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Job not exist"));
+        }
+
+        var job_steps = this.jobStepService.findByJobId(job_id);
+
+        return ResponseEntity.ok(Map.of("job", job_optinal.get(), "jobSteps", job_steps));
+    }
+
 
     @PostMapping("video")
     public ResponseEntity<?> video(HttpServletRequest request) throws IOException {
