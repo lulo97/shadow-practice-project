@@ -26,7 +26,12 @@ public class Worker {
             return;
 
         System.out.println("New job found:" + new_job.get().getId());
-        jobVideoUtils.Run(new_job.get());
-
+        try {
+            jobVideoUtils.Run(new_job.get());
+            new_job.get().setStatus(JobStatus.DONE);
+        } catch (Exception e) {
+            new_job.get().setStatus(JobStatus.FAILED);
+            throw new Exception(e);
+        }
     }
 }

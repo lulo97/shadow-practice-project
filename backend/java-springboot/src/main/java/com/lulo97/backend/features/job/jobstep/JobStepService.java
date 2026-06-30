@@ -1,8 +1,10 @@
 package com.lulo97.backend.features.job.jobstep;
 
-/**
- * JobStepService
- */
+import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+
+@Service
+@Transactional
 public class JobStepService {
   private final JobStepRepository jobStepRepository;
 
