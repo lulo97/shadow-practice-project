@@ -20,4 +20,8 @@ public class RecordService {
     public Optional<Record> findById(Long record_id) {
         return this.recordRepository.findById(record_id);
     }
+
+    public Object getRecordsFromTranscriptLineId(Long transcript_line_id) {
+        return this.recordRepository.getRecordsFromTranscriptLineId(transcript_line_id);
+    }
 }

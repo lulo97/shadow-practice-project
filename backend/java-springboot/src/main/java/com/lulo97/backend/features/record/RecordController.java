@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -43,6 +45,13 @@ public class RecordController {
         this.sttFactory = sttFactory;
         this.recordRepository = recordRepository;
     }
+
+    @GetMapping("transcript-line/{transcript_line_id}")
+    public ResponseEntity<?> getRecordsFromTranscriptLineId(@PathVariable Long transcript_line_id) {
+        var records = this.recordService.getRecordsFromTranscriptLineId(transcript_line_id);
+        return ResponseEntity.ok(records);
+    }
+    
 
     @GetMapping("file/{record_id}/")
     public ResponseEntity<?> getFile(@PathVariable Long record_id) {
