@@ -21,7 +21,8 @@ export class SseService implements OnDestroy {
     }
 
     this.eventSource = new EventSource(
-      'http://localhost:3000/api/sse/stream'
+      'http://localhost:3000/api/sse/stream',
+      { withCredentials: true }
     );
 
     this.eventSource.onopen = () => {

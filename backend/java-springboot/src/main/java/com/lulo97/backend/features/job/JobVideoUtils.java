@@ -9,6 +9,7 @@ import com.lulo97.backend.features.job.jobstep.JobStep;
 import com.lulo97.backend.features.job.jobstep.JobStepService;
 import com.lulo97.backend.features.job.jobstep.JobStepStatus;
 import com.lulo97.backend.features.job.ytdlp.YtdlpService;
+import com.lulo97.backend.features.sse.SseService;
 import com.lulo97.backend.features.transcriptline.TranscriptLine;
 import com.lulo97.backend.features.transcriptline.TranscriptLineRepository;
 import com.lulo97.backend.features.video.Video;
@@ -26,11 +27,12 @@ public class JobVideoUtils {
         private final JobStepService jobStepService;
         private final JobService jobService;
         private final TranscriptLineRepository transcriptLineRepository;
+        private final SseService sseService;
 
         JobVideoUtils(VideoService videoService, YtdlpService ytDlpService,
                         VideoOperation videoOperation, VideoRepository videoRepository,
                         JobStepService jobStepService,
-                        TranscriptLineRepository transcriptLineRepository, JobService jobService) {
+                        TranscriptLineRepository transcriptLineRepository, JobService jobService, SseService sseService) {
                 this.videoService = videoService;
                 this.ytDlpService = ytDlpService;
                 this.videoOperation = videoOperation;
@@ -38,6 +40,7 @@ public class JobVideoUtils {
                 this.jobStepService = jobStepService;
                 this.transcriptLineRepository = transcriptLineRepository;
                 this.jobService = jobService;
+                this.sseService = sseService;
         }
 
         JobStep addJobStep(Long jobId, String jobStepName) {
@@ -151,15 +154,15 @@ public class JobVideoUtils {
                         throw new Exception(result_write_thumbnail.getError());
                 }
 
-                var thumbnail_saved = this.videoOperation.ReadThumbnail(getNewestVideo(videoId));
+                // var thumbnail_saved = this.videoOperation.ReadThumbnail(getNewestVideo(videoId));
 
-                if (!thumbnail_saved.getSuccess() || thumbnail_saved.getData() == null
-                                || thumbnail_saved.getData().length == 0) {
-                        var error = thumbnail_saved.getError() == null ? thumbnail_saved.getError()
-                                        : "Something wrong here";
-                        failJobStep(thumbnail_job_step, error);
-                        throw new Exception(error);
-                }
+                // if (!thumbnail_saved.getSuccess() || thumbnail_saved.getData() == null
+                //                 || thumbnail_saved.getData().length == 0) {
+                //         var error = thumbnail_saved.getError() == null ? thumbnail_saved.getError()
+                //                         : "Something wrong here";
+                //         failJobStep(thumbnail_job_step, error);
+                //         throw new Exception(error);
+                // }
 
                 System.out.println("Thumbnail saved, size = " + thumbnail_result.getData().length);
 
@@ -274,5 +277,7 @@ public class JobVideoUtils {
                 doneJobStep(parse_transcript_job_step, "");
 
                 System.out.printf("Job finished successfully id=%s%n", job.getId());
+
+                this.sseService.sendToUser("{ \"message\" : \"RESET_HOMEPAGE\" }" , job.getUserId());
         }
 }
