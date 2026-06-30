@@ -164,4 +164,9 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
     public Optional<TranscriptLine> findById(Long transcriptLineId) {
         return this.transcriptLineRepository.findById(transcriptLineId);
     }
+
+    @Override
+    public TranscriptLine save(TranscriptLine transcript) {
+        return this.transcriptLineRepository.save(transcript);
+    }
 }

@@ -8,4 +8,6 @@ public interface TranscriptLineService {
     List<TranscriptLineDto> findByVideoIdWithRecords(Long videoId);
 
     Optional<TranscriptLine> findById(Long transcriptLineId);
+
+    TranscriptLine save(TranscriptLine transcript);
 }
