@@ -12,4 +12,6 @@ public interface TranscriptLineService {
     TranscriptLine save(TranscriptLine transcript);
 
     List<TranscriptLine> saveAll(List<TranscriptLine> updatedLines);
+
+    List<TranscriptLine> findByVideoId(Long videoId);
 }

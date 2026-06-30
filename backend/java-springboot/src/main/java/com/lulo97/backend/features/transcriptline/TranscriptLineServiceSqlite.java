@@ -174,4 +174,17 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
     public List<TranscriptLine> saveAll(List<TranscriptLine> updatedLines) {
         return this.transcriptLineRepository.saveAll(updatedLines);
     }
+
+    @Override
+    public List<TranscriptLine> findByVideoId(Long videoId) {
+        String jpql = """
+                    SELECT tl
+                    FROM TranscriptLine tl
+                    WHERE tl.videoId = :videoId
+                    ORDER BY tl.lineIndex
+                """;
+
+        return entityManager.createQuery(jpql, TranscriptLine.class)
+                .setParameter("videoId", videoId).getResultList();
+    }
 }

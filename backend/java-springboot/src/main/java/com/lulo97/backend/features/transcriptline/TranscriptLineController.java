@@ -18,9 +18,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/transcripts")
 public class TranscriptLineController {
     private final TranscriptLineService transcriptLineService;
+    private final LLM llmService;
 
-    public TranscriptLineController(TranscriptLineService transcriptLineService) {
+    public TranscriptLineController(TranscriptLineService transcriptLineService, LLM llmService) {
         this.transcriptLineService = transcriptLineService;
+        this.llmService = llmService;
+    }
+
+    @GetMapping("/llm/{videoId}")
+    public ResponseEntity<?> llm(@PathVariable("videoId") Long videoId) {
+        List<TranscriptLine> lines = this.transcriptLineService.findByVideoId(videoId);
+        String output = llmService.run(TranscriptUtils.buildTranscriptForLlm(lines));
+
+        Result<Boolean> validationResult = TranscriptUtils.validateViText(output);
+        if (!validationResult.getSuccess()) {
+            return ResponseEntity.badRequest().body(Map.of("message", validationResult.getError()));
+        }
+
+        return updateViTextAsync(videoId, TranscriptUtils.parseViText(output), "Auto saved");
     }
 
     public record TranslateRequest(String ViText) {

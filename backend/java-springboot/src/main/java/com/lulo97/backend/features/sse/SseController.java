@@ -17,7 +17,7 @@ public class SseController {
     public SseController(SseService sseService) {
         this.sseService = sseService;
     }
-
+    
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(HttpServletRequest request) {
         var user = AuthComponentHelper.getCurrentUser(request);

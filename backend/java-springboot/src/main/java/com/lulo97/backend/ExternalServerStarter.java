@@ -22,8 +22,8 @@ public class ExternalServerStarter {
         this.servers = new ArrayList<>();
         servers.add(new ServerConfig("WHISPER_CPP", true, 8080,
                 "C:\\Users\\ADMIN\\Desktop\\shadow-practice-project\\backend\\csharp-aspnet-webapi\\Features\\Utils\\stt.bat"));
-        // servers.add(new ServerConfig("LLM", true, 8081,
-        // "C:\\Users\\ADMIN\\Desktop\\shadow-practice-project\\backend\\csharp-aspnet-webapi\\Features\\Utils\\llm.bat"));
+        servers.add(new ServerConfig("LLM", true, 8081,
+        "C:\\Users\\ADMIN\\Desktop\\shadow-practice-project\\backend\\csharp-aspnet-webapi\\Features\\Utils\\llm.bat"));
         // servers.add(new ServerConfig("PARAKEET", true, 8082,
         // "C:\\Users\\ADMIN\\Desktop\\shadow-practice-project\\services\\stt\\parakeet\\run.bat"));
     }
