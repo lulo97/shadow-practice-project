@@ -7,7 +7,7 @@ import com.lulo97.backend.features.video.Video;
 import com.lulo97.backend.features.video.VideoRepository;
 
 public interface RecordOperation {
-    Result<?> WriteAudio(Long record_id, RecordRepository recordRepository, byte[] bytes);
+    Result<Record> WriteAudio(Long record_id, RecordRepository recordRepository, byte[] bytes);
 
     Result<byte[]> ReadAudio(Record record);
 }

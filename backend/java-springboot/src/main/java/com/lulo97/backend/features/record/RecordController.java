@@ -16,13 +16,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/api/records")
+@RequestMapping("api/records")
 public class RecordController {
     private final RecordRepository recordRepository;
     private final RecordService recordService;
@@ -45,8 +47,8 @@ public class RecordController {
             @NotNull(message = "TranscriptLineId is required") Long transcriptLineId) {
     }
 
-    @PostMapping("path")
-    public ResponseEntity<?> add(@RequestBody CreateRecordDto body, HttpServletRequest request) {
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> add(@ModelAttribute CreateRecordDto body, HttpServletRequest request) {
         var transcriptLineOptinal = this.transcriptLineService.findById(body.transcriptLineId);
 
         if (transcriptLineOptinal.isEmpty()) {
@@ -117,7 +119,8 @@ public class RecordController {
                     .body(Map.of("message", writer_result.getError()));
         }
 
-        return ResponseEntity.ok("");
+        return ResponseEntity
+                .ok(Map.of("message", "Added record id = " + writer_result.getData().getId()));
     }
 
 }

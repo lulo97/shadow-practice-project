@@ -17,7 +17,7 @@ public class RecordOperationInMemory implements RecordOperation {
     }
 
     @Override
-    public Result<?> WriteAudio(Long record_id, RecordRepository recordRepository, byte[] bytes) {
+    public Result<Record> WriteAudio(Long record_id, RecordRepository recordRepository, byte[] bytes) {
         var result = recordRepository.findById(record_id);
 
         if (result.isEmpty())
@@ -27,9 +27,7 @@ public class RecordOperationInMemory implements RecordOperation {
 
         record.setBlobData(bytes);
 
-        recordRepository.save(record);
-
-        return Result.ok("");
+        return Result.ok(recordRepository.save(record));
     }
 
     @Override

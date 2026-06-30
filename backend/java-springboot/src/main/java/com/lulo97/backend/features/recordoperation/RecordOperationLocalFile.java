@@ -21,7 +21,8 @@ public class RecordOperationLocalFile implements RecordOperation {
     }
 
     @Override
-    public Result<?> WriteAudio(Long record_id, RecordRepository recordRepository, byte[] bytes) {
+    public Result<Record> WriteAudio(Long record_id, RecordRepository recordRepository,
+            byte[] bytes) {
         var result = recordRepository.findById(record_id);
 
         if (result.isEmpty())
@@ -42,7 +43,9 @@ public class RecordOperationLocalFile implements RecordOperation {
             return Result.fail(e.getMessage());
         }
 
-        return Result.ok("");
+        var added_result = recordRepository.findById(record_id);
+
+        return Result.ok(added_result.get());
     }
 
     @Override

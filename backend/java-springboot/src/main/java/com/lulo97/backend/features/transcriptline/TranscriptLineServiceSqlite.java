@@ -1,14 +1,16 @@
 package com.lulo97.backend.features.transcriptline;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityManager;
@@ -20,11 +22,13 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
 
     private final TranscriptLineRepository transcriptLineRepository;
     private final EntityManager entityManager;
-    private final ObjectMapper objectMapper = new ObjectMapper();;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public TranscriptLineServiceSqlite(EntityManager entityManager, TranscriptLineRepository transcriptLineRepository) {
+    public TranscriptLineServiceSqlite(EntityManager entityManager,
+            TranscriptLineRepository transcriptLineRepository) {
         this.entityManager = entityManager;
         this.transcriptLineRepository = transcriptLineRepository;
+        //this.objectMapper = objectMapper;
     }
 
     @Override
@@ -55,14 +59,10 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
                     GROUP BY tl.id
                 """;
 
-        List<Object[]> rows = entityManager
-                .createNativeQuery(sql)
-                .setParameter("videoId", videoId)
+        List<Object[]> rows = entityManager.createNativeQuery(sql).setParameter("videoId", videoId)
                 .getResultList();
 
-        return rows.stream()
-                .map(this::mapRow)
-                .toList();
+        return rows.stream().map(this::mapRow).toList();
     }
 
     private TranscriptLineDto mapRow(Object[] row) {
@@ -73,6 +73,8 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
         Double start = row[4] != null ? ((Number) row[4]).doubleValue() : null;
         Double end = row[5] != null ? ((Number) row[5]).doubleValue() : null;
         Boolean skip = row[6] != null && ((Number) row[6]).intValue() == 1;
+
+        // [{"id":5599249372330489,"sttText":"-","score":0,"sttProviderKey":"WHISPER_CPP","createdAt":1782854624808}]
         String recordsJson = (String) row[7];
 
         List<RecordDto> records = parseRecords(recordsJson);
@@ -81,15 +83,76 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
     }
 
     private List<RecordDto> parseRecords(String json) {
+        List<RecordDto> records = new ArrayList<>();
+
+        if (json == null || json.isBlank()) {
+            return records;
+        }
+
         try {
-            List<RecordDto> records = objectMapper.readValue(json, new TypeReference<>() {
-            });
-            // filter out nulls from LEFT JOIN with no matching records
-            return records.stream()
-                    .filter(Objects::nonNull)
-                    .toList();
+            JsonNode root = objectMapper.readTree(json);
+
+            if (!root.isArray()) {
+                System.err.println("Error parseRecords: expected JSON array, got = " + json);
+                return records;
+            }
+
+            for (JsonNode node : root) {
+                // Skip nulls from LEFT JOIN with no matching records
+                if (node == null || node.isNull()) {
+                    continue;
+                }
+
+                RecordDto dto = parseSingleRecord(node);
+                if (dto != null) {
+                    records.add(dto);
+                }
+            }
         } catch (Exception e) {
-            return List.of();
+            System.err.println("Error parseRecords: input json = " + json);
+            System.err.println(e);
+        }
+
+        return records;
+    }
+
+    private RecordDto parseSingleRecord(JsonNode node) {
+        try {
+            RecordDto dto = new RecordDto();
+
+            // "id": 5599249372330489
+            if (node.hasNonNull("id")) {
+                dto.setId(node.get("id").asLong());
+            }
+
+            // "sttText": "-"
+            if (node.hasNonNull("sttText")) {
+                dto.setSttText(node.get("sttText").asText());
+            }
+
+            // "score": 0
+            if (node.hasNonNull("score")) {
+                dto.setScore(node.get("score").asDouble());
+            }
+
+            // "sttProviderKey": "WHISPER_CPP"
+            if (node.hasNonNull("sttProviderKey")) {
+                dto.setSttProviderKey(node.get("sttProviderKey").asText());
+            }
+
+            // "createdAt": 1782854624808 (epoch millis -> LocalDateTime)
+            if (node.hasNonNull("createdAt")) {
+                long epochMillis = node.get("createdAt").asLong();
+                dto.setCreatedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),
+                        ZoneId.systemDefault() // adjust zone as needed, e.g. ZoneOffset.UTC
+                ));
+            }
+
+            return dto;
+        } catch (Exception e) {
+            System.err.println("Error parseSingleRecord: node = " + node);
+            System.err.println(e);
+            return null;
         }
     }
 

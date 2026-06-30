@@ -3,6 +3,7 @@ package com.lulo97.backend;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationListener;
@@ -24,6 +25,14 @@ public class BackendApplication {
 		}
 
 		SpringApplication.run(BackendApplication.class, args);
+	}
+
+	@Bean
+	public CommandLineRunner startExternalServers() {
+		return args -> {
+			ExternalServerStarter starter = new ExternalServerStarter(false);
+			starter.execute();
+		};
 	}
 
 	@Bean
