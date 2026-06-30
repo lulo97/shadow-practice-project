@@ -10,4 +10,6 @@ public interface TranscriptLineService {
     Optional<TranscriptLine> findById(Long transcriptLineId);
 
     TranscriptLine save(TranscriptLine transcript);
+
+    List<TranscriptLine> saveAll(List<TranscriptLine> updatedLines);
 }

@@ -169,4 +169,9 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
     public TranscriptLine save(TranscriptLine transcript) {
         return this.transcriptLineRepository.save(transcript);
     }
+
+    @Override
+    public List<TranscriptLine> saveAll(List<TranscriptLine> updatedLines) {
+        return this.transcriptLineRepository.saveAll(updatedLines);
+    }
 }
