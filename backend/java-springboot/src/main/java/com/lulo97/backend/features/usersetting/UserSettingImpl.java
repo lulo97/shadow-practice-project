@@ -24,4 +24,9 @@ public class UserSettingImpl implements UserSettingService {
         return this.userSettingRepository.save(us);
     }
 
+    @Override
+    public Optional<UserSetting> findById(Long id) {
+        return this.userSettingRepository.findById(id);
+    }
+
 }

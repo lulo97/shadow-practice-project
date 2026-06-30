@@ -24,7 +24,7 @@ public class UserSetting {
     private int loop;
 
     @Column(name = "video_width_size")
-    private int videoWidthSize;
+    private double videoWidthSize;
 
     // Getters and Setters
 
@@ -60,11 +60,11 @@ public class UserSetting {
         this.loop = loop;
     }
 
-    public int getVideoWidthSize() {
+    public double getVideoWidthSize() {
         return videoWidthSize;
     }
 
-    public void setVideoWidthSize(int videoWidthSize) {
+    public void setVideoWidthSize(double videoWidthSize) {
         this.videoWidthSize = videoWidthSize;
     }
 

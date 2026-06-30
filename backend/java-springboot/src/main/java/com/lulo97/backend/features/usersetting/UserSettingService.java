@@ -5,4 +5,5 @@ import java.util.Optional;
 public interface UserSettingService {
     Optional<UserSetting> getByUserId(Long user_id);
     UserSetting save(UserSetting us);
+    Optional<UserSetting> findById(Long id);
 }
