@@ -1,8 +1,13 @@
 package com.lulo97.backend.features.job;
 
-import com.lulo97.backend.features.user.Users;
-import com.lulo97.backend.features.video.VideoRepository;
+import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
 public class JobService {
     private final JobRepository jobRepository;
 
@@ -12,6 +17,15 @@ public class JobService {
 
     Job save(Job job) {
         return this.jobRepository.save(job);
+    }
+
+    Optional<Job> findNewJob(JobStatus status, JobType type) {
+        Optional<Job> job = this.jobRepository
+                .findNewJob(status, type, PageRequest.of(0, 1))
+                .stream()
+                .findFirst();
+
+        return job;
     }
 
 }

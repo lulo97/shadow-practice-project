@@ -47,7 +47,7 @@ public class Video {
     @Column(name = "thumbnail", nullable = true)
     private byte[] thumbnail;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = true)
     private String title;
 
     @Column(name = "description", nullable = true)

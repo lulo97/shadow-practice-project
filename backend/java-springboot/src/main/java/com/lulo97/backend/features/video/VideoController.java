@@ -73,6 +73,11 @@ public class VideoController {
 
         var thumbnail = result.getData();
 
+        if (thumbnail == null || thumbnail.length == 0) {
+            return ResponseEntity.ok("");
+                    
+        }
+
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .contentLength(thumbnail.length)
