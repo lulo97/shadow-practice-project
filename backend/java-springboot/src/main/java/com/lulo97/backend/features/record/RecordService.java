@@ -1,5 +1,6 @@
 package com.lulo97.backend.features.record;
 
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
@@ -14,5 +15,9 @@ public class RecordService {
 
     public Record save(Record record) {
         return this.recordRepository.save(record);
+    }
+
+    public Optional<Record> findById(Long record_id) {
+        return this.recordRepository.findById(record_id);
     }
 }

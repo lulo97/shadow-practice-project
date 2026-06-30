@@ -10,5 +10,6 @@ public record TranscriptLineDto(
     Double start,
     Double end,
     Boolean skip,
+    Integer lineIndex,
     List<RecordDto> records
 ) {}

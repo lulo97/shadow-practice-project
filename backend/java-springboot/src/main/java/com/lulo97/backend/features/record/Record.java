@@ -33,7 +33,6 @@ public class Record {
     @Column(name = "file_path")
     private String filePath;
 
-    @Lob
     @Column(name = "blob_data")
     private byte[] blobData;
 

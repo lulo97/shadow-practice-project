@@ -28,7 +28,7 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
             TranscriptLineRepository transcriptLineRepository) {
         this.entityManager = entityManager;
         this.transcriptLineRepository = transcriptLineRepository;
-        //this.objectMapper = objectMapper;
+        // this.objectMapper = objectMapper;
     }
 
     @Override
@@ -42,6 +42,7 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
                         tl.start      AS start,
                         tl.end        AS end,
                         tl.skip       AS skip,
+                        tl.line_index AS line_index,
                         json_group_array(
                             CASE WHEN r.id IS NULL THEN NULL ELSE
                                 json_object(
@@ -57,6 +58,7 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
                     LEFT JOIN record r ON r.transcript_line_id = tl.id
                     WHERE tl.video_id = :videoId
                     GROUP BY tl.id
+                    ORDER BY tl.line_index
                 """;
 
         List<Object[]> rows = entityManager.createNativeQuery(sql).setParameter("videoId", videoId)
@@ -73,13 +75,15 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
         Double start = row[4] != null ? ((Number) row[4]).doubleValue() : null;
         Double end = row[5] != null ? ((Number) row[5]).doubleValue() : null;
         Boolean skip = row[6] != null && ((Number) row[6]).intValue() == 1;
+        Integer line_index = row[7] != null ? ((Number) row[7]).intValue() : null;
 
         // [{"id":5599249372330489,"sttText":"-","score":0,"sttProviderKey":"WHISPER_CPP","createdAt":1782854624808}]
-        String recordsJson = (String) row[7];
+        String recordsJson = (String) row[8];
 
         List<RecordDto> records = parseRecords(recordsJson);
 
-        return new TranscriptLineDto(id, videoId, text, viText, start, end, skip, records);
+        return new TranscriptLineDto(id, videoId, text, viText, start, end, skip, line_index,
+                records);
     }
 
     private List<RecordDto> parseRecords(String json) {

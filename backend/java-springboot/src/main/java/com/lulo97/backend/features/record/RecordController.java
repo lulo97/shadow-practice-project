@@ -18,7 +18,9 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -40,6 +42,34 @@ public class RecordController {
         this.transcriptLineService = transcriptLineService;
         this.sttFactory = sttFactory;
         this.recordRepository = recordRepository;
+    }
+
+    @GetMapping("file/{record_id}/")
+    public ResponseEntity<?> getFile(@PathVariable Long record_id) {
+        var record = this.recordService.findById(record_id);
+
+        if (record.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Record not exist"));
+        }
+
+        var result = this.recordOperation.ReadAudio(record.get());
+
+        if (!result.getSuccess()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", result.getError()));
+        }
+
+        var data = result.getData();
+
+        if (data == null || data.length == 0) {
+            return ResponseEntity.ok("");
+
+        }
+
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType("audio/wav"))
+                .contentLength(data.length).body(data);
+
     }
 
     public record CreateRecordDto(@NotNull(message = "File is required") MultipartFile file,
