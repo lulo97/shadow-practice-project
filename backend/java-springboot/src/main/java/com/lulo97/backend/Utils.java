@@ -1,5 +1,9 @@
 package com.lulo97.backend;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -67,5 +71,72 @@ public final class Utils {
             this.End = end;
             this.Text = text;
         }
+    }
+
+    public static Result<Boolean> isYoutubeIdValid(String url) {
+        // 1. Check for null or empty
+        if (url == null || url.trim().isEmpty()) {
+            return Result.fail("URL cannot be empty.");
+        }
+
+        // 2. Validate URI format
+        URI uri;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException e) {
+            return Result.fail("URL is not a valid absolute URI.");
+        }
+
+        if (uri.getScheme() == null ||
+                (!uri.getScheme().equalsIgnoreCase("http") &&
+                        !uri.getScheme().equalsIgnoreCase("https"))) {
+            return Result.fail("URL is not a valid absolute URI.");
+        }
+
+        // 3. Validate Domain
+        String host = uri.getHost();
+        if (host == null ||
+                (!host.equals("www.youtube.com") && !host.equals("youtube.com"))) {
+            return Result.fail("Domain must be youtube.com or www.youtube.com.");
+        }
+
+        // 4. Validate Path
+        if (!"/watch".equals(uri.getPath())) {
+            return Result.fail("Path must be /watch.");
+        }
+
+        return Result.ok(true);
+    }
+
+    public static String getYoutubeId(String url) {
+        Result<Boolean> result = isYoutubeIdValid(url);
+
+        if (!result.getSuccess()) {
+            return null;
+        }
+
+        try {
+            URI uri = new URI(url);
+            String query = uri.getQuery();
+
+            if (query == null) {
+                return null;
+            }
+
+            for (String param : query.split("&")) {
+                String[] pair = param.split("=", 2);
+
+                if (pair.length == 2 && pair[0].equals("v")) {
+                    return URLDecoder.decode(
+                            pair[1],
+                            StandardCharsets.UTF_8);
+                }
+            }
+
+        } catch (URISyntaxException e) {
+            return null;
+        }
+
+        return null;
     }
 }

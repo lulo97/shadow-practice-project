@@ -199,4 +199,9 @@ public class VideoServiceSqliteImpl implements VideoService {
     public Optional<Video> findById(Long id) {
         return this.videoRepository.findById(id);
     }
+
+    @Override
+    public Video save(Video video) {
+        return this.videoRepository.save(video);
+    }
 }

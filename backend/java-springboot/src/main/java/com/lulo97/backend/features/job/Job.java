@@ -13,13 +13,13 @@ public class Job {
     @Id
     @NoLockId
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "video_id")
-    private Integer videoId;
+    private Long videoId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -35,14 +35,14 @@ public class Job {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // plain getters/setters, no annotations
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
-    public Integer getVideoId() { return videoId; }
-    public void setVideoId(Integer videoId) { this.videoId = videoId; }
+    public Long getVideoId() { return videoId; }
+    public void setVideoId(Long videoId) { this.videoId = videoId; }
 
     public JobStatus getStatus() { return status; }
     public void setStatus(JobStatus status) { this.status = status; }
