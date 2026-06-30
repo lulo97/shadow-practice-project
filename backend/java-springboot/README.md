@@ -17,3 +17,12 @@ Use @Profile() to switch database:
 Write select sql with @Repository
 - Interface SqliteUserRepository with @Repository extends both JpaRepository, IUserRepository
 - Decorate @Query() above any method and write sql
+
+How to auto gen id:
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    -> Make sqlite gen no column type (error)
+
+    @NoLockId
+    -> Sqlite don't have sequence so it make db lock
+
+    Solution = Custom class implement IdentifierGenerator (custom gen, make sure number not too big for js)

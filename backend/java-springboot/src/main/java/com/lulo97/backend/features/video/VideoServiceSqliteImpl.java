@@ -26,13 +26,13 @@ public class VideoServiceSqliteImpl implements VideoService {
     private final EntityManager entityManager;
     private final VideoRepository videoRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public VideoServiceSqliteImpl(EntityManager entityManager, VideoRepository videoRepository) {
+    public VideoServiceSqliteImpl(EntityManager entityManager, VideoRepository videoRepository, JdbcTemplate jdbcTemplate) {
         System.out.println("VideoServiceSqliteImpl run");
         this.entityManager = entityManager;
         this.videoRepository = videoRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override

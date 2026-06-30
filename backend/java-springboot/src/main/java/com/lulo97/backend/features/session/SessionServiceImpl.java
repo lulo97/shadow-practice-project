@@ -1,13 +1,10 @@
 package com.lulo97.backend.features.session;
 
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lulo97.backend.Result;
-import com.lulo97.backend.features.user.UserRepository;
 
 @Service
 @Transactional

@@ -7,12 +7,14 @@ import jakarta.validation.constraints.Min;
 
 import java.time.LocalDateTime;
 
+import com.lulo97.backend.NoLockId;
+
 @Entity
 @Table(name = "record")
 public class Record {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @NoLockId
     @Column(name = "id")
     private Integer id;
 

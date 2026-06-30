@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
+import com.lulo97.backend.NoLockId;
+
 @Entity
 @Table(name = "job")
 public class Job {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @NoLockId
     @Column(name = "id")
     private Integer id;
 

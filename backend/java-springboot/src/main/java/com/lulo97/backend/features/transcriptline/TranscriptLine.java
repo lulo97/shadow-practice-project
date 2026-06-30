@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
+import com.lulo97.backend.NoLockId;
+
 @Entity
 @Table(name = "transcript_line")
 public class TranscriptLine {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE) //Other GenerationType type make sqlite column id with no column type error
+    @NoLockId //Other GenerationType type make sqlite column id with no column type error
     @Column(name = "id", columnDefinition = "INTEGER")
     private Long id;
 
