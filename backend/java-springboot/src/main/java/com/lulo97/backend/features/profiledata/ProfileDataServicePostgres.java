@@ -1,6 +1,7 @@
 package com.lulo97.backend.features.profiledata;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Qualifier("postgres")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = true)
 public class ProfileDataServicePostgres implements ProfileDataService {
 
     private final JdbcTemplate jdbcTemplate;
@@ -38,12 +39,12 @@ public class ProfileDataServicePostgres implements ProfileDataService {
     private UserStatsDto getStats(Long userId) {
         String sql = """
             SELECT
-                (SELECT COUNT(*) FROM jobs WHERE user_id = ?) AS total_jobs_run,
-                (SELECT COUNT(*) FROM jobs WHERE user_id = ? AND status = 'Done') AS completed_jobs,
-                (SELECT COUNT(*) FROM jobs WHERE user_id = ? AND status = 'Failed') AS failed_jobs,
-                (SELECT COUNT(*) FROM records WHERE user_id = ?) AS total_recordings_made,
-                (SELECT COALESCE(AVG(score), 0) FROM records WHERE user_id = ?) AS average_score,
-                (SELECT COUNT(DISTINCT video_id) FROM records WHERE user_id = ?) AS total_videos_learned
+                (SELECT COUNT(*) FROM job WHERE user_id = ?) AS total_jobs_run,
+                (SELECT COUNT(*) FROM job WHERE user_id = ? AND status = 'Done') AS completed_jobs,
+                (SELECT COUNT(*) FROM job WHERE user_id = ? AND status = 'Failed') AS failed_jobs,
+                (SELECT COUNT(*) FROM record WHERE user_id = ?) AS total_recordings_made,
+                (SELECT COALESCE(AVG(score), 0) FROM record WHERE user_id = ?) AS average_score,
+                (SELECT COUNT(DISTINCT video_id) FROM record WHERE user_id = ?) AS total_videos_learned
             """;
 
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
@@ -68,8 +69,8 @@ public class ProfileDataServicePostgres implements ProfileDataService {
                 AVG(r.score) AS average_score,
                 COUNT(DISTINCT r.transcript_line_id) AS practiced_lines,
                 MAX(r.created_at) AS last_practiced_at
-            FROM videos v
-            JOIN records r ON v.id = r.video_id
+            FROM video v
+            JOIN record r ON v.id = r.video_id
             WHERE r.user_id = ?
             GROUP BY v.id, v.youtube_id, v.title
             """;
@@ -99,7 +100,7 @@ public class ProfileDataServicePostgres implements ProfileDataService {
 
         String sql = """
             SELECT video_id, COUNT(*) AS line_count
-            FROM transcript_lines
+            FROM transcript_line
             WHERE video_id IN (%s)
             GROUP BY video_id
             """.formatted(inClause);
@@ -124,9 +125,9 @@ public class ProfileDataServicePostgres implements ProfileDataService {
                 r.score,
                 r.stt_text,
                 r.created_at
-            FROM records r
-            JOIN transcript_lines tl ON r.transcript_line_id = tl.id
-            JOIN videos v ON r.video_id = v.id
+            FROM record r
+            JOIN transcript_line tl ON r.transcript_line_id = tl.id
+            JOIN video v ON r.video_id = v.id
             WHERE r.user_id = ?
             ORDER BY r.created_at DESC
             LIMIT 20

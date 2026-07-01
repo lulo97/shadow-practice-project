@@ -9,7 +9,7 @@ import com.lulo97.backend.features.user.Users;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/profile-data")
+@RequestMapping("/api/profiledata")
 public class ProfileDataController {
 
     private final ProfileDataService profileDataService;
