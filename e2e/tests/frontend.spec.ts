@@ -32,8 +32,8 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   logOk("STEP 1", "Page loaded: http://localhost:3001/login");
 
   log("STEP 1", "Filling in credentials");
-  await page.locator("#username").fill("alice");
-  await page.locator("#password").fill("4i5x,p^K96a5");
+  await page.locator("#username").fill("alice-java");
+  await page.locator("#password").fill("M90&Op2p|D<.");
   logOk("STEP 1", "Credentials filled: username=alice");
 
   log("STEP 1", "Clicking #log-in button");
@@ -376,6 +376,8 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   );
   await page.locator("#btn-toggle-record").click();
   logOk("STEP 9 [Run 2]", "Recording started (Run 2)");
+
+  await page.pause();
 
   log("STEP 9 [Run 2]", "Waiting 3 seconds for audio to buffer...");
   await page.waitForTimeout(3_000);

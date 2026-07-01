@@ -114,6 +114,7 @@ public final class SttUtils {
                 f.delete();
             }
         } catch (Exception ignored) {
+            System.err.println(ignored);
             // best-effort cleanup
         }
     }

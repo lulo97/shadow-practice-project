@@ -48,6 +48,7 @@ public class Whisper implements ISTT {
             HttpResponse<Void> response = http.send(request, HttpResponse.BodyHandlers.discarding());
             return response.statusCode() >= 200 && response.statusCode() < 300;
         } catch (Exception e) {
+            System.err.println(e);
             return false;
         }
     }
@@ -74,6 +75,7 @@ public class Whisper implements ISTT {
 
             return false;
         } catch (Exception e) {
+            System.err.println(e);
             return false;
         }
     }
@@ -116,8 +118,10 @@ public class Whisper implements ISTT {
 
             throw new IllegalStateException("Unexpected response from whisper.cpp.");
         } catch (IOException e) {
+            System.err.println(e);
             throw new UncheckedIOException(e);
         } catch (InterruptedException e) {
+            System.err.println(e);
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Request to whisper.cpp was interrupted.", e);
         }

@@ -126,6 +126,7 @@ public final class Utils {
             }
 
         } catch (URISyntaxException e) {
+            System.err.println(e);
             return null;
         }
 

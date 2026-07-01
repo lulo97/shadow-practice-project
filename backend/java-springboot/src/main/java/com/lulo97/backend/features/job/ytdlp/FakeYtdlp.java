@@ -34,6 +34,7 @@ public class FakeYtdlp implements YtdlpService {
         try {
             return Result.ok(Files.readAllBytes(filePath));
         } catch (IOException e) {
+            System.err.println(e);
             return Result.fail(e.getMessage());
         }
     }
@@ -62,6 +63,7 @@ public class FakeYtdlp implements YtdlpService {
         try {
             return Result.ok(Files.readAllBytes(filePath));
         } catch (IOException e) {
+            System.err.println(e);
             return Result.fail(e.getMessage());
         }
     }
@@ -84,6 +86,7 @@ public class FakeYtdlp implements YtdlpService {
             return Result.ok(Utils.ParseTranscript(content));
 
         } catch (IOException e) {
+            System.err.println(e);
             return Result.fail(e.getMessage());
         }
     }
@@ -99,6 +102,7 @@ public class FakeYtdlp implements YtdlpService {
         try {
             return Result.ok(Files.readAllBytes(filePath));
         } catch (IOException e) {
+            System.err.println(e);
             return Result.fail(e.getMessage());
         }
     }

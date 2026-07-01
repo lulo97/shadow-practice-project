@@ -54,6 +54,7 @@ public class YtdlpCLI implements YtdlpService {
 
             return Result.ok(Files.readAllBytes(thumbnailFile.toPath()));
         } catch (Exception ex) {
+            System.err.println(ex);
             return Result.fail("Unexpected error: " + ex.getMessage());
         } finally {
             deleteDirectoryRecursively(tempDir);
@@ -78,6 +79,7 @@ public class YtdlpCLI implements YtdlpService {
 
             return Result.ok(Files.readAllBytes(tempFile));
         } catch (Exception ex) {
+            System.err.println(ex);
             return Result.fail("Unexpected error: " + ex.getMessage());
         } finally {
             deleteFile(tempFile);
@@ -104,6 +106,7 @@ public class YtdlpCLI implements YtdlpService {
             String raw = Files.readString(vttFile.toPath(), StandardCharsets.UTF_8);
             return Result.ok(parseTranscript(raw));
         } catch (Exception ex) {
+            System.err.println(ex);
             return Result.fail("Unexpected error: " + ex.getMessage());
         } finally {
             deleteDirectoryRecursively(tempDir);
@@ -127,6 +130,7 @@ public class YtdlpCLI implements YtdlpService {
 
             return Result.ok(Files.readAllBytes(tempFile));
         } catch (Exception ex) {
+            System.err.println(ex);
             return Result.fail("Unexpected error: " + ex.getMessage());
         } finally {
             deleteFile(tempFile);
@@ -158,6 +162,7 @@ public class YtdlpCLI implements YtdlpService {
 
             return Result.ok(stdout);
         } catch (IOException | InterruptedException ex) {
+            System.err.println(ex);
             if (ex instanceof InterruptedException)
                 Thread.currentThread().interrupt();
             return Result.fail("Unexpected error: " + ex.getMessage());
@@ -189,6 +194,7 @@ public class YtdlpCLI implements YtdlpService {
         try {
             Files.deleteIfExists(file);
         } catch (IOException ignored) {
+            System.err.println(ignored);
         }
     }
 
@@ -203,6 +209,7 @@ public class YtdlpCLI implements YtdlpService {
                 }
             });
         } catch (IOException ignored) {
+            System.err.println(ignored);
         }
     }
 

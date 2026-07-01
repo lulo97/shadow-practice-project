@@ -155,6 +155,7 @@ public class ProfileDataServiceSqlite implements ProfileDataService {
                 return LocalDateTime.parse(value, fmt);
             } catch (Exception ignored) {
                 // try next formatter
+                System.err.println(ignored);
             }
         }
         return null;

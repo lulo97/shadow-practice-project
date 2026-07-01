@@ -29,6 +29,7 @@ public class SseService {
         try {
             emitter.send(SseEmitter.event().name("connected").data("ok"));
         } catch (IOException e) {
+            System.err.println(e);
             removeEmitter(userId, emitter);
         }
 
@@ -67,6 +68,7 @@ public class SseService {
                         .name("message")
                         .data(jsonPayload, MediaType.APPLICATION_JSON));
             } catch (IOException | IllegalStateException e) {
+                System.err.println(e);
                 dead.add(emitter);
             }
         }

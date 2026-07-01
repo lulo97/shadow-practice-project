@@ -160,6 +160,7 @@ public class VideoServicePostgresImpl implements VideoService {
             return Result.ok(result);
 
         } catch (Exception e) {
+            System.err.println(e);
             // Only way is the throw here
             // Because it always throw "Transaction silently rolled back because it has been marked
             // as rollback-only" no matter what

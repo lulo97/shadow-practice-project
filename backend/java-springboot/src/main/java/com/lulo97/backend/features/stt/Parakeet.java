@@ -43,6 +43,7 @@ public class Parakeet implements ISTT {
                     http.send(request, HttpResponse.BodyHandlers.discarding());
             return response.statusCode() >= 200 && response.statusCode() < 300;
         } catch (Exception e) {
+            System.err.println(e);
             return false;
         }
     }
@@ -80,8 +81,10 @@ public class Parakeet implements ISTT {
 
             throw new IllegalStateException("Unexpected response from whisper.cpp.");
         } catch (IOException e) {
+            System.err.println(e);
             throw new UncheckedIOException(e);
         } catch (InterruptedException e) {
+            System.err.println(e);
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Request to Parakeet was interrupted.", e);
         }

@@ -38,6 +38,7 @@ public class LLM {
         try {
             return runAsync(text);
         } catch (IOException | InterruptedException e) {
+            System.err.println(e);
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
@@ -109,6 +110,7 @@ public class LLM {
                     try {
                         currentIdx = Integer.parseInt(index) + offSetIndexForSSE - 1;
                     } catch (NumberFormatException ignored) {
+                        System.err.println(ignored);
                         // skip malformed index, keep previous currentIdx
                     }
 
@@ -237,6 +239,7 @@ public class LLM {
                     }
                 }
             } catch (IOException ignored) {
+                System.err.println(ignored);
                 // not up yet
             }
 
