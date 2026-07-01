@@ -1,5 +1,6 @@
 package com.lulo97.backend.features.video;
 
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ public class VideoServicePostgresImpl implements VideoService {
 
                             WHEN COUNT(
                                 DISTINCT CASE
-                                    WHEN tl.skip = false
+                                    WHEN tl.skip = 0
                                     THEN r.transcript_line_id
                                 END
                             ) = 0
@@ -125,6 +126,9 @@ public class VideoServicePostgresImpl implements VideoService {
 
 
                     FROM video v
+
+                    LEFT JOIN users u
+                        ON v.user_id = u.id
 
                     LEFT JOIN job j
                         ON v.id = j.video_id
@@ -165,15 +169,10 @@ public class VideoServicePostgresImpl implements VideoService {
 
             return Result.ok(data);
 
-        } catch (PersistenceException e) {
-
-            return Result.fail(
-                    "Database error: " + e.getMessage());
-
         } catch (Exception e) {
-
-            return Result.fail(
-                    "Unexpected error: " + e.getMessage());
+            //Only way is the throw here
+            //Because it always throw "Transaction silently rolled back because it has been marked as rollback-only" no matter what
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
     }
 
