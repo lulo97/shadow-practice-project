@@ -47,10 +47,10 @@ public class Video {
     @Column(name = "thumbnail", nullable = true)
     private byte[] thumbnail;
 
-    @Column(name = "title", nullable = true)
+    @Column(name = "title", nullable = true, length = 1000)
     private String title;
 
-    @Column(name = "description", nullable = true)
+    @Column(name = "description", nullable = true, length = 4000)
     private String description;
 
     public Long getId() {

@@ -12,7 +12,7 @@ public class TranscriptLine {
 
     @Id
     @NoLockId //Other GenerationType type make sqlite column id with no column type error
-    @Column(name = "id", columnDefinition = "INTEGER")
+    @Column(name = "id")
     private Long id;
 
     @NotNull
@@ -35,7 +35,8 @@ public class TranscriptLine {
     private double start;
 
     @NotNull
-    @Column(name = "end", nullable = false)
+    //Fix end -> end_time for postgresql
+    @Column(name = "end_time", nullable = false)
     private double end;
 
     @NotNull

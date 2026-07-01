@@ -28,17 +28,17 @@ public class VideoOperationLocalFile implements VideoOperation {
 
     @Override
     public Result<?> WriteThumbnail(Long video_id, VideoRepository videoRepository, byte[] bytes) {
-        return writeFile(video_id, videoRepository, bytes, Video::setThumbnail_file_name);
+        return writeFile(video_id, videoRepository, bytes, Video::setThumbnail_file_name, ".jpg");
     }
 
     @Override
     public Result<?> WriteAudio(Long video_id, VideoRepository videoRepository, byte[] bytes) {
-        return writeFile(video_id, videoRepository, bytes, Video::setAudio_filename);
+        return writeFile(video_id, videoRepository, bytes, Video::setAudio_filename, ".mp3");
     }
 
     @Override
     public Result<?> WriteVideo(Long video_id, VideoRepository videoRepository, byte[] bytes) {
-        return writeFile(video_id, videoRepository, bytes, Video::setFilename);
+        return writeFile(video_id, videoRepository, bytes, Video::setFilename, ".mp4");
     }
 
     @Override
@@ -59,16 +59,17 @@ public class VideoOperationLocalFile implements VideoOperation {
     // --- Helpers ---
 
     private Result<?> writeFile(Long video_id, VideoRepository videoRepository, byte[] bytes,
-            BiConsumer<Video, String> fileNameSetter) {
+            BiConsumer<Video, String> fileNameSetter, String ext) {
         var video_result = videoRepository.findById(video_id);
 
         if (video_result.isEmpty())
             return Result.fail("Video not found");
 
         var video = video_result.get();
-        Path filePath = Paths.get(Utils.LOCAL_FILE_PATH, video.getYoutube_id());
-
+        Path filePath = Paths.get(Utils.LOCAL_FILE_PATH, video.getYoutube_id() + ext);
+        System.out.println("Writing to: " + filePath.toAbsolutePath());
         try {
+            Files.createDirectories(filePath.getParent());
             String fileNameCreated = Files.write(filePath, bytes).getFileName().toString();
             fileNameSetter.accept(video, fileNameCreated);
             videoRepository.save(video);

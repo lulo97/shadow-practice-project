@@ -40,7 +40,7 @@ public class TranscriptLineServiceSqlite implements TranscriptLineService {
                         tl.text       AS text,
                         tl.vi_text    AS viText,
                         tl.start      AS start,
-                        tl.end        AS end,
+                        tl.end_time        AS end,
                         tl.skip       AS skip,
                         tl.line_index AS line_index,
                         json_group_array(
