@@ -34,14 +34,14 @@ public class TranscriptLineServicePostgres implements TranscriptLineService {
     public List<TranscriptLineDto> findByVideoIdWithRecords(Long videoId) {
         String sql = """
                     SELECT
-                        tl.id         AS id,
-                        tl.video_id   AS videoId,
-                        tl.text       AS text,
-                        tl.vi_text    AS viText,
-                        tl.start      AS start,
-                        tl.end_time        AS end,
-                        tl.skip       AS skip,
-                        tl.line_index AS line_index,
+                        tl.id         AS "id",
+                        tl.video_id   AS "videoId",
+                        tl.text       AS "text",
+                        tl.vi_text    AS "viText",
+                        tl.start      AS "start",
+                        tl.end_time        AS "end",
+                        tl.skip       AS "skip",
+                        tl.line_index AS "line_index",
                         COALESCE(
                             json_agg(
                                 json_build_object(

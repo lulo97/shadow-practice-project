@@ -73,14 +73,14 @@ public class VideoServicePostgresImpl implements VideoService {
 
             String sql = """
                     SELECT
-                        v.id AS Id,
-                        v.title AS Title,
-                        v.youtube_id AS YoutubeId,
-                        v.user_id AS UserId,
-                        v.created_at AS CreatedAt,
-                        v.description AS Description,
+                        v.id AS "id",
+                        v.title AS "title",
+                        v.youtube_id AS "youtubeId",
+                        v.user_id AS "userId",
+                        v.created_at AS "createdAt",
+                        v.description AS "description",
 
-                        MAX(j.id) AS JobId,
+                        MAX(j.id) AS "jobId",
 
                         CASE
                             WHEN COUNT(tl.id)=0
@@ -102,7 +102,7 @@ public class VideoServicePostgresImpl implements VideoService {
                             THEN 'UNFINISHED'
 
                             ELSE 'FINISHED'
-                        END AS Status,
+                        END AS "status",
 
 
                         CAST(
@@ -112,10 +112,10 @@ public class VideoServicePostgresImpl implements VideoService {
                                 /
                                 NULLIF(COUNT(DISTINCT tl.id),0)
                             )
-                        AS INTEGER) AS ProcessPercent,
+                        AS INTEGER) AS "processPercent",
 
 
-                        MAX(r.created_at) AS LastPracticed
+                        MAX(r.created_at) AS "lastPracticed"
 
 
                     FROM video v
