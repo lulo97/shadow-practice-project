@@ -30,7 +30,7 @@ public class AuthComponentHelper {
 
         var result_setting = userSettingService.getByUserId(result_user.getData().getId());
 
-        if (!result_setting.isEmpty()) {
+        if (result_setting.isEmpty()) {
             return Result.ok(new UserSetting(result_user.getData().getId(), "WHISPER_CPP", 0, 30));
         }
 

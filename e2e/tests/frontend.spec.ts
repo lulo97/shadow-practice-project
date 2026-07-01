@@ -22,7 +22,8 @@ function logWarn(step: string, detail = "") {
 // Main test
 // ─────────────────────────────────────────────
 test("Full E2E workflow — video add, transcript, record, translate, settings, logout", async ({
-  page, context 
+  page,
+  context,
 }) => {
   // ══════════════════════════════════════════
   // STEP 1 — Authentication & Navigation
@@ -358,13 +359,6 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   await page.locator("#btn-jump-unrecorded").click();
   logOk("STEP 9 [Run 2]", "Jumped to unrecorded line");
 
-
-
-
-
-
-
-
   log("STEP 9 [Run 2]", "Clicking #btn-record-inner");
   await page.locator("#btn-record-inner").click();
   logOk("STEP 9 [Run 2]", "#btn-record-inner clicked");
@@ -376,8 +370,6 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   );
   await page.locator("#btn-toggle-record").click();
   logOk("STEP 9 [Run 2]", "Recording started (Run 2)");
-
-  await page.pause();
 
   log("STEP 9 [Run 2]", "Waiting 3 seconds for audio to buffer...");
   await page.waitForTimeout(3_000);
@@ -415,6 +407,9 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   log("STEP 9 [Run 2]", 'Asserting #td-model-key-0 contains "PARAKEET"');
   const modelKeyCell = page.locator("#td-model-key-0");
   await expect(modelKeyCell).toBeVisible();
+
+  //await page.pause();
+
   await expect(modelKeyCell).toHaveText("PARAKEET");
   logOk(
     "STEP 9 [Run 2]",
