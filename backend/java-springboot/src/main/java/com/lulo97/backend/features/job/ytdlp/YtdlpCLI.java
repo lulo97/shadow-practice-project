@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -67,9 +68,10 @@ public class YtdlpCLI implements YtdlpService {
         try {
             tempFile = Files.createTempFile(UUID.randomUUID().toString(), ".mp4");
 
+            //yt-dlp will mistakely return if exist an file 0 byte here and not download, fix = overwrite flag
             Result<String> run = run(new String[] {"-f",
                     "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]",
-                    "-o", tempFile.toString(), "--no-playlist"}, youtubeLink);
+                    "-o", tempFile.toString(), "--no-playlist", "--force-overwrites"}, youtubeLink);
 
             if (!run.getSuccess())
                 return Result.fail(run.getError());
@@ -147,6 +149,11 @@ public class YtdlpCLI implements YtdlpService {
         if (url != null)
             command.add(url);
 
+        // Build a copy-pasteable command line for manual testing in cmd.exe
+        String loggableCommand =
+                command.stream().map(this::quoteForCmd).collect(Collectors.joining(" "));
+        System.out.println("yt-dlp command: " + loggableCommand);
+
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(false);
@@ -156,6 +163,9 @@ public class YtdlpCLI implements YtdlpService {
             String stderr = readStream(process.getErrorStream());
 
             int exitCode = process.waitFor();
+
+            System.out.println("yt-dlp stdout: " + stdout);
+            System.out.println("yt-dlp stderr: " + stderr);
 
             if (exitCode != 0)
                 return Result.fail("yt-dlp failed (exit " + exitCode + "): " + stderr.trim());
@@ -167,6 +177,14 @@ public class YtdlpCLI implements YtdlpService {
                 Thread.currentThread().interrupt();
             return Result.fail("Unexpected error: " + ex.getMessage());
         }
+    }
+
+    private String quoteForCmd(String arg) {
+        // Quote anything with spaces or characters cmd.exe/yt-dlp args commonly need protected
+        if (arg.isEmpty() || arg.matches(".*[\\s\"\\[\\]+].*")) {
+            return "\"" + arg.replace("\"", "\\\"") + "\"";
+        }
+        return arg;
     }
 
     private String readStream(java.io.InputStream inputStream) throws IOException {
@@ -213,6 +231,16 @@ public class YtdlpCLI implements YtdlpService {
         }
     }
 
+    private static double parseTimestamp(String ts) {
+        // normalize comma (SRT-style) to dot (VTT-style)
+        ts = ts.replace(',', '.');
+        String[] parts = ts.split(":");
+        double hours = Double.parseDouble(parts[0]);
+        double minutes = Double.parseDouble(parts[1]);
+        double seconds = Double.parseDouble(parts[2]);
+        return hours * 3600 + minutes * 60 + seconds;
+    }
+
     // Basic WebVTT parser producing TranscriptLineFormat entries with
     // start time, end time and text, skipping headers/cues metadata.
     private static final Pattern TIME_PATTERN = Pattern
@@ -221,6 +249,8 @@ public class YtdlpCLI implements YtdlpService {
     private List<TranscriptLineFormat> parseTranscript(String raw) {
         List<TranscriptLineFormat> lines = new ArrayList<>();
         String[] rawLines = raw.replace("\r\n", "\n").split("\n");
+
+        //System.out.println(raw);
 
         Double currentStart = null;
         Double currentEnd = null;
@@ -234,8 +264,8 @@ public class YtdlpCLI implements YtdlpService {
                     lines.add(new TranscriptLineFormat(currentStart, currentEnd,
                             textBuilder.toString().trim()));
                 }
-                currentStart = Double.parseDouble(matcher.group(1));
-                currentEnd = Double.parseDouble(matcher.group(2));
+                currentStart = parseTimestamp(matcher.group(1));
+                currentEnd = parseTimestamp(matcher.group(2));
                 textBuilder = new StringBuilder();
             } else if (line.isBlank() || line.equals("WEBVTT") || line.matches("^\\d+$")) {
                 // skip header/index/blank lines

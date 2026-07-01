@@ -82,6 +82,10 @@ public class VideoOperationLocalFile implements VideoOperation {
     }
 
     private Result<byte[]> readFile(String fileName) {
+        if (fileName == null || fileName.length() == 0) {
+            return Result.ok(null);
+        }
+
         Path filePath = Paths.get(Utils.LOCAL_FILE_PATH, fileName);
 
         try {
