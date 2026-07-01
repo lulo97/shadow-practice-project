@@ -1,6 +1,7 @@
 package com.lulo97.backend.features.session;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +59,11 @@ public class SessionServiceImpl implements SessionService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Optional<Session> findByToken(String token) {
+        return this.repo.findByToken(token);
     }
 
 }

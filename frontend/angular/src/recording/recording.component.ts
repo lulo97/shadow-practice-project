@@ -96,6 +96,7 @@ import { OnDestroy, HostListener } from "@angular/core";
                 #videoPlayer
                 controls
                 class="h-full w-full object-contain"
+                [attr.loop]="setting.loop === 1 ? true : null"
               >
                 <source
                   id="video-source-mp4"

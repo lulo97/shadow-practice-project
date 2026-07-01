@@ -58,7 +58,7 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   await expect(page.locator("#add-video-container")).toBeVisible();
   logOk("STEP 2", "#add-video-container modal is visible");
 
-  const ytUrl = "https://www.youtube.com/watch?v=eSW2LVbPThw";
+  const ytUrl = "https://www.youtube.com/watch?v=1aA1WGON49E";
   log("STEP 2", `Entering YouTube URL: ${ytUrl}`);
   await page.locator("#ytb-link").fill(ytUrl);
 
@@ -299,7 +299,7 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
 
   log("STEP 7", "Waiting for button to revert to #btn-auto-translation");
   await expect(page.locator("#btn-auto-translation")).toBeVisible({
-    timeout: 120_000,
+    timeout: 120_0000,
   });
   logOk("STEP 7", "#btn-auto-translation is visible — translation complete");
 
@@ -421,41 +421,40 @@ test("Full E2E workflow — video add, transcript, record, translate, settings, 
   logOk("STEP 9 [Run 2]", "Modal closed");
 
   // ══════════════════════════════════════════
-  // STEP 10 — Audio Loop Assertion & Logout
+  // STEP 10 — Video Loop Assertion & Logout
   // ══════════════════════════════════════════
-  log("STEP 10", 'Locating <audio id="audio-player-mine">');
-  const loopAudio = page.locator("audio#audio-player-mine");
-  await expect(loopAudio).toBeAttached();
+  log("STEP 10", 'Locating <video id="video-player">');
+  const loopVideo = page.locator("video#video-player");
+  await expect(loopVideo).toBeAttached();
 
-  log("STEP 10", 'Asserting audio element has "loop" attribute');
-  await expect(loopAudio).toHaveAttribute("loop", "");
-  logOk("STEP 10", "audio#audio-player-mine has loop attribute ✓");
+  log("STEP 10", 'Asserting video element has "loop" attribute');
+  await expect(loopVideo).toHaveAttribute("loop", "true");
+  logOk("STEP 10", "video#video-player has loop attribute ✓");
 
-  log("STEP 10", "Starting audio playback");
-  await loopAudio.evaluate((el: HTMLAudioElement) => el.play());
-  logOk("STEP 10", "Audio playing");
+  log("STEP 10", "Starting video playback");
+  await loopVideo.evaluate((el: HTMLVideoElement) => el.play());
+  logOk("STEP 10", "Video playing");
 
   log(
     "STEP 10",
-    "Verifying audio is actually looping (currentTime advances after it would have ended)",
+    "Verifying video is actually looping (currentTime advances after it would have ended)",
   );
   const isLooping = await page.waitForFunction(
     () => {
-      const audio =
-        document.querySelector<HTMLAudioElement>("#audio-player-mine");
-      if (!audio) return false;
-      return audio.loop === true;
+      const video = document.querySelector<HTMLVideoElement>("#video-player");
+      if (!video) return false;
+      return video.loop === true;
     },
     { timeout: 10_000 },
   );
-  logOk("STEP 10", `audio.loop === true confirmed: ${!!isLooping}`);
+  logOk("STEP 10", `video.loop === true confirmed: ${!!isLooping}`);
 
-  log("STEP 10", "Stopping audio playback");
-  await loopAudio.evaluate((el: HTMLAudioElement) => {
+  log("STEP 10", "Stopping video playback");
+  await loopVideo.evaluate((el: HTMLVideoElement) => {
     el.pause();
     el.currentTime = 0;
   });
-  logOk("STEP 10", "Audio stopped and reset");
+  logOk("STEP 10", "Video stopped and reset");
 
   log("STEP 10", "Clicking #btn-back to return to video list");
   await page.locator("#btn-back").click();
