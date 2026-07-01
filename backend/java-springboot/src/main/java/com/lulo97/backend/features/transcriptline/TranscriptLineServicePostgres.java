@@ -74,7 +74,7 @@ public class TranscriptLineServicePostgres implements TranscriptLineService {
         String viText = (String) row[3];
         Double start = row[4] != null ? ((Number) row[4]).doubleValue() : null;
         Double end = row[5] != null ? ((Number) row[5]).doubleValue() : null;
-        Boolean skip = row[6] != null && (Boolean) row[6];
+        Boolean skip = row[6] != null && ((Number) row[6]).intValue() == 1;
         Integer line_index = row[7] != null ? ((Number) row[7]).intValue() : null;
 
         // Postgres native query returns jsonb/json columns as String (via jackson/hibernate type

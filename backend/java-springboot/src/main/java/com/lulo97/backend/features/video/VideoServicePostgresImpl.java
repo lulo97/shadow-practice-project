@@ -2,6 +2,7 @@ package com.lulo97.backend.features.video;
 
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import jakarta.persistence.PersistenceException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -22,22 +24,18 @@ import java.util.Optional;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = true)
 public class VideoServicePostgresImpl implements VideoService {
 
-    private final EntityManager entityManager;
     private final VideoRepository videoRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public VideoServicePostgresImpl(EntityManager entityManager, VideoRepository videoRepository) {
+    public VideoServicePostgresImpl(VideoRepository videoRepository, JdbcTemplate jdbcTemplate) {
         System.out.println("VideoServicePostgresImpl run");
-        this.entityManager = entityManager;
         this.videoRepository = videoRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public Result<?> getList(
-            Long user_id,
-            String title,
-            LocalDateTime fromDate,
-            LocalDateTime toDate,
-            String videoType) {
+    public Result<?> getList(Long user_id, String title, LocalDateTime fromDate,
+            LocalDateTime toDate, String videoType) {
 
         try {
 
@@ -45,35 +43,30 @@ public class VideoServicePostgresImpl implements VideoService {
             List<Object> params = new ArrayList<>();
 
             if (title != null && !title.isBlank()) {
-                conditions.add(
-                        "LOWER(v.title) LIKE LOWER(?)");
+                conditions.add("LOWER(v.title) LIKE LOWER(?)");
 
                 params.add("%" + title + "%");
             }
 
             if (fromDate != null) {
-                conditions.add(
-                        "v.created_at >= ?");
+                conditions.add("v.created_at >= ?");
 
                 params.add(fromDate);
             }
 
             if (toDate != null) {
-                conditions.add(
-                        "v.created_at <= ?");
+                conditions.add("v.created_at <= ?");
 
                 params.add(toDate);
             }
 
             if ("SYSTEM_VIDEOS".equals(videoType)) {
                 conditions.add("u.username = ?");
-                params.add(
-                        Utils.ADMIN_USERNAME);
+                params.add(Utils.ADMIN_USERNAME);
             } else {
                 conditions.add("u.id = ?");
 
-                params.add(
-                        user_id);
+                params.add(user_id);
             }
 
             String whereClause = " WHERE " + String.join(" AND ", conditions);
@@ -139,39 +132,37 @@ public class VideoServicePostgresImpl implements VideoService {
                     LEFT JOIN record r
                         ON tl.id = r.transcript_line_id
 
-                    """
-                    +
-                    whereClause
-                    +
-                    """
+                    """ + whereClause + """
 
-                            GROUP BY
-                                v.id,
-                                v.title,
-                                v.youtube_id,
-                                v.user_id,
-                                v.created_at,
-                                v.description
+                    GROUP BY
+                        v.id,
+                        v.title,
+                        v.youtube_id,
+                        v.user_id,
+                        v.created_at,
+                        v.description
 
-                            ORDER BY v.created_at DESC
-                            """;
+                    ORDER BY v.created_at DESC
+                    """;
 
-            Query query = entityManager.createNativeQuery(
-                    sql);
+            // Query query = entityManager.createNativeQuery(
+            // sql);
 
-            for (int i = 0; i < params.size(); i++) {
-                query.setParameter(
-                        i + 1,
-                        params.get(i));
-            }
+            // for (int i = 0; i < params.size(); i++) {
+            // query.setParameter(
+            // i + 1,
+            // params.get(i));
+            // }
 
-            List<?> data = query.getResultList();
+            // List<?> data = query.getResultList();
+            List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, params.toArray());
 
-            return Result.ok(data);
+            return Result.ok(result);
 
         } catch (Exception e) {
-            //Only way is the throw here
-            //Because it always throw "Transaction silently rolled back because it has been marked as rollback-only" no matter what
+            // Only way is the throw here
+            // Because it always throw "Transaction silently rolled back because it has been marked
+            // as rollback-only" no matter what
             throw new ServiceException("Database error: " + e.getMessage(), e);
         }
     }

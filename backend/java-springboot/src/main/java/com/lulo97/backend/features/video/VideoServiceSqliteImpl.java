@@ -22,14 +22,12 @@ import java.util.Optional;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "test", matchIfMissing = true)
 public class VideoServiceSqliteImpl implements VideoService {
 
-    private final EntityManager entityManager;
     private final VideoRepository videoRepository;
 
     private final JdbcTemplate jdbcTemplate;
 
-    public VideoServiceSqliteImpl(EntityManager entityManager, VideoRepository videoRepository, JdbcTemplate jdbcTemplate) {
+    public VideoServiceSqliteImpl(VideoRepository videoRepository, JdbcTemplate jdbcTemplate) {
         System.out.println("VideoServiceSqliteImpl run");
-        this.entityManager = entityManager;
         this.videoRepository = videoRepository;
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -179,14 +177,14 @@ public class VideoServiceSqliteImpl implements VideoService {
                         ORDER BY v.created_at DESC
                         """;
 
-        Query query = entityManager.createNativeQuery(
-                sql);
+        // Query query = entityManager.createNativeQuery(
+        //         sql);
 
-        for (int i = 0; i < params.size(); i++) {
-            query.setParameter(
-                    i + 1,
-                    params.get(i));
-        }
+        // for (int i = 0; i < params.size(); i++) {
+        //     query.setParameter(
+        //             i + 1,
+        //             params.get(i));
+        // }
 
         //List<?> result = query.getResultList();
 
